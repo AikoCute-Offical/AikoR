@@ -12,6 +12,6 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/tklauser/go-sysconf v0.3.4 // indirect
 	github.com/urfave/cli v1.22.4
-	github.com/xtls/xray-core v1.3.2-0.20210310161727-fcc9d970748c
+	github.com/xtls/xray-core v1.3.2
 	google.golang.org/appengine v1.6.7 // indirect
 )
