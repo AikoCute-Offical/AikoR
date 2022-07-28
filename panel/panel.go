@@ -4,9 +4,9 @@ import (
 	"log"
 	"sync"
 
+	_ "github.com/AikoCute-Offical/AikoR/AikoR/distro/all"
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/AikoCute-Offical/AikoR/api/sspanel"
-	_ "github.com/AikoCute-Offical/AikoR/main/distro/all"
 	"github.com/AikoCute-Offical/AikoR/service"
 	"github.com/AikoCute-Offical/AikoR/service/controller"
 	"github.com/xtls/xray-core/app/dispatcher"
