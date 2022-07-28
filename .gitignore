@@ -1,0 +1,12 @@
+main/main
+main/AikoR
+main/mytest
+main/access.logo
+main/error.log
+api/chooseparser.go.bak
+common/Inboundbuilder/.lego/
+common/legocmd/.lego/
+.vscode/launch.json
+main/.lego
+main/aiko.yml
+./vscode
