@@ -37,9 +37,9 @@ This project is for my personal learning, development and maintenance only, I do
 * Easy to compile and upgrade, can quickly update core version, support new Xray-core features.
 * Support UDP and many other functions
 
-## Đặc trưng
+## Featured
 
-| Đặc trưng                                      | v2ray | trojan | shadowsocks |
+| Featured                                       | v2ray | trojan | shadowsocks |
 | -------------------------------------------    | ----- | ------ | ----------- |
 | Get button info                                | √     | √      | √           |
 | Get user information                           | √     | √      | √           |
@@ -53,7 +53,7 @@ This project is for my personal learning, development and maintenance only, I do
 | Node port speed limit                          | √     | √      | √           |
 | User speed limit                               | √     | √      | √           |
 | Custom DNS                                     | √     | √      | √           |
-## Hỗ trợ giao diện người dùng
+## User interface support
 
 | Panel                                                  | v2ray | trojan | shadowsocks                                 |
 | ------------------------------------------------------ | ----- | ------ | ------------------------------------------- |
