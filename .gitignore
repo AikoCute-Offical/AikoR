@@ -1,4 +1,3 @@
-AikoR/aiko.yml
 AikoR/AikoR
 AikoR/AikoR*
 AikoR/mytest
@@ -10,6 +9,6 @@ common/legocmd/.lego/
 .vscode/launch.json
 AikoR/.lego
 AikoR/cert
-AikoR/aiko.yml
+AikoR/aiko.yml 
 ./vscode
 .idea/*
