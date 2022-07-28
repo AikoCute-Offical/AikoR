@@ -8,12 +8,12 @@ import (
 
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
 
+	_ "github.com/AikoCute-Offical/AikoR/AikoR/distro/all"
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/AikoCute-Offical/AikoR/api/pmpanel"
 	"github.com/AikoCute-Offical/AikoR/api/proxypanel"
 	"github.com/AikoCute-Offical/AikoR/api/sspanel"
 	"github.com/AikoCute-Offical/AikoR/api/v2board"
-	_ "github.com/AikoCute-Offical/AikoR/main/distro/all"
 	"github.com/AikoCute-Offical/AikoR/service"
 	"github.com/AikoCute-Offical/AikoR/service/controller"
 	"github.com/imdario/mergo"

@@ -8,9 +8,9 @@ import (
 	"syscall"
 	"testing"
 
+	_ "github.com/AikoCute-Offical/AikoR/AikoR/distro/all"
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/AikoCute-Offical/AikoR/api/sspanel"
-	_ "github.com/AikoCute-Offical/AikoR/main/distro/all"
 	. "github.com/AikoCute-Offical/AikoR/service/controller"
 	"github.com/xtls/xray-core/core"
 	"github.com/xtls/xray-core/infra/conf"
