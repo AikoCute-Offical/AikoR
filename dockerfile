@@ -5,7 +5,7 @@ COPY . .
 ENV CGO_ENABLED=0
 RUN go mod download && \
     go env -w GOFLAGS=-buildvcs=false && \
-    go build -v -o AikoR -trimpath -ldflags "-s -w -buildid=" ./main
+    go build -v -o AikoR -trimpath -ldflags "-s -w -buildid=" ./AikoR
 
 # Release
 FROM alpine:latest 
