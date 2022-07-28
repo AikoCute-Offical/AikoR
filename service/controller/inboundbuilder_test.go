@@ -15,18 +15,21 @@ func TestBuildV2ray(t *testing.T) {
 		SpeedLimit:        0,
 		AlterID:           2,
 		TransportProtocol: "ws",
-		Host:              "test.test.tk",
+		Host:              "test.aikocute.com",
 		Path:              "v2ray",
 		EnableTLS:         false,
 		TLSType:           "tls",
 	}
 	certConfig := &CertConfig{
 		CertMode:   "http",
-		CertDomain: "test.test.tk",
+		CertDomain: "test.aikocute.com",
 		Provider:   "alidns",
 		Email:      "test@gmail.com",
 	}
-	_, err := InboundBuilder(nodeInfo, certConfig)
+	config := &Config{
+		CertConfig: certConfig,
+	}
+	_, err := InboundBuilder(config, nodeInfo)
 	if err != nil {
 		t.Error(err)
 	}
@@ -40,7 +43,7 @@ func TestBuildTrojan(t *testing.T) {
 		SpeedLimit:        0,
 		AlterID:           2,
 		TransportProtocol: "tcp",
-		Host:              "trojan.test.tk",
+		Host:              "test.aikocute.com",
 		Path:              "v2ray",
 		EnableTLS:         false,
 		TLSType:           "tls",
@@ -50,12 +53,15 @@ func TestBuildTrojan(t *testing.T) {
 	DNSEnv["ALICLOUD_SECRET_KEY"] = "bbb"
 	certConfig := &CertConfig{
 		CertMode:   "dns",
-		CertDomain: "trojan.test.tk",
+		CertDomain: "trojan.aikocute.com",
 		Provider:   "alidns",
 		Email:      "test@gmail.com",
 		DNSEnv:     DNSEnv,
 	}
-	_, err := InboundBuilder(nodeInfo, certConfig)
+	config := &Config{
+		CertConfig: certConfig,
+	}
+	_, err := InboundBuilder(config, nodeInfo)
 	if err != nil {
 		t.Error(err)
 	}
@@ -69,7 +75,7 @@ func TestBuildSS(t *testing.T) {
 		SpeedLimit:        0,
 		AlterID:           2,
 		TransportProtocol: "tcp",
-		Host:              "test.test.tk",
+		Host:              "test.aikocute.com",
 		Path:              "v2ray",
 		EnableTLS:         false,
 		TLSType:           "tls",
@@ -79,12 +85,15 @@ func TestBuildSS(t *testing.T) {
 	DNSEnv["ALICLOUD_SECRET_KEY"] = "bbb"
 	certConfig := &CertConfig{
 		CertMode:   "dns",
-		CertDomain: "trojan.test.tk",
+		CertDomain: "trojan.aikocute.com",
 		Provider:   "alidns",
 		Email:      "test@me.com",
 		DNSEnv:     DNSEnv,
 	}
-	_, err := InboundBuilder(nodeInfo, certConfig)
+	config := &Config{
+		CertConfig: certConfig,
+	}
+	_, err := InboundBuilder(config, nodeInfo)
 	if err != nil {
 		t.Error(err)
 	}

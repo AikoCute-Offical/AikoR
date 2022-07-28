@@ -12,7 +12,7 @@ func CreateClient() api.API {
 	apiConfig := &api.Config{
 		APIHost:  "http://127.0.0.1:667",
 		Key:      "123",
-		NodeID:   41,
+		NodeID:   3,
 		NodeType: "V2ray",
 	}
 	client := sspanel.New(apiConfig)
@@ -128,6 +128,31 @@ func TestReportReportUserTraffic(t *testing.T) {
 	}
 	//client.Debug()
 	err = client.ReportUserTraffic(&generalUserTraffic)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestGetNodeRule(t *testing.T) {
+	client := CreateClient()
+
+	ruleList, protocolRule, err := client.GetNodeRule()
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Log(ruleList, protocolRule)
+}
+
+func TestReportIllegal(t *testing.T) {
+	client := CreateClient()
+
+	detectResult := []api.DetectResult{
+		api.DetectResult{1, 2},
+		api.DetectResult{1, 3},
+	}
+	client.Debug()
+	err := client.ReportIllegal(&detectResult)
 	if err != nil {
 		t.Error(err)
 	}

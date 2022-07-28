@@ -4,7 +4,8 @@ import (
 	// The following are necessary as they register handlers in their init functions.
 
 	// Required features. Can't remove unless there is replacements.
-	_ "github.com/xtls/xray-core/app/dispatcher"
+	// _ "github.com/xtls/xray-core/app/dispatcher"
+	_ "github.com/AikoCute-Offical/AikoR/app/mydispatcher"
 	_ "github.com/xtls/xray-core/app/proxyman/inbound"
 	_ "github.com/xtls/xray-core/app/proxyman/outbound"
 
@@ -17,6 +18,7 @@ import (
 	// Other optional features.
 	_ "github.com/xtls/xray-core/app/dns"
 	_ "github.com/xtls/xray-core/app/log"
+	_ "github.com/xtls/xray-core/app/metrics"
 	_ "github.com/xtls/xray-core/app/policy"
 	_ "github.com/xtls/xray-core/app/reverse"
 	_ "github.com/xtls/xray-core/app/router"

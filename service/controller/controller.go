@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"log"
+	"math"
 	"reflect"
 	"time"
 
@@ -20,20 +21,20 @@ type Controller struct {
 	clientInfo              api.ClientInfo
 	apiClient               api.API
 	nodeInfo                *api.NodeInfo
+	Tag                     string
 	userList                *[]api.UserInfo
-	nodeStatus              *api.NodeStatus
-	onlineUsers             *[]api.OnlineUser
-	userTraffic             *[]api.UserTraffic
 	nodeInfoMonitorPeriodic *task.Periodic
 	userReportPeriodic      *task.Periodic
+	panelType               string
 }
 
 // New return a Controller service with default parameters.
-func New(server *core.Instance, api api.API, config *Config) *Controller {
+func New(server *core.Instance, api api.API, config *Config, panelType string) *Controller {
 	controller := &Controller{
 		server:    server,
 		config:    config,
 		apiClient: api,
+		panelType: panelType,
 	}
 	return controller
 }
@@ -46,6 +47,8 @@ func (c *Controller) Start() error {
 	if err != nil {
 		return err
 	}
+	c.nodeInfo = newNodeInfo
+	c.Tag = c.buildNodeTag()
 	// Add new tag
 	err = c.addNewTag(newNodeInfo)
 	if err != nil {
@@ -57,12 +60,37 @@ func (c *Controller) Start() error {
 	if err != nil {
 		return err
 	}
+
 	err = c.addNewUser(userInfo, newNodeInfo)
 	if err != nil {
 		return err
 	}
-	c.nodeInfo = newNodeInfo
+	//sync controller userList
 	c.userList = userInfo
+
+	// Add Limiter
+	if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, userInfo); err != nil {
+		log.Print(err)
+	}
+	// Add Rule Manager
+	if !c.config.DisableGetRule {
+		if ruleList, protocolRule, err := c.apiClient.GetNodeRule(); err != nil {
+			log.Printf("Get rule list filed: %s", err)
+		} else {
+			if len(*ruleList) > 0 {
+				if err := c.UpdateRule(c.Tag, *ruleList); err != nil {
+					log.Print(err)
+				}
+			}
+			if protocolRule != nil {
+				if len(*protocolRule) != 0 {
+					if err := c.UpdateProtocolRule(c.Tag, *protocolRule); err != nil {
+						log.Print(err)
+					}
+				}
+			}
+		}
+	}
 	c.nodeInfoMonitorPeriodic = &task.Periodic{
 		Interval: time.Duration(c.config.UpdatePeriodic) * time.Second,
 		Execute:  c.nodeInfoMonitor,
@@ -71,10 +99,19 @@ func (c *Controller) Start() error {
 		Interval: time.Duration(c.config.UpdatePeriodic) * time.Second,
 		Execute:  c.userInfoMonitor,
 	}
-	log.Print("Start monitor node status")
-	c.nodeInfoMonitorPeriodic.Start()
-	log.Print("Start report node status")
-	c.userReportPeriodic.Start()
+	log.Printf("[%s: %d] Start monitor node status", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
+	// delay to start nodeInfoMonitor
+	go func() {
+		time.Sleep(time.Duration(c.config.UpdatePeriodic) * time.Second)
+		_ = c.nodeInfoMonitorPeriodic.Start()
+	}()
+
+	log.Printf("[%s: %d] Start report node status", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
+	// delay to start userReport
+	go func() {
+		time.Sleep(time.Duration(c.config.UpdatePeriodic) * time.Second)
+		_ = c.userReportPeriodic.Start()
+	}()
 	return nil
 }
 
@@ -100,25 +137,70 @@ func (c *Controller) nodeInfoMonitor() (err error) {
 	// First fetch Node Info
 	newNodeInfo, err := c.apiClient.GetNodeInfo()
 	if err != nil {
-		return err
+		log.Print(err)
+		return nil
 	}
-	var nodeInfoChanged bool = false
+
+	// Update User
+	newUserInfo, err := c.apiClient.GetUserList()
+	if err != nil {
+		log.Print(err)
+		return nil
+	}
+
+	var nodeInfoChanged = false
 	// If nodeInfo changed
 	if !reflect.DeepEqual(c.nodeInfo, newNodeInfo) {
 		// Remove old tag
-		oldtag := fmt.Sprintf("%s_%d", c.nodeInfo.NodeType, c.nodeInfo.Port)
+		oldtag := c.Tag
 		err := c.removeOldTag(oldtag)
 		if err != nil {
 			log.Print(err)
+			return nil
+		}
+		if c.nodeInfo.NodeType == "Shadowsocks-Plugin" {
+			err = c.removeOldTag(fmt.Sprintf("dokodemo-door_%s+1", c.Tag))
+		}
+		if err != nil {
+			log.Print(err)
+			return nil
 		}
 		// Add new tag
+		c.nodeInfo = newNodeInfo
+		c.Tag = c.buildNodeTag()
 		err = c.addNewTag(newNodeInfo)
 		if err != nil {
-			log.Panic(err)
+			log.Print(err)
+			return nil
 		}
 		nodeInfoChanged = true
-		c.nodeInfo = newNodeInfo
+		// Remove Old limiter
+		if err = c.DeleteInboundLimiter(oldtag); err != nil {
+			log.Print(err)
+			return nil
+		}
 	}
+
+	// Check Rule
+	if !c.config.DisableGetRule {
+		if ruleList, protocolRule, err := c.apiClient.GetNodeRule(); err != nil {
+			log.Printf("Get rule list filed: %s", err)
+		} else {
+			if len(*ruleList) > 0 {
+				if err := c.UpdateRule(c.Tag, *ruleList); err != nil {
+					log.Print(err)
+				}
+			}
+			if protocolRule != nil {
+				if len(*protocolRule) != 0 {
+					if err := c.UpdateProtocolRule(c.Tag, *protocolRule); err != nil {
+						log.Print(err)
+					}
+				}
+			}
+		}
+	}
+
 	// Check Cert
 	if c.nodeInfo.EnableTLS && (c.config.CertConfig.CertMode == "dns" || c.config.CertConfig.CertMode == "http") {
 		lego, err := legocmd.New()
@@ -131,25 +213,26 @@ func (c *Controller) nodeInfoMonitor() (err error) {
 			log.Print(err)
 		}
 	}
-	// Update User
-	newUserInfo, err := c.apiClient.GetUserList()
-	if err != nil {
-		log.Print(err)
-	}
+
 	if nodeInfoChanged {
 		err = c.addNewUser(newUserInfo, newNodeInfo)
 		if err != nil {
 			log.Print(err)
+			return nil
+		}
+		// Add Limiter
+		if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, newUserInfo); err != nil {
+			log.Print(err)
+			return nil
 		}
 	} else {
 		deleted, added := compareUserList(c.userList, newUserInfo)
 		if len(deleted) > 0 {
 			deletedEmail := make([]string, len(deleted))
 			for i, u := range deleted {
-				deletedEmail[i] = u.Email
+				deletedEmail[i] = fmt.Sprintf("%s|%s|%d", c.Tag, u.Email, u.UID)
 			}
-			tag := fmt.Sprintf("%s_%d", c.nodeInfo.NodeType, c.nodeInfo.Port)
-			err := c.removeUsers(deletedEmail, tag)
+			err := c.removeUsers(deletedEmail, c.Tag)
 			if err != nil {
 				log.Print(err)
 			}
@@ -159,8 +242,12 @@ func (c *Controller) nodeInfoMonitor() (err error) {
 			if err != nil {
 				log.Print(err)
 			}
+			// Update Limiter
+			if err := c.UpdateInboundLimiter(c.Tag, &added); err != nil {
+				log.Print(err)
+			}
 		}
-		log.Printf("%d user deleted, %d user added", len(deleted), len(added))
+		log.Printf("[%s: %d] %d user deleted, %d user added", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(deleted), len(added))
 	}
 	c.userList = newUserInfo
 	return nil
@@ -179,7 +266,40 @@ func (c *Controller) removeOldTag(oldtag string) (err error) {
 }
 
 func (c *Controller) addNewTag(newNodeInfo *api.NodeInfo) (err error) {
-	inboundConfig, err := InboundBuilder(newNodeInfo, c.config.CertConfig)
+	if newNodeInfo.NodeType != "Shadowsocks-Plugin" {
+		inboundConfig, err := InboundBuilder(c.config, newNodeInfo, c.Tag)
+		if err != nil {
+			return err
+		}
+		err = c.addInbound(inboundConfig)
+		if err != nil {
+
+			return err
+		}
+		outBoundConfig, err := OutboundBuilder(c.config, newNodeInfo, c.Tag)
+		if err != nil {
+
+			return err
+		}
+		err = c.addOutbound(outBoundConfig)
+		if err != nil {
+
+			return err
+		}
+
+	} else {
+		return c.addInboundForSSPlugin(*newNodeInfo)
+	}
+	return nil
+}
+
+func (c *Controller) addInboundForSSPlugin(newNodeInfo api.NodeInfo) (err error) {
+	// Shadowsocks-Plugin require a seaperate inbound for other TransportProtocol likes: ws, grpc
+	fakeNodeInfo := newNodeInfo
+	fakeNodeInfo.TransportProtocol = "tcp"
+	fakeNodeInfo.EnableTLS = false
+	// Add a regular Shadowsocks inbound and outbound
+	inboundConfig, err := InboundBuilder(c.config, &fakeNodeInfo, c.Tag)
 	if err != nil {
 		return err
 	}
@@ -188,7 +308,31 @@ func (c *Controller) addNewTag(newNodeInfo *api.NodeInfo) (err error) {
 
 		return err
 	}
-	outBoundConfig, err := OutboundBuilder(newNodeInfo)
+	outBoundConfig, err := OutboundBuilder(c.config, &fakeNodeInfo, c.Tag)
+	if err != nil {
+
+		return err
+	}
+	err = c.addOutbound(outBoundConfig)
+	if err != nil {
+
+		return err
+	}
+	// Add an inbound for upper streaming protocol
+	fakeNodeInfo = newNodeInfo
+	fakeNodeInfo.Port++
+	fakeNodeInfo.NodeType = "dokodemo-door"
+	dokodemoTag := fmt.Sprintf("dokodemo-door_%s+1", c.Tag)
+	inboundConfig, err = InboundBuilder(c.config, &fakeNodeInfo, dokodemoTag)
+	if err != nil {
+		return err
+	}
+	err = c.addInbound(inboundConfig)
+	if err != nil {
+
+		return err
+	}
+	outBoundConfig, err = OutboundBuilder(c.config, &fakeNodeInfo, dokodemoTag)
 	if err != nil {
 
 		return err
@@ -205,23 +349,36 @@ func (c *Controller) addNewUser(userInfo *[]api.UserInfo, nodeInfo *api.NodeInfo
 	users := make([]*protocol.User, 0)
 	if nodeInfo.NodeType == "V2ray" {
 		if nodeInfo.EnableVless {
-			users = buildVlessUser(userInfo)
+			users = c.buildVlessUser(userInfo)
 		} else {
-			users = buildVmessUser(userInfo, nodeInfo.AlterID)
+			alterID := 0
+			if c.panelType == "V2board" {
+				// use latest userInfo
+				alterID = (*userInfo)[0].AlterID
+			} else {
+				alterID = nodeInfo.AlterID
+			}
+			if alterID >= 0 && alterID < math.MaxUint16 {
+				users = c.buildVmessUser(userInfo, uint16(alterID))
+			} else {
+				users = c.buildVmessUser(userInfo, 0)
+				return fmt.Errorf("AlterID should between 0 to 1<<16 - 1, set it to 0 for now")
+			}
 		}
 	} else if nodeInfo.NodeType == "Trojan" {
-		users = buildTrojanUser(userInfo)
+		users = c.buildTrojanUser(userInfo)
 	} else if nodeInfo.NodeType == "Shadowsocks" {
-		users = buildSSUser(userInfo)
+		users = c.buildSSUser(userInfo, nodeInfo.CypherMethod)
+	} else if nodeInfo.NodeType == "Shadowsocks-Plugin" {
+		users = c.buildSSPluginUser(userInfo)
 	} else {
-		return fmt.Errorf("Unsupported node type: %s", nodeInfo.NodeType)
+		return fmt.Errorf("unsupported node type: %s", nodeInfo.NodeType)
 	}
-	tag := fmt.Sprintf("%s_%d", nodeInfo.NodeType, nodeInfo.Port)
-	err = c.addUsers(users, tag)
+	err = c.addUsers(users, c.Tag)
 	if err != nil {
 		return err
 	}
-	log.Printf("Added %d new users", len(*userInfo))
+	log.Printf("[%s: %d] Added %d new users", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(*userInfo))
 	return nil
 }
 
@@ -279,10 +436,11 @@ func (c *Controller) userInfoMonitor() (err error) {
 	if err != nil {
 		log.Print(err)
 	}
+
 	// Get User traffic
 	userTraffic := make([]api.UserTraffic, 0)
 	for _, user := range *c.userList {
-		up, down := c.getTraffic(user.Email)
+		up, down := c.getTraffic(c.buildUserTag(&user))
 		if up > 0 || down > 0 {
 			userTraffic = append(userTraffic, api.UserTraffic{
 				UID:      user.UID,
@@ -291,10 +449,37 @@ func (c *Controller) userInfoMonitor() (err error) {
 				Download: down})
 		}
 	}
-	err = c.apiClient.ReportUserTraffic(&userTraffic)
-	if err != nil {
-		log.Print(err)
+	if len(userTraffic) > 0 && !c.config.DisableUploadTraffic {
+		err = c.apiClient.ReportUserTraffic(&userTraffic)
+		if err != nil {
+			log.Print(err)
+		}
 	}
-	// TODO Report Online info
+
+	// Report Online info
+	if onlineDevice, err := c.GetOnlineDevice(c.Tag); err != nil {
+		log.Print(err)
+	} else if len(*onlineDevice) > 0 {
+		if err = c.apiClient.ReportNodeOnlineUsers(onlineDevice); err != nil {
+			log.Print(err)
+		} else {
+			log.Printf("[%s: %d] Report %d online users", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(*onlineDevice))
+		}
+	}
+	// Report Illegal user
+	if detectResult, err := c.GetDetectResult(c.Tag); err != nil {
+		log.Print(err)
+	} else if len(*detectResult) > 0 {
+		if err = c.apiClient.ReportIllegal(detectResult); err != nil {
+			log.Print(err)
+		} else {
+			log.Printf("[%s: %d] Report %d illegal behaviors", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(*detectResult))
+		}
+
+	}
 	return nil
+}
+
+func (c *Controller) buildNodeTag() string {
+	return fmt.Sprintf("%s_%s_%d", c.nodeInfo.NodeType, c.config.ListenIP, c.nodeInfo.Port)
 }

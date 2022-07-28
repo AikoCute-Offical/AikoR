@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/AikoCute-Offical/AikoR/api"
@@ -12,26 +13,26 @@ import (
 	"github.com/xtls/xray-core/proxy/vless"
 )
 
-var AEADMethod = []shadowsocks.CipherType{shadowsocks.CipherType_AES_128_GCM, shadowsocks.CipherType_AES_256_GCM, shadowsocks.CipherType_CHACHA20_POLY1305}
+var AEADMethod = []shadowsocks.CipherType{shadowsocks.CipherType_AES_128_GCM, shadowsocks.CipherType_AES_256_GCM, shadowsocks.CipherType_CHACHA20_POLY1305, shadowsocks.CipherType_XCHACHA20_POLY1305}
 
-func buildVmessUser(userInfo *[]api.UserInfo, serverAlterID int) (users []*protocol.User) {
+func (c *Controller) buildVmessUser(userInfo *[]api.UserInfo, serverAlterID uint16) (users []*protocol.User) {
 	users = make([]*protocol.User, len(*userInfo))
 	for i, user := range *userInfo {
 		vmessAccount := &conf.VMessAccount{
 			ID:       user.UUID,
-			AlterIds: uint16(serverAlterID),
+			AlterIds: serverAlterID,
 			Security: "auto",
 		}
 		users[i] = &protocol.User{
 			Level:   0,
-			Email:   user.Email,
+			Email:   c.buildUserTag(&user), // Email: InboundTag|email|uid
 			Account: serial.ToTypedMessage(vmessAccount.Build()),
 		}
 	}
 	return users
 }
 
-func buildVlessUser(userInfo *[]api.UserInfo) (users []*protocol.User) {
+func (c *Controller) buildVlessUser(userInfo *[]api.UserInfo) (users []*protocol.User) {
 	users = make([]*protocol.User, len(*userInfo))
 	for i, user := range *userInfo {
 		vlessAccount := &vless.Account{
@@ -40,14 +41,14 @@ func buildVlessUser(userInfo *[]api.UserInfo) (users []*protocol.User) {
 		}
 		users[i] = &protocol.User{
 			Level:   0,
-			Email:   user.Email,
+			Email:   c.buildUserTag(&user),
 			Account: serial.ToTypedMessage(vlessAccount),
 		}
 	}
 	return users
 }
 
-func buildTrojanUser(userInfo *[]api.UserInfo) (users []*protocol.User) {
+func (c *Controller) buildTrojanUser(userInfo *[]api.UserInfo) (users []*protocol.User) {
 	users = make([]*protocol.User, len(*userInfo))
 	for i, user := range *userInfo {
 		trojanAccount := &trojan.Account{
@@ -56,15 +57,34 @@ func buildTrojanUser(userInfo *[]api.UserInfo) (users []*protocol.User) {
 		}
 		users[i] = &protocol.User{
 			Level:   0,
-			Email:   user.Email,
+			Email:   c.buildUserTag(&user),
 			Account: serial.ToTypedMessage(trojanAccount),
 		}
 	}
 	return users
 }
 
-func buildSSUser(userInfo *[]api.UserInfo) (users []*protocol.User) {
+func (c *Controller) buildSSUser(userInfo *[]api.UserInfo, method string) (users []*protocol.User) {
 	users = make([]*protocol.User, 0)
+
+	cypherMethod := cipherFromString(method)
+	for _, user := range *userInfo {
+		ssAccount := &shadowsocks.Account{
+			Password:   user.Passwd,
+			CipherType: cypherMethod,
+		}
+		users = append(users, &protocol.User{
+			Level:   0,
+			Email:   c.buildUserTag(&user),
+			Account: serial.ToTypedMessage(ssAccount),
+		})
+	}
+	return users
+}
+
+func (c *Controller) buildSSPluginUser(userInfo *[]api.UserInfo) (users []*protocol.User) {
+	users = make([]*protocol.User, 0)
+
 	for _, user := range *userInfo {
 		// Check if the cypher method is AEAD
 		cypherMethod := cipherFromString(user.Method)
@@ -76,7 +96,7 @@ func buildSSUser(userInfo *[]api.UserInfo) (users []*protocol.User) {
 				}
 				users = append(users, &protocol.User{
 					Level:   0,
-					Email:   user.Email,
+					Email:   c.buildUserTag(&user),
 					Account: serial.ToTypedMessage(ssAccount),
 				})
 			}
@@ -88,14 +108,6 @@ func buildSSUser(userInfo *[]api.UserInfo) (users []*protocol.User) {
 
 func cipherFromString(c string) shadowsocks.CipherType {
 	switch strings.ToLower(c) {
-	case "aes-256-cfb":
-		return shadowsocks.CipherType_AES_256_CFB
-	case "aes-128-cfb":
-		return shadowsocks.CipherType_AES_128_CFB
-	case "chacha20":
-		return shadowsocks.CipherType_CHACHA20
-	case "chacha20-ietf":
-		return shadowsocks.CipherType_CHACHA20_IETF
 	case "aes-128-gcm", "aead_aes_128_gcm":
 		return shadowsocks.CipherType_AES_128_GCM
 	case "aes-256-gcm", "aead_aes_256_gcm":
@@ -107,4 +119,8 @@ func cipherFromString(c string) shadowsocks.CipherType {
 	default:
 		return shadowsocks.CipherType_UNKNOWN
 	}
+}
+
+func (c *Controller) buildUserTag(user *api.UserInfo) string {
+	return fmt.Sprintf("%s|%s|%d", c.Tag, user.Email, user.UID)
 }

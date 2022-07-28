@@ -3,6 +3,7 @@
 package legocmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -10,11 +11,12 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/go-acme/lego/v4/cmd"
+	"github.com/AikoCute-Offical/AikoR/common/legocmd/cmd"
 	"github.com/urfave/cli"
 )
 
 var version = "dev"
+var defaultPath string
 
 type LegoCMD struct {
 	cmdClient *cli.App
@@ -32,11 +34,18 @@ func New() (*LegoCMD, error) {
 		fmt.Printf("lego version %s %s/%s\n", c.App.Version, runtime.GOOS, runtime.GOARCH)
 	}
 
-	var defaultPath string
-	cwd, err := os.Getwd()
-	if err == nil {
-		defaultPath = filepath.Join(cwd, ".lego")
+	// Set default path to configPath/cert
+	var path string = ""
+	configPath := os.Getenv("XRAY_LOCATION_CONFIG")
+	if configPath != "" {
+		path = configPath
+	} else if cwd, err := os.Getwd(); err == nil {
+		path = cwd
+	} else {
+		path = "."
 	}
+
+	defaultPath = filepath.Join(path, "cert")
 
 	app.Flags = cmd.CreateFlags(defaultPath)
 
@@ -44,10 +53,6 @@ func New() (*LegoCMD, error) {
 
 	app.Commands = cmd.CreateCommands()
 
-	// err = app.Run(args)
-	if err != nil {
-		return nil, err
-	}
 	lego := &LegoCMD{
 		cmdClient: app,
 	}
@@ -57,6 +62,21 @@ func New() (*LegoCMD, error) {
 
 // DNSCert cert a domain using DNS API
 func (l *LegoCMD) DNSCert(domain, email, provider string, DNSEnv map[string]string) (CertPath string, KeyPath string, err error) {
+	defer func() (string, string, error) {
+		// Handle any error
+		if r := recover(); r != nil {
+			switch x := r.(type) {
+			case string:
+				err = errors.New(x)
+			case error:
+				err = x
+			default:
+				err = errors.New("unknow panic")
+			}
+			return "", "", err
+		}
+		return CertPath, KeyPath, nil
+	}()
 	// Set Env for DNS configuration
 	for key, value := range DNSEnv {
 		os.Setenv(key, value)
@@ -81,12 +101,26 @@ func (l *LegoCMD) DNSCert(domain, email, provider string, DNSEnv map[string]stri
 
 // HTTPCert cert a domain using http methods
 func (l *LegoCMD) HTTPCert(domain, email string) (CertPath string, KeyPath string, err error) {
+	defer func() (string, string, error) {
+		// Handle any error
+		if r := recover(); r != nil {
+			switch x := r.(type) {
+			case string:
+				err = errors.New(x)
+			case error:
+				err = x
+			default:
+				err = errors.New("unknow panic")
+			}
+			return "", "", err
+		}
+		return CertPath, KeyPath, nil
+	}()
 	// First check if the certificate exists
 	CertPath, KeyPath, err = checkCertfile(domain)
 	if err == nil {
 		return CertPath, KeyPath, err
 	}
-
 	argstring := fmt.Sprintf("lego -a -d %s -m %s --http run", domain, email)
 	err = l.cmdClient.Run(strings.Split(argstring, " "))
 
@@ -103,6 +137,21 @@ func (l *LegoCMD) HTTPCert(domain, email string) (CertPath string, KeyPath strin
 //RenewCert renew a domain cert
 func (l *LegoCMD) RenewCert(domain, email, certMode, provider string, DNSEnv map[string]string) (CertPath string, KeyPath string, err error) {
 	var argstring string
+	defer func() (string, string, error) {
+		// Handle any error
+		if r := recover(); r != nil {
+			switch x := r.(type) {
+			case string:
+				err = errors.New(x)
+			case error:
+				err = x
+			default:
+				err = errors.New("unknow panic")
+			}
+			return "", "", err
+		}
+		return CertPath, KeyPath, nil
+	}()
 	if certMode == "http" {
 		argstring = fmt.Sprintf("lego -a -d %s -m %s --http renew --days 30", domain, email)
 	} else if certMode == "dns" {
@@ -126,8 +175,8 @@ func (l *LegoCMD) RenewCert(domain, email, certMode, provider string, DNSEnv map
 	return CertPath, KeyPath, nil
 }
 func checkCertfile(domain string) (string, string, error) {
-	keyPath := path.Join(".lego", "certificates", fmt.Sprintf("%s.key", domain))
-	certPath := path.Join(".lego", "certificates", fmt.Sprintf("%s.crt", domain))
+	keyPath := path.Join(defaultPath, "certificates", fmt.Sprintf("%s.key", domain))
+	certPath := path.Join(defaultPath, "certificates", fmt.Sprintf("%s.crt", domain))
 	if _, err := os.Stat(keyPath); os.IsNotExist(err) {
 		return "", "", fmt.Errorf("Cert key failed: %s", domain)
 	}
