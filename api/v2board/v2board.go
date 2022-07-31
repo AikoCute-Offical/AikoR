@@ -18,18 +18,19 @@ import (
 
 // APIClient create an api client to the panel.
 type APIClient struct {
-	client        *resty.Client
-	APIHost       string
-	NodeID        int
-	Key           string
-	NodeType      string
-	EnableVless   bool
-	EnableXTLS    bool
-	SpeedLimit    float64
-	DeviceLimit   int
-	LocalRuleList []api.DetectRule
-	ConfigResp    *simplejson.Json
-	access        sync.Mutex
+	client           *resty.Client
+	APIHost          string
+	NodeID           int
+	Key              string
+	NodeType         string
+	EnableVless      bool
+	EnableXTLS       bool
+	SpeedLimit       float64
+	DeviceLimit      int
+	LocalRuleList    []api.DetectRule
+	ConfigResp       *simplejson.Json
+	LastReportOnline map[int]int
+	access           sync.Mutex
 }
 
 // New create an api instance
@@ -58,16 +59,17 @@ func New(apiConfig *api.Config) *APIClient {
 	// Read local rule list
 	localRuleList := readLocalRuleList(apiConfig.RuleListPath)
 	apiClient := &APIClient{
-		client:        client,
-		NodeID:        apiConfig.NodeID,
-		Key:           apiConfig.Key,
-		APIHost:       apiConfig.APIHost,
-		NodeType:      apiConfig.NodeType,
-		EnableVless:   apiConfig.EnableVless,
-		EnableXTLS:    apiConfig.EnableXTLS,
-		SpeedLimit:    apiConfig.SpeedLimit,
-		DeviceLimit:   apiConfig.DeviceLimit,
-		LocalRuleList: localRuleList,
+		client:           client,
+		NodeID:           apiConfig.NodeID,
+		Key:              apiConfig.Key,
+		APIHost:          apiConfig.APIHost,
+		NodeType:         apiConfig.NodeType,
+		EnableVless:      apiConfig.EnableVless,
+		EnableXTLS:       apiConfig.EnableXTLS,
+		SpeedLimit:       apiConfig.SpeedLimit,
+		DeviceLimit:      apiConfig.DeviceLimit,
+		LastReportOnline: make(map[int]int),
+		LocalRuleList:    localRuleList,
 	}
 	return apiClient
 }
@@ -299,16 +301,82 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, *[]string, error) {
 
 // ReportNodeStatus implements the API interface
 func (c *APIClient) ReportNodeStatus(nodeStatus *api.NodeStatus) (err error) {
+	path := fmt.Sprintf("/api/v1/user/status", c.NodeID)
+	systemload := SystemLoad{
+		Uptime: strconv.Itoa(nodeStatus.Uptime),
+		Load:   fmt.Sprintf("%.2f %.2f %.2f", nodeStatus.CPU/100, nodeStatus.CPU/100, nodeStatus.CPU/100),
+	}
+
+	res, err := c.client.R().
+		SetBody(systemload).
+		SetResult(&Response{}).
+		ForceContentType("application/json").
+		Post(path)
+
+	_, err = c.parseResponse(res, path, err)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 //ReportNodeOnlineUsers implements the API interface
 func (c *APIClient) ReportNodeOnlineUsers(onlineUserList *[]api.OnlineUser) error {
+	c.access.Lock()
+	defer c.access.Unlock()
+
+	reportOnline := make(map[int]int)
+	data := make([]OnlineUser, len(*onlineUserList))
+	for i, user := range *onlineUserList {
+		data[i] = OnlineUser{UID: user.UID, IP: user.IP}
+		if _, ok := reportOnline[user.UID]; ok {
+			reportOnline[user.UID]++
+		} else {
+			reportOnline[user.UID] = 1
+		}
+	}
+	c.LastReportOnline = reportOnline
+
+	postData := &PostData{Data: data}
+	path := fmt.Sprintf("/api/v1/user/online")
+	res, err := c.client.R().
+		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
+		SetBody(postData).
+		SetResult(&Response{}).
+		ForceContentType("application/json").
+		Post(path)
+
+	_, err = c.parseResponse(res, path, err)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // ReportIllegal implements the API interface
 func (c *APIClient) ReportIllegal(detectResultList *[]api.DetectResult) error {
+
+	data := make([]IllegalItem, len(*detectResultList))
+	for i, r := range *detectResultList {
+		data[i] = IllegalItem{
+			ID:  r.RuleID,
+			UID: r.UID,
+		}
+	}
+	postData := &PostData{Data: data}
+	path := "/mod_mu/users/detectlog"
+	res, err := c.client.R().
+		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
+		SetBody(postData).
+		SetResult(&Response{}).
+		ForceContentType("application/json").
+		Post(path)
+	_, err = c.parseResponse(res, path, err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -1,6 +1,7 @@
 package v2board_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/AikoCute-Offical/AikoR/api"
@@ -98,4 +99,36 @@ func TestGetNodeRule(t *testing.T) {
 	}
 
 	t.Log(ruleList, protocolRule)
+}
+
+func TestReportNodeStatus(t *testing.T) {
+	client := CreateClient()
+	nodeStatus := &api.NodeStatus{
+		1, 1, 1, 256,
+	}
+	err := client.ReportNodeStatus(nodeStatus)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestReportReportNodeOnlineUsers(t *testing.T) {
+	client := CreateClient()
+	userList, err := client.GetUserList()
+	if err != nil {
+		t.Error(err)
+	}
+
+	onlineUserList := make([]api.OnlineUser, len(*userList))
+	for i, userInfo := range *userList {
+		onlineUserList[i] = api.OnlineUser{
+			UID: userInfo.UID,
+			IP:  fmt.Sprintf("1.1.1.%d", i),
+		}
+	}
+	//client.Debug()
+	err = client.ReportNodeOnlineUsers(&onlineUserList)
+	if err != nil {
+		t.Error(err)
+	}
 }
