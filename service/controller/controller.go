@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"log"
+	"math"
 	"reflect"
 	"time"
 
@@ -357,7 +358,12 @@ func (c *Controller) addNewUser(userInfo *[]api.UserInfo, nodeInfo *api.NodeInfo
 			} else {
 				alterID = nodeInfo.AlterID
 			}
-			users = c.buildVmessUser(userInfo, alterID)
+			if alterID >= 0 && alterID < math.MaxUint16 {
+				users = c.buildVmessUser(userInfo, uint16(alterID))
+			} else {
+				users = c.buildVmessUser(userInfo, 0)
+				return fmt.Errorf("AlterID should between 0 to 1<<16 - 1, set it to 0 for now")
+			}
 		}
 	} else if nodeInfo.NodeType == "Trojan" {
 		users = c.buildTrojanUser(userInfo)
