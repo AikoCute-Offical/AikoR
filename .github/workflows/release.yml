@@ -86,8 +86,8 @@ jobs:
             goarch: arm
           # END OPENBSD ARM
           # BEGIN PPC
-          - goos: linux
-            goarch: ppc64
+          #- goos: linux
+          #  goarch: ppc64
           - goos: linux
             goarch: ppc64le
           # END PPC
