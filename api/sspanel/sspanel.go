@@ -183,7 +183,7 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 		nodeInfo, err = c.ParseSSPanelNodeInfo(nodeInfoResponse)
 		if err != nil {
 			res, _ := json.Marshal(nodeInfoResponse)
-			return nil, fmt.Errorf("Parse node info failed: %s, \nError: %s, \nPlease check the doc of custom_config for help: https://crackair.gitbook.io/Misaka-blog/dui-jie-sspanel/sspanel/sspanel_custom_config", string(res), err)
+			return nil, fmt.Errorf("Parse node info failed: %s, \nError: %s, \nPlease check the doc of custom_config for help: https://xrayr-project.github.io/XrayR-doc/dui-jie-sspanel/sspanel/sspanel_custom_config", string(res), err)
 		}
 	} else {
 		switch c.NodeType {
@@ -318,7 +318,7 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 }
 
 // GetNodeRule will pull the audit rule form sspanel
-func (c *APIClient) GetNodeRule() (*[]api.DetectRule, *[]string, error) {
+func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
 	ruleList := c.LocalRuleList
 	path := "/mod_mu/func/detect_rules"
 	res, err := c.client.R().
@@ -328,13 +328,13 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, *[]string, error) {
 
 	response, err := c.parseResponse(res, path, err)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	ruleListResponse := new([]RuleItem)
 
 	if err := json.Unmarshal(response.Data, ruleListResponse); err != nil {
-		return nil, nil, fmt.Errorf("Unmarshal %s failed: %s", reflect.TypeOf(ruleListResponse), err)
+		return nil, fmt.Errorf("Unmarshal %s failed: %s", reflect.TypeOf(ruleListResponse), err)
 	}
 
 	for _, r := range *ruleListResponse {
@@ -343,7 +343,7 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, *[]string, error) {
 			Pattern: regexp.MustCompile(r.Content),
 		})
 	}
-	return &ruleList, nil, nil
+	return &ruleList, nil
 }
 
 // ReportIllegal reports the user illegal behaviors
@@ -380,13 +380,15 @@ func (c *APIClient) ParseV2rayNodeResponse(nodeInfoResponse *NodeInfoResponse) (
 	if nodeInfoResponse.RawServerString == "" {
 		return nil, fmt.Errorf("No server info in response")
 	}
-
 	//nodeInfo.RawServerString = strings.ToLower(nodeInfo.RawServerString)
 	serverConf := strings.Split(nodeInfoResponse.RawServerString, ";")
-	port, err := strconv.Atoi(serverConf[1])
+
+	parsedPort, err := strconv.ParseInt(serverConf[1], 10, 32)
 	if err != nil {
 		return nil, err
 	}
+	port := uint32(parsedPort)
+
 	parsedAlterID, err := strconv.ParseInt(serverConf[2], 10, 16)
 	if err != nil {
 		return nil, err
@@ -467,7 +469,7 @@ func (c *APIClient) ParseV2rayNodeResponse(nodeInfoResponse *NodeInfoResponse) (
 
 // ParseSSNodeResponse parse the response for the given nodeinfor format
 func (c *APIClient) ParseSSNodeResponse(nodeInfoResponse *NodeInfoResponse) (*api.NodeInfo, error) {
-	var port int = 0
+	var port uint32 = 0
 	var speedlimit uint64 = 0
 	var method string
 	path := "/mod_mu/users"
@@ -524,10 +526,11 @@ func (c *APIClient) ParseSSPluginNodeResponse(nodeInfoResponse *NodeInfoResponse
 	var speedlimit uint64 = 0
 
 	serverConf := strings.Split(nodeInfoResponse.RawServerString, ";")
-	port, err := strconv.Atoi(serverConf[1])
+	parsedPort, err := strconv.ParseInt(serverConf[1], 10, 32)
 	if err != nil {
 		return nil, err
 	}
+	port := uint32(parsedPort)
 	port = port - 1 // Shadowsocks-Plugin requires two ports, one for ss the other for other stream protocol
 	if port <= 0 {
 		return nil, fmt.Errorf("Shadowsocks-Plugin listen port must bigger than 1")
@@ -618,10 +621,11 @@ func (c *APIClient) ParseTrojanNodeResponse(nodeInfoResponse *NodeInfoResponse) 
 		p = outsidePort
 	}
 
-	port, err := strconv.Atoi(p)
+	parsedPort, err := strconv.ParseInt(p, 10, 32)
 	if err != nil {
 		return nil, err
 	}
+	port := uint32(parsedPort)
 
 	serverConf := strings.Split(nodeInfoResponse.RawServerString, ";")
 	extraServerConf := strings.Split(serverConf[1], "|")
@@ -742,10 +746,11 @@ func (c *APIClient) ParseSSPanelNodeInfo(nodeInfoResponse *NodeInfoResponse) (*a
 		speedlimit = uint64((nodeInfoResponse.SpeedLimit * 1000000) / 8)
 	}
 
-	port, err := strconv.Atoi(nodeConfig.OffsetPortNode)
+	parsedPort, err := strconv.ParseInt(nodeConfig.OffsetPortNode, 10, 32)
 	if err != nil {
 		return nil, err
 	}
+	port := uint32(parsedPort)
 
 	if c.NodeType == "Shadowsocks" {
 		transportProtocol = "tcp"
@@ -754,7 +759,6 @@ func (c *APIClient) ParseSSPanelNodeInfo(nodeInfoResponse *NodeInfoResponse) (*a
 	if c.NodeType == "V2ray" {
 		transportProtocol = nodeConfig.Network
 		TLSType = nodeConfig.Security
-		if AlterID, err = strconv.Atoi(nodeConfig.AlterID); err != nil {
 		if parsedAlterID, err := strconv.ParseInt(nodeConfig.AlterID, 10, 16); err != nil {
 			return nil, err
 		} else {
@@ -764,6 +768,10 @@ func (c *APIClient) ParseSSPanelNodeInfo(nodeInfoResponse *NodeInfoResponse) (*a
 		if TLSType == "tls" || TLSType == "xtls" {
 			EnableTLS = true
 		}
+		if nodeConfig.EnableVless == "1" {
+			EnableVless = true
+		}
+	}
 
 	if c.NodeType == "Trojan" {
 		EnableTLS = true

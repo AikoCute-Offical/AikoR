@@ -221,14 +221,14 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 			user.Email = response.Get("data").GetIndex(i).Get("secret").MustString()
 			user.Passwd = response.Get("data").GetIndex(i).Get("secret").MustString()
 			user.Method = response.Get("data").GetIndex(i).Get("cipher").MustString()
-			user.Port = response.Get("data").GetIndex(i).Get("port").MustInt()
+			user.Port = uint32(response.Get("data").GetIndex(i).Get("port").MustUint64())
 		case "Trojan":
 			user.UUID = response.Get("data").GetIndex(i).Get("trojan_user").Get("password").MustString()
 			user.Email = response.Get("data").GetIndex(i).Get("trojan_user").Get("password").MustString()
 		case "V2ray":
 			user.UUID = response.Get("data").GetIndex(i).Get("v2ray_user").Get("uuid").MustString()
 			user.Email = response.Get("data").GetIndex(i).Get("v2ray_user").Get("email").MustString()
-			user.AlterID = response.Get("data").GetIndex(i).Get("v2ray_user").Get("alter_id").MustInt()
+			user.AlterID = uint16(response.Get("data").GetIndex(i).Get("v2ray_user").Get("alter_id").MustUint64())
 		}
 		userList[i] = user
 	}
@@ -386,7 +386,7 @@ func (c *APIClient) ParseTrojanNodeResponse(nodeInfoResponse *simplejson.Json) (
 	if c.EnableXTLS {
 		TLSType = "xtls"
 	}
-	port := nodeInfoResponse.Get("local_port").MustInt()
+	port := uint32(nodeInfoResponse.Get("local_port").MustUint64())
 	host := nodeInfoResponse.Get("ssl").Get("sni").MustString()
 
 	// Create GeneralNodeInfo
