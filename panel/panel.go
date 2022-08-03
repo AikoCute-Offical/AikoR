@@ -65,7 +65,7 @@ func (p *Panel) loadCore(panelConfig *Config) *core.Instance {
 	}
 	dnsConfig, err := coreDnsConfig.Build()
 	if err != nil {
-		log.Panicf("Failed to understand DNS config, for help: %s", err)
+		log.Panicf("Failed to understand DNS config, Please check: https://xtls.github.io/config/dns.html for help: %s", err)
 	}
 	// Routing config
 	coreRouterConfig := &conf.RouterConfig{}
@@ -153,7 +153,7 @@ func (p *Panel) loadCore(panelConfig *Config) *core.Instance {
 func (p *Panel) Start() {
 	p.access.Lock()
 	defer p.access.Unlock()
-	log.Print("Start the AikoR..")
+	log.Print("Start the panel..")
 	// Load Core
 	server := p.loadCore(p.panelConfig)
 	if err := server.Start(); err != nil {

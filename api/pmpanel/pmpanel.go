@@ -307,7 +307,7 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 }
 
 // GetNodeRule will pull the audit rule form pmpanel
-func (c *APIClient) GetNodeRule() (*[]api.DetectRule, *[]string, error) {
+func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
 	ruleList := c.LocalRuleList
 	path := "/api/rules"
 	var nodeType = ""
@@ -319,7 +319,7 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, *[]string, error) {
 	case "Trojan":
 		nodeType = "trojan"
 	default:
-		return nil, nil, fmt.Errorf("NodeType Error: %s", c.NodeType)
+		return nil, fmt.Errorf("NodeType Error: %s", c.NodeType)
 	}
 	res, err := c.client.R().
 		SetQueryParams(map[string]string{
@@ -332,13 +332,13 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, *[]string, error) {
 
 	response, err := c.parseResponse(res, path, err)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	ruleListResponse := new([]RuleItem)
 
 	if err := json.Unmarshal(response.Data, ruleListResponse); err != nil {
-		return nil, nil, fmt.Errorf("Unmarshal %s failed: %s", reflect.TypeOf(ruleListResponse), err)
+		return nil, fmt.Errorf("Unmarshal %s failed: %s", reflect.TypeOf(ruleListResponse), err)
 	}
 
 	for _, r := range *ruleListResponse {
@@ -347,7 +347,7 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, *[]string, error) {
 			Pattern: regexp.MustCompile(r.Content),
 		})
 	}
-	return &ruleList, nil, nil
+	return &ruleList, nil
 }
 
 // ReportIllegal reports the user illegal behaviors
