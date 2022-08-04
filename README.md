@@ -64,11 +64,11 @@ This project is for my personal learning, development and maintenance only, I do
 
 ## Software installation - release
 ```
-Comming Soon
+wget --no-check-certificate -O AikoR.sh https://raw.githubusercontent.com/AikoCute-Offical/AikoR-Install/master/AikoR.sh && bash AikoR.sh
 ```
 ### One main installation - docker
 ```
-Comming Soon
+docker pull aikocute/aikor:latest && docker run --restart=always --name aikor -d -v ${PATCH_TO_CONFIG}/aiko.yml:/etc/AikoR/aiko.yml --network=host aikocute/aikor:latest
 ```
 ### Configuration file and detailed instructions
 Comming Soon
