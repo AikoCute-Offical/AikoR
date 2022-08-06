@@ -21,7 +21,6 @@ Nodes:
         CertFile: /etc/AikoR/server.pem # Provided if the CertMode is file
         KeyFile: /etc/AikoR/privkey.pem
         Provider: cloudflare # DNS cert provider, Get the full support list 
-        Email: aikocute@aikocute.com
         DNSEnv: # DNS ENV option used by DNS provider
           ALICLOUD_ACCESS_KEY: aaa
           ALICLOUD_SECRET_KEY: bbb
