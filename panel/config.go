@@ -34,3 +34,10 @@ type ConnetionConfig struct {
 	DownlinkOnly uint32 `mapstructure:"downlinkOnly"`
 	BufferSize   int32  `mapstructure:"bufferSize"`
 }
+
+type ConnectRedisConfig struct {
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Password string `mapstructure:"password"`
+	DB       int    `mapstructure:"db"`
+}

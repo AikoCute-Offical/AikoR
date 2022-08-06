@@ -28,3 +28,13 @@ func getDefaultControllerConfig() *controller.Config {
 		DNSType:        "AsIs",
 	}
 }
+
+// Connecting With redis sever
+func getConnectRedisConfig() *ConnectRedisConfig {
+	return &ConnectRedisConfig{
+		Host:     "localhost",
+		Port:     6379,
+		Password: "",
+		DB:       0,
+	}
+}
