@@ -14,11 +14,12 @@ Nodes:
       RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
     ControllerConfig:
       UpdatePeriodic: 60 # Time to update the nodeinfo, how many sec.
+      DNSType: AsIs # AsIs, UseIP, UseIPv4, UseIPv6, DNS strategy
       CertConfig:
         CertMode: none # Option about how to get certificate: none, file, http, dns. Choose "none" will forcedly disable the tls config.
         CertDomain: "node1.test.com" # Domain to cert
-        CertFile: /etc/AikoR/cert/node1.test.com.cert # Provided if the CertMode is file
-        KeyFile: /etc/AikoR/cert/node1.test.com.key
+        CertFile: /etc/AikoR/server.pem # Provided if the CertMode is file
+        KeyFile: /etc/AikoR/privkey.pem
         Provider: cloudflare # DNS cert provider, Get the full support list 
         Email: aikocute@aikocute.com
         DNSEnv: # DNS ENV option used by DNS provider
