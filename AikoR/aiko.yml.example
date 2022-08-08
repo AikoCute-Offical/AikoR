@@ -1,15 +1,12 @@
 Nodes: #default Config V2ray AikoR No TLS
   -
-    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    PanelType: "V2board"
     ApiConfig:
       ApiHost: "http://127.0.0.1:667"
       ApiKey: "123"
       NodeID: 41
-      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
-      Timeout: 120 # Timeout for the api request
-      SpeedLimit: 0 # Mbps, Local settings will replace remote settings, 0 means disable
-      DeviceLimit: 0 # Local settings will replace remote settings, 0 means disable
+      NodeType: V2ray 
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
       RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
-    ControllerConfig:
-      UpdatePeriodic: 60 # Time to update the nodeinfo, how many sec.
-      DNSType: AsIs # AsIs, UseIP, UseIPv4, UseIPv6, DNS strategy
