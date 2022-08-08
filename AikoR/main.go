@@ -23,7 +23,7 @@ var (
 )
 
 var (
-	version  = "0.2.0"
+	version  = "0.2.1 - Beta 1"
 	codename = "AikoR"
 	intro    = "Backend AikoR For Aiko"
 )
@@ -50,7 +50,7 @@ func getConfig() *viper.Viper {
 	} else {
 		// Set default config path
 		config.SetConfigName("aiko")
-		config.SetConfigType("json")
+		config.SetConfigType("yml")
 		config.AddConfigPath(".")
 
 	}
