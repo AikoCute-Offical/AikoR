@@ -14,4 +14,4 @@ RUN apk --update --no-cache add tzdata ca-certificates && \
     mkdir /etc/AikoR/
 COPY --from=builder /app/AikoR /usr/local/bin
 
-ENTRYPOINT [ "AikoR", "--config", "/etc/AikoR/aiko.yml"]
+ENTRYPOINT [ "AikoR", "--config", "/etc/AikoR/aiko.json"]

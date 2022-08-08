@@ -9,6 +9,6 @@ common/legocmd/.lego/
 .vscode/launch.json
 AikoR/.lego
 AikoR/cert
-AikoR/aiko.yml 
+AikoR/aiko.json 
 ./vscode
 .idea/*

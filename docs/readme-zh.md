@@ -67,7 +67,7 @@ wget --no-check-certificate -O AikoR.sh https://raw.githubusercontent.com/AikoCu
 ```
 ### 一个主要安装 - docker
 ```
-docker pull aikocute/aikor:latest && docker run --restart=always --name aikor -d -v ${PATCH_TO_CONFIG}/aiko.yml:/etc/AikoR/aiko.yml --network=host aikocute/aikor:latest
+docker pull aikocute/aikor:latest && docker run --restart=always --name aikor -d -v ${PATCH_TO_CONFIG}/aiko.json:/etc/AikoR/aiko.json --network=host aikocute/aikor:latest
 ```
 ### 配置文件和详细说明
 即将推出
