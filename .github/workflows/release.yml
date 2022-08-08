@@ -154,7 +154,7 @@ jobs:
           cp ${GITHUB_WORKSPACE}/AikoR/rulelist ./build_assets/AikoBlock
           cp ${GITHUB_WORKSPACE}/AikoR/acces.log.example ./build_assets/acces.log
           cp ${GITHUB_WORKSPACE}/AikoR/error.log.example ./build_assets/error.log
-          cp ${GITHUB_WORKSPACE}/AikoR/aiko.json.example ./build_assets/aiko.json
+          cp ${GITHUB_WORKSPACE}/AikoR/aiko.yml.example ./build_assets/aiko.json
           LIST=('geoip geoip geoip' 'domain-list-community dlc geosite')
           for i in "${LIST[@]}"
           do
