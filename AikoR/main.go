@@ -23,7 +23,7 @@ var (
 )
 
 var (
-	version  = "0.1.3 - Beta Version"
+	version  = "0.1.3"
 	codename = "AikoR"
 	intro    = "Backend AikoR For Aiko"
 )
