@@ -50,7 +50,7 @@ func getConfig() *viper.Viper {
 	} else {
 		// Set default config path
 		config.SetConfigName("aiko")
-		config.SetConfigType("yml")
+		config.SetConfigType("json")
 		config.AddConfigPath(".")
 
 	}
