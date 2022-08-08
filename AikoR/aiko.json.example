@@ -1,0 +1,17 @@
+{
+  "Nodes": [
+    {
+      "PanelType": "V2board",
+      "ApiConfig": {
+        "ApiHost": "http://127.0.0.1:667",
+        "ApiKey": "123",
+        "NodeID": 41,
+        "NodeType": "V2ray",
+        "Timeout": 120,
+        "SpeedLimit": 0,
+        "DeviceLimit": 0,
+        "RuleListPath": null
+      }
+    }
+  ]
+}
