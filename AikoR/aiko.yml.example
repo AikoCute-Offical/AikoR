@@ -9,4 +9,4 @@ Nodes: #default Config V2ray AikoR No TLS
       Timeout: 120 
       SpeedLimit: 0 
       DeviceLimit: 0 
-      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+      RuleListPath: # /etc/AikoR/AikoBlock
