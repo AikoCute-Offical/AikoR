@@ -32,7 +32,7 @@ func getDefaultControllerConfig() *controller.Config {
 // getDefaultApiConfig returns the default api config.
 func getDefaultApiConfig() *ApiConfig {
 	return &ApiConfig{
-		ApiHost:      "",
+		ApiHost:      "https://aikocute.com",
 		ApiKey:       "",
 		NodeID:       "",
 		Timeout:      120,
