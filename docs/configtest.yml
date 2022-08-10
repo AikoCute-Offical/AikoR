@@ -1,0 +1,6 @@
+Nodes:
+  -
+    PanelType: "SSpanel" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      NodeID: 41
+      NodeType: V2ray # Node type: V2ray, Trojan, Shadowsocks, Shadowsocks-Plugin
