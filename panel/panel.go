@@ -234,3 +234,13 @@ func parseConnectionConfig(c *ConnetionConfig) (policy *conf.Policy) {
 
 	return
 }
+
+func parseApiConfig(c *ApiConfig) (config *api.Config) {
+	config = &api.Config{}
+	if c != nil {
+		if _, err := diff.Merge(config, c, config); err != nil {
+			log.Panicf("Read ApiConfig failed: %s", err)
+		}
+	}
+	return
+}
