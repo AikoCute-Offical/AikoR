@@ -21,18 +21,6 @@ type NodesConfig struct {
 	ControllerConfig *controller.Config `mapstructure:"ControllerConfig"`
 }
 
-type ApiConfig struct {
-	ApiHost      string `mapstructure:"ApiHost"`
-	Apikey       string `mapstructure:"Apikey"`
-	NodeType     string `mapstructure:"NodeType"`
-	Timeout      int    `mapstructure:"Timeout"`
-	EnableVless  bool   `mapstructure:"EnableVless"`
-	EnableXTLS   bool   `mapstructure:"EnableXTLS"`
-	SpeedLimit   int    `mapstructure:"SpeedLimit"`
-	DeviceLimit  int    `mapstructure:"DeviceLimit"`
-	RuleListPath string `mapstructure:"RuleListPath"`
-}
-
 type LogConfig struct {
 	Level      string `mapstructure:"Level"`
 	AccessPath string `mapstructure:"AccessPath"`

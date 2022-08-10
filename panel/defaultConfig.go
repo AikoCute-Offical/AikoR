@@ -28,17 +28,3 @@ func getDefaultControllerConfig() *controller.Config {
 		DNSType:        "AsIs",
 	}
 }
-
-func getDefaultApiConfig() *ApiConfig {
-	return &ApiConfig{
-		ApiHost:      "",
-		Apikey:       "",
-		NodeType:     "",
-		Timeout:      30,
-		EnableVless:  false,
-		EnableXTLS:   false,
-		SpeedLimit:   0,
-		DeviceLimit:  0,
-		RuleListPath: "",
-	}
-}
