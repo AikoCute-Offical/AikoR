@@ -144,7 +144,7 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 	case "V2ray":
 		path = "/api/v1/server/Deepbwork/config"
 	case "Trojan":
-		path = "/api/v1/server/TrojanTidalab/config"
+		path = "/api/v1/server/trojan/config"
 	case "Shadowsocks":
 		if nodeInfo, err = c.ParseSSNodeResponse(); err == nil {
 			return nodeInfo, nil
@@ -193,7 +193,7 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 	case "V2ray":
 		path = "/api/v1/server/Deepbwork/user"
 	case "Trojan":
-		path = "/api/v1/server/TrojanTidalab/user"
+		path = "/api/v1/server/trojan/users"
 	case "Shadowsocks":
 		path = "/api/v1/server/ShadowsocksTidalab/user"
 	default:
@@ -240,7 +240,7 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 	case "V2ray":
 		path = "/api/v1/server/Deepbwork/submit"
 	case "Trojan":
-		path = "/api/v1/server/TrojanTidalab/submit"
+		path = "/api/v1/server/trojan/submit"
 	case "Shadowsocks":
 		path = "/api/v1/server/ShadowsocksTidalab/submit"
 	}
@@ -287,7 +287,7 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
 	return &ruleList, nil
 }
 
-// ReportNodeStatus implements the API interface
+// ReportNodeStatus implements the API interface /api/v1/server/trojan/users
 func (c *APIClient) ReportNodeStatus(nodeStatus *api.NodeStatus) (err error) {
 	return nil
 }
@@ -416,4 +416,12 @@ func (c *APIClient) ParseV2rayNodeResponse(nodeInfoResponse *simplejson.Json) (*
 		Header:            header,
 	}
 	return nodeInfo, nil
+}
+
+// 用户连接请求的评级
+func (c *APIClient) GetUserRating(userID string) (int, error) {
+	c.access.Lock()
+	defer c.access.Unlock()
+	userRating := c.ConfigResp.Get("users").Get(userID).Get("rating").MustInt()
+	return userRating, nil
 }
