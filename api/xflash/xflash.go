@@ -417,11 +417,3 @@ func (c *APIClient) ParseV2rayNodeResponse(nodeInfoResponse *simplejson.Json) (*
 	}
 	return nodeInfo, nil
 }
-
-// 用户连接请求的评级
-func (c *APIClient) GetUserRating(userID string) (int, error) {
-	c.access.Lock()
-	defer c.access.Unlock()
-	userRating := c.ConfigResp.Get("users").Get(userID).Get("rating").MustInt()
-	return userRating, nil
-}
