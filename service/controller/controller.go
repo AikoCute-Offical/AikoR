@@ -349,6 +349,9 @@ func (c *Controller) addNewUser(userInfo *[]api.UserInfo, nodeInfo *api.NodeInfo
 			if c.panelType == "V2board" && len(*userInfo) > 0 {
 				// use latest userInfo
 				alterID = (*userInfo)[0].AlterID
+			} else if c.panelType == "Xflash" && len(*userInfo) > 0 {
+				// use latest userInfo
+				alterID = (*userInfo)[0].AlterID
 			} else {
 				alterID = nodeInfo.AlterID
 			}

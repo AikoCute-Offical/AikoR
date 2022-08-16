@@ -14,6 +14,7 @@ import (
 	"github.com/AikoCute-Offical/AikoR/api/proxypanel"
 	"github.com/AikoCute-Offical/AikoR/api/sspanel"
 	"github.com/AikoCute-Offical/AikoR/api/v2board"
+	"github.com/AikoCute-Offical/AikoR/api/xflash"
 	"github.com/AikoCute-Offical/AikoR/service"
 	"github.com/AikoCute-Offical/AikoR/service/controller"
 	"github.com/imdario/mergo"
@@ -168,6 +169,8 @@ func (p *Panel) Start() {
 			apiClient = sspanel.New(nodeConfig.ApiConfig)
 		case "V2board":
 			apiClient = v2board.New(nodeConfig.ApiConfig)
+		case "Xflash":
+			apiClient = xflash.New(nodeConfig.ApiConfig)
 		case "PMpanel":
 			apiClient = pmpanel.New(nodeConfig.ApiConfig)
 		case "Proxypanel":
