@@ -350,7 +350,6 @@ func (c *Controller) addNewUser(userInfo *[]api.UserInfo, nodeInfo *api.NodeInfo
 				// use latest userInfo
 				alterID = (*userInfo)[0].AlterID
 			} else if c.panelType == "Xflash" && len(*userInfo) > 0 {
-				// use latest userInfo
 				alterID = (*userInfo)[0].AlterID
 			} else {
 				alterID = nodeInfo.AlterID
