@@ -1,0 +1,958 @@
+Nodes: #default Config V2ray AikoR No TLS
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 1
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 2
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 3
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 4
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 5
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 6
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 7
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 8
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 9
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 10
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 11
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 12
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 13
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 14
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 15
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 16
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 17
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 18
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 19
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 20
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 21
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 35
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 36
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 37
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 38
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 39
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 40
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 41
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 42
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 43
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 44
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 45
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 46
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 47
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 48
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 49
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 50
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 51
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 52
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 53
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 54
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 55
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 56
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 57
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 58
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 59
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 60
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 61
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 62
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 63
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 64
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 65
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 66
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 67
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 68
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 69
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 70
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 71
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 72
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 73
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 74
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 75
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 76
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 77
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 78
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 79
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 80
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 81
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 82
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 83
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 84
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 85
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 86
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 87
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 88
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 89
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 90
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 91
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 92
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 93
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 94
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 95
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 96
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 97
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 98
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 99
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+  -
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel
+    ApiConfig:
+      ApiHost: "https://aikocute.net"
+      ApiKey: "aikoaikoaikoaikoaiko"
+      NodeID: 100
+      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
+      Timeout: 120 
+      SpeedLimit: 0 
+      DeviceLimit: 0 
+      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
