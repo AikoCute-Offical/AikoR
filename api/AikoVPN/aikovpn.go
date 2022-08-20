@@ -272,7 +272,7 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
 		return &ruleList, nil
 	}
 
-	// xflash only support the rule for v2ray
+	// aikovpn only support the rule for v2ray
 	// fix: reuse config response
 	c.access.Lock()
 	defer c.access.Unlock()
@@ -363,7 +363,7 @@ func (c *APIClient) ParseV2rayNodeResponse(nodeInfoResponse *simplejson.Json) (*
 	inboundInfo := simplejson.New()
 	if tmpInboundInfo, ok := nodeInfoResponse.CheckGet("inbound"); ok {
 		inboundInfo = tmpInboundInfo
-		// Compatible with xflash 1.16.4
+		// Compatible with aikovpn 1.16.4
 	} else if tmpInboundInfo, ok := nodeInfoResponse.CheckGet("inbounds"); ok {
 		tmpInboundInfo := tmpInboundInfo.MustArray()
 		marshalByte, _ := json.Marshal(tmpInboundInfo[0].(map[string]interface{}))
