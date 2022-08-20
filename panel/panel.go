@@ -10,7 +10,6 @@ import (
 
 	_ "github.com/AikoCute-Offical/AikoR/AikoR/distro/all"
 	"github.com/AikoCute-Offical/AikoR/api"
-	"github.com/AikoCute-Offical/AikoR/api/aikovpn"
 	"github.com/AikoCute-Offical/AikoR/api/pmpanel"
 	"github.com/AikoCute-Offical/AikoR/api/proxypanel"
 	"github.com/AikoCute-Offical/AikoR/api/sspanel"
@@ -172,8 +171,6 @@ func (p *Panel) Start() {
 			apiClient = v2board.New(nodeConfig.ApiConfig)
 		case "Xflash":
 			apiClient = xflash.New(nodeConfig.ApiConfig)
-		case "AikoVPN":
-			apiClient = aikovpn.New(nodeConfig.ApiConfig)
 		case "PMpanel":
 			apiClient = pmpanel.New(nodeConfig.ApiConfig)
 		case "Proxypanel":

@@ -350,8 +350,6 @@ func (c *Controller) addNewUser(userInfo *[]api.UserInfo, nodeInfo *api.NodeInfo
 				alterID = (*userInfo)[0].AlterID
 			} else if c.panelType == "Xflash" && len(*userInfo) > 0 {
 				alterID = (*userInfo)[0].AlterID
-			} else if c.panelType == "AikoVPN" && len(*userInfo) > 0 {
-				alterID = (*userInfo)[0].AlterID
 			} else {
 				alterID = nodeInfo.AlterID
 			}
