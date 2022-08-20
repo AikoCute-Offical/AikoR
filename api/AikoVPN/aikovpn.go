@@ -144,7 +144,7 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 	case "V2ray":
 		path = "/api/v1/server/Deepbwork/config"
 	case "Trojan":
-		path = "/api/v1/server/trojan/config"
+		path = "/api/v1/server/TrojanTidalab/config"
 	case "Shadowsocks":
 		if nodeInfo, err = c.ParseSSNodeResponse(); err == nil {
 			return nodeInfo, nil
@@ -193,7 +193,7 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 	case "V2ray":
 		path = "/api/v1/server/Deepbwork/user"
 	case "Trojan":
-		path = "/api/v1/server/trojan/users"
+		path = "/api/v1/server/TrojanTidalab/user"
 	case "Shadowsocks":
 		path = "/api/v1/server/ShadowsocksTidalab/user"
 	default:
@@ -240,7 +240,7 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 	case "V2ray":
 		path = "/api/v1/server/Deepbwork/submit"
 	case "Trojan":
-		path = "/api/v1/server/trojan/submit"
+		path = "/api/v1/server/TrojanTidalab/submit"
 	case "Shadowsocks":
 		path = "/api/v1/server/ShadowsocksTidalab/submit"
 	}
@@ -287,12 +287,12 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
 	return &ruleList, nil
 }
 
-// ReportNodeStatus implements the API interface /api/v1/server/trojan/users
+// ReportNodeStatus implements the API interface
 func (c *APIClient) ReportNodeStatus(nodeStatus *api.NodeStatus) (err error) {
 	return nil
 }
 
-// ReportNodeOnlineUsers implements the API interface
+//ReportNodeOnlineUsers implements the API interface
 func (c *APIClient) ReportNodeOnlineUsers(onlineUserList *[]api.OnlineUser) error {
 	return nil
 }
@@ -363,7 +363,7 @@ func (c *APIClient) ParseV2rayNodeResponse(nodeInfoResponse *simplejson.Json) (*
 	inboundInfo := simplejson.New()
 	if tmpInboundInfo, ok := nodeInfoResponse.CheckGet("inbound"); ok {
 		inboundInfo = tmpInboundInfo
-		// Compatible with aikovpn 1.16.4
+		// Compatible with aikovpn 1.5.5-dev
 	} else if tmpInboundInfo, ok := nodeInfoResponse.CheckGet("inbounds"); ok {
 		tmpInboundInfo := tmpInboundInfo.MustArray()
 		marshalByte, _ := json.Marshal(tmpInboundInfo[0].(map[string]interface{}))
