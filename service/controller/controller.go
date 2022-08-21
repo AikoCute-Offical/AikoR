@@ -346,9 +346,7 @@ func (c *Controller) addNewUser(userInfo *[]api.UserInfo, nodeInfo *api.NodeInfo
 			users = c.buildVlessUser(userInfo)
 		} else {
 			var alterID uint16 = 0
-			if c.panelType == "V2board" && len(*userInfo) > 0 {
-				alterID = (*userInfo)[0].AlterID
-			} else if c.panelType == "Xflash" && len(*userInfo) > 0 {
+			if (c.panelType == "V2board" || c.panelType == "Xflash") && len(*userInfo) > 0 {
 				alterID = (*userInfo)[0].AlterID
 			} else {
 				alterID = nodeInfo.AlterID
@@ -373,31 +371,31 @@ func (c *Controller) addNewUser(userInfo *[]api.UserInfo, nodeInfo *api.NodeInfo
 }
 
 func compareUserList(old, new *[]api.UserInfo) (deleted, added []api.UserInfo) {
-	msrc := make(map[api.UserInfo]byte) //按源数组建索引
-	mall := make(map[api.UserInfo]byte) //源+目所有元素建索引
+	msrc := make(map[api.UserInfo]byte)
+	mall := make(map[api.UserInfo]byte)
 
-	var set []api.UserInfo //交集
+	var set []api.UserInfo
 
-	//1.源数组建立map
+	//1.source array to build map
 	for _, v := range *old {
 		msrc[v] = 0
 		mall[v] = 0
 	}
-	//2.目数组中，存不进去，即重复元素，所有存不进去的集合就是并集
+	//2.In the array of items, if they cannot be stored, that is, duplicate elements, and all sets that cannot be stored are unions.
 	for _, v := range *new {
 		l := len(mall)
 		mall[v] = 1
-		if l != len(mall) { //长度变化，即可以存
+		if l != len(mall) { //Length changes, that is, you can store
 			l = len(mall)
-		} else { //存不了，进并集
+		} else { //Can't save, enter union
 			set = append(set, v)
 		}
 	}
-	//3.遍历交集，在并集中找，找到就从并集中删，删完后就是补集（即并-交=所有变化的元素）
+	//3.Traverse the intersection, look for it in the union, delete it from the union if you find it, and delete it, it is the complement (ie union-intersection = all changed elements)
 	for _, v := range set {
 		delete(mall, v)
 	}
-	//4.此时，mall是补集，所有元素去源中找，找到就是删除的，找不到的必定能在目数组中找到，即新加的
+	//4.At this point, mall is a complement, all elements are found in the source, and if found, they are deleted. If they are not found, they must be found in the destination array, that is, the newly added
 	for v := range mall {
 		_, exist := msrc[v]
 		if exist {
