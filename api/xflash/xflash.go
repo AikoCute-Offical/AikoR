@@ -8,6 +8,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -144,7 +145,7 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 	case "V2ray":
 		path = "/api/v1/server/Deepbwork/config"
 	case "Trojan":
-		path = "/api/v1/server/TrojanTidalab/config"
+		path = "/api/v1/server/Trojan/config"
 	case "Shadowsocks":
 		if nodeInfo, err = c.ParseSSNodeResponse(); err == nil {
 			return nodeInfo, nil
@@ -193,9 +194,9 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 	case "V2ray":
 		path = "/api/v1/server/Deepbwork/user"
 	case "Trojan":
-		path = "/api/v1/server/TrojanTidalab/user"
+		path = "/api/v1/server/Trojan/user"
 	case "Shadowsocks":
-		path = "/api/v1/server/ShadowsocksTidalab/user"
+		path = "/api/v1/server/Shadowsocks/user"
 	default:
 		return nil, fmt.Errorf("unsupported Node type: %s", c.NodeType)
 	}
@@ -240,9 +241,9 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 	case "V2ray":
 		path = "/api/v1/server/Deepbwork/submit"
 	case "Trojan":
-		path = "/api/v1/server/TrojanTidalab/submit"
+		path = "/api/v1/server/Trojan/submit"
 	case "Shadowsocks":
-		path = "/api/v1/server/ShadowsocksTidalab/submit"
+		path = "/api/v1/server/Shadowsocks/submit"
 	}
 
 	data := make([]UserTraffic, len(*userTraffic))
@@ -278,6 +279,7 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
 	defer c.access.Unlock()
 	ruleListResponse := c.ConfigResp.Get("routing").Get("rules").GetIndex(1).Get("domain").MustStringArray()
 	for i, rule := range ruleListResponse {
+		rule = strings.TrimPrefix(rule, "regexp:")
 		ruleListItem := api.DetectRule{
 			ID:      i,
 			Pattern: regexp.MustCompile(rule),
