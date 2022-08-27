@@ -145,7 +145,7 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 	case "V2ray":
 		path = "/api/v1/server/Deepbwork/config"
 	case "Trojan":
-		path = "/api/v1/server/TrojanTidalab/config"
+		path = "/api/v1/server/TrojanTidalab/config?local_port=&node_id=&token="
 	case "Shadowsocks":
 		if nodeInfo, err = c.ParseSSNodeResponse(); err == nil {
 			return nodeInfo, nil
@@ -194,7 +194,7 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 	case "V2ray":
 		path = "/api/v1/server/Deepbwork/user"
 	case "Trojan":
-		path = "/api/v1/server/Trojan/users"
+		path = "//api/v1/server/trojan/users?key="
 	case "Shadowsocks":
 		path = "/api/v1/server/Shadowsocks/users"
 	default:
@@ -241,7 +241,7 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 	case "V2ray":
 		path = "/api/v1/server/Deepbwork/submit"
 	case "Trojan":
-		path = "/api/v1/server/Trojan/submit"
+		path = "/api/v1/server/trojan/submit?key="
 	case "Shadowsocks":
 		path = "/api/v1/server/Shadowsocks/submit"
 	}
