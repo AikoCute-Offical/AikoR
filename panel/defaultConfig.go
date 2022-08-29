@@ -71,11 +71,3 @@ func getDefaultFallBackConfig() *FallBackConfig {
 		ProxyProtocolVer: 0,
 	}
 }
-
-func getDefaultIpReportConfig() *IpReportConfig {
-	return &IpReportConfig{
-		Url:      "",
-		Token:    "",
-		Periodic: 60,
-	}
-}
