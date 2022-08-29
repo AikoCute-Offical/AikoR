@@ -28,3 +28,58 @@ func getDefaultControllerConfig() *controller.Config {
 		DNSType:        "AsIs",
 	}
 }
+
+func getDefaultNodesConfig() *NodesConfig {
+	return &NodesConfig{
+		PanelType:        "",
+		ApiConfig:        nil,
+		ControllerConfig: nil,
+	}
+}
+
+func getDefaultConfig() *Config {
+	return &Config{
+		LogConfig:          getDefaultLogConfig(),
+		DnsConfigPath:      "",
+		InboundConfigPath:  "",
+		OutboundConfigPath: "",
+		RouteConfigPath:    "",
+		ConnetionConfig:    getDefaultConnetionConfig(),
+		NodesConfig:        []*NodesConfig{},
+	}
+}
+
+func getDefaultNodesConfigs() []*NodesConfig {
+	return []*NodesConfig{}
+}
+
+func getDefaultCertConfig() *CertConfig {
+	return &CertConfig{
+		CertMode:         "none",
+		RejectUnknownSni: false,
+		CertDomain:       "",
+		CertFile:         "",
+		KeyFile:          "",
+		Provider:         "",
+		Email:            "",
+		DNSEnv:           map[string]string{},
+	}
+}
+
+func getDefaultFallBackConfig() *FallBackConfig {
+	return &FallBackConfig{
+		SNI:              "",
+		Alpn:             "",
+		Path:             "",
+		Dest:             "",
+		ProxyProtocolVer: 0,
+	}
+}
+
+func getDefaultIpReportConfig() *IpReportConfig {
+	return &IpReportConfig{
+		Url:      "",
+		Token:    "",
+		Periodic: 60,
+	}
+}
