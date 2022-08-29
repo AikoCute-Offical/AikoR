@@ -34,15 +34,3 @@ type ConnetionConfig struct {
 	DownlinkOnly uint32 `mapstructure:"downlinkOnly"`
 	BufferSize   int32  `mapstructure:"bufferSize"`
 }
-
-type ApiConfig struct {
-	ApiHost      string `mapstructure:"ApiHost"`
-	ApiKey       string `mapstructure:"ApiKey"`
-	NodeID       string `mapstructure:"NodeID"`
-	Timeout      uint32 `mapstructure:"Timeout"`
-	EnableVless  bool   `mapstructure:"EnableVless"`
-	EnableXTLS   bool   `mapstructure:"EnableXTLS"`
-	SpeedLimit   uint32 `mapstructure:"SpeedLimit"`
-	DeviceLimit  uint32 `mapstructure:"DeviceLimit"`
-	RuleListPath string `mapstructure:"RuleListPath"`
-}

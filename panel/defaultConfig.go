@@ -28,18 +28,3 @@ func getDefaultControllerConfig() *controller.Config {
 		DNSType:        "AsIs",
 	}
 }
-
-// getDefaultApiConfig returns the default api config.
-func getDefaultApiConfig() *ApiConfig {
-	return &ApiConfig{
-		ApiHost:      "https://aikocute.com",
-		ApiKey:       "",
-		NodeID:       "",
-		Timeout:      120,
-		EnableVless:  false,
-		EnableXTLS:   false,
-		SpeedLimit:   0,
-		DeviceLimit:  0,
-		RuleListPath: "",
-	}
-}
