@@ -49,10 +49,6 @@ func getDefaultConfig() *Config {
 	}
 }
 
-func getDefaultNodesConfigs() []*NodesConfig {
-	return []*NodesConfig{}
-}
-
 func getDefaultCertConfig() *CertConfig {
 	return &CertConfig{
 		CertMode:         "none",
