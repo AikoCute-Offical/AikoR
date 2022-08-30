@@ -346,7 +346,8 @@ func (c *Controller) addNewUser(userInfo *[]api.UserInfo, nodeInfo *api.NodeInfo
 			users = c.buildVlessUser(userInfo)
 		} else {
 			var alterID uint16 = 0
-			if (c.panelType == "V2board" || c.panelType == "Xflash") && len(*userInfo) > 0 {
+			if (c.panelType == "V2board" || c.panelType == "V2RaySocks") && len(*userInfo) > 0 {
+				// use latest userInfo
 				alterID = (*userInfo)[0].AlterID
 			} else {
 				alterID = nodeInfo.AlterID
@@ -371,31 +372,31 @@ func (c *Controller) addNewUser(userInfo *[]api.UserInfo, nodeInfo *api.NodeInfo
 }
 
 func compareUserList(old, new *[]api.UserInfo) (deleted, added []api.UserInfo) {
-	msrc := make(map[api.UserInfo]byte)
-	mall := make(map[api.UserInfo]byte)
+	msrc := make(map[api.UserInfo]byte) //Index by source array
+	mall := make(map[api.UserInfo]byte) //Indexing all elements of source + destination
 
-	var set []api.UserInfo
+	var set []api.UserInfo //intersection
 
 	//1.source array to build map
 	for _, v := range *old {
 		msrc[v] = 0
 		mall[v] = 0
 	}
-	//2.In the array of items, if they cannot be stored, that is, duplicate elements, and all sets that cannot be stored are unions.
+	//2. In the target array, if it cannot be stored, that is, repeated elements, all sets that cannot be stored are unions
 	for _, v := range *new {
 		l := len(mall)
 		mall[v] = 1
-		if l != len(mall) { //Length changes, that is, you can store
+		if l != len(mall) { // The length changes, that is, it can be stored
 			l = len(mall)
-		} else { //Can't save, enter union
+		} else { // Can't save, enter union
 			set = append(set, v)
 		}
 	}
-	//3.Traverse the intersection, look for it in the union, delete it from the union if you find it, and delete it, it is the complement (ie union-intersection = all changed elements)
+	//3. Traverse the intersection, look for it in the union, delete it from the union if found, and delete it, it is the complement (ie union-intersection = all changed elements)
 	for _, v := range set {
 		delete(mall, v)
 	}
-	//4.At this point, mall is a complement, all elements are found in the source, and if found, they are deleted. If they are not found, they must be found in the destination array, that is, the newly added
+	//4. At this point, mall is a complement, all elements are found in the source, and if found, they are deleted. If they are not found, they must be found in the destination array, that is, newly added
 	for v := range mall {
 		_, exist := msrc[v]
 		if exist {
@@ -426,21 +427,36 @@ func (c *Controller) userInfoMonitor() (err error) {
 	}
 
 	// Get User traffic
-	userTraffic := make([]api.UserTraffic, 0)
+	var userTraffic []api.UserTraffic
+	var upCounterList []stats.Counter
+	var downCounterList []stats.Counter
 	for _, user := range *c.userList {
-		up, down := c.getTraffic(c.buildUserTag(&user))
+		up, down, upCounter, downCounter := c.getTraffic(c.buildUserTag(&user))
 		if up > 0 || down > 0 {
 			userTraffic = append(userTraffic, api.UserTraffic{
 				UID:      user.UID,
 				Email:    user.Email,
 				Upload:   up,
 				Download: down})
+
+			if upCounter != nil {
+				upCounterList = append(upCounterList, upCounter)
+			}
+			if downCounter != nil {
+				downCounterList = append(downCounterList, downCounter)
+			}
 		}
 	}
-	if len(userTraffic) > 0 && !c.config.DisableUploadTraffic {
-		err = c.apiClient.ReportUserTraffic(&userTraffic)
+	if len(userTraffic) > 0 {
+		var err error // Define an empty error
+		if !c.config.DisableUploadTraffic {
+			err = c.apiClient.ReportUserTraffic(&userTraffic)
+		}
+		// If report traffic error, not clear the traffic
 		if err != nil {
 			log.Print(err)
+		} else {
+			c.resetTraffic(&upCounterList, &downCounterList)
 		}
 	}
 
