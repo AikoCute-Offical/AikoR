@@ -14,6 +14,7 @@ import (
 	"github.com/AikoCute-Offical/AikoR/api/proxypanel"
 	"github.com/AikoCute-Offical/AikoR/api/sspanel"
 	"github.com/AikoCute-Offical/AikoR/api/v2board"
+	"github.com/AikoCute-Offical/AikoR/api/v2raysocks"
 	"github.com/AikoCute-Offical/AikoR/api/xflash"
 	"github.com/AikoCute-Offical/AikoR/service"
 	"github.com/AikoCute-Offical/AikoR/service/controller"
@@ -175,6 +176,8 @@ func (p *Panel) Start() {
 			apiClient = pmpanel.New(nodeConfig.ApiConfig)
 		case "Proxypanel":
 			apiClient = proxypanel.New(nodeConfig.ApiConfig)
+		case "V2RaySocks":
+			apiClient = v2raysocks.New(nodeConfig.ApiConfig)
 		default:
 			log.Panicf("Unsupport panel type: %s", nodeConfig.PanelType)
 		}
