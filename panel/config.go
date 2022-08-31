@@ -98,3 +98,10 @@ type NodeConfig struct {
 	ApiConfig        *ApiConfig        `mapstructure:"ApiConfig"`
 	ControllerConfig *ControllerConfig `mapstructure:"ControllerConfig"`
 }
+
+type DNSEnv struct {
+	CLOUDFLARE_EMAIL    string `mapstructure:"CLOUDFLARE_EMAIL"`
+	CLOUDFLARE_API_KEY  string `mapstructure:"CLOUDFLARE_API_KEY"`
+	ALICLOUD_ACCESS_KEY string `mapstructure:"ALICLOUD_ACCESS_KEY"`
+	ALICLOUD_SECRET_KEY string `mapstructure:"ALICLOUD_SECRET_KEY"`
+}

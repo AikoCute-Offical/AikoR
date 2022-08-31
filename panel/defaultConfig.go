@@ -71,3 +71,10 @@ func getDefaultFallBackConfig() *FallBackConfig {
 		ProxyProtocolVer: 0,
 	}
 }
+
+func getDefaultDNSEnv() *DNSEnv {
+	return &DNSEnv{
+		CLOUDFLARE_EMAIL:   "",
+		CLOUDFLARE_API_KEY: "",
+	}
+}
