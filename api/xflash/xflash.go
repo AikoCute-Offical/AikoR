@@ -291,16 +291,70 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
 
 // ReportNodeStatus implements the API interface /api/v1/server/trojan/users
 func (c *APIClient) ReportNodeStatus(nodeStatus *api.NodeStatus) (err error) {
+	var path string
+	switch c.NodeType {
+	case "V2ray":
+		path = "/api/v1/server/Deepbwork/status"
+	case "Trojan":
+		path = "/api/v1/server/TrojanTidalab/status"
+	case "Shadowsocks":
+		path = "/api/v1/server/ShadowsocksTidalab/status"
+	}
+	res, err := c.client.R().
+		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
+		SetBody(nodeStatus).
+		ForceContentType("application/json").
+		Post(path)
+	_, err = c.parseResponse(res, path, err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // ReportNodeOnlineUsers implements the API interface
 func (c *APIClient) ReportNodeOnlineUsers(onlineUserList *[]api.OnlineUser) error {
+	var path string
+	switch c.NodeType {
+	case "V2ray":
+		path = "/api/v1/server/Deepbwork/users"
+	case "Trojan":
+		path = "/api/v1/server/Trojan/users"
+	case "Shadowsocks":
+		path = "/api/v1/server/Shadowsocks/users"
+	}
+	res, err := c.client.R().
+		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
+		SetBody(onlineUserList).
+		ForceContentType("application/json").
+		Post(path)
+	_, err = c.parseResponse(res, path, err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // ReportIllegal implements the API interface
 func (c *APIClient) ReportIllegal(detectResultList *[]api.DetectResult) error {
+	var path string
+	switch c.NodeType {
+	case "V2ray":
+		path = "/api/v1/server/Deepbwork/illegal"
+	case "Trojan":
+		path = "/api/v1/server/Trojan/illegal"
+	case "Shadowsocks":
+		path = "/api/v1/server/Shadowsocks/illegal"
+	}
+	res, err := c.client.R().
+		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
+		SetBody(detectResultList).
+		ForceContentType("application/json").
+		Post(path)
+	_, err = c.parseResponse(res, path, err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
