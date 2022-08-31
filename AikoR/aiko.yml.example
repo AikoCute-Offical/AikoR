@@ -1,12 +1,26 @@
-Nodes: #default Config V2ray AikoR No TLS
+Nodes: #Default AikoR config
   -
-    PanelType: "V2board" # Panel type: Xflash, SSpanel, V2board, PMpanel, Proxypanel
+    PanelType: "Xflash" # Panel type: SSpanel, V2board, PMpanel, Proxypanel, Xflash, V2raysocks
     ApiConfig:
       ApiHost: "http://127.0.0.1:667"
       ApiKey: "123"
       NodeID: 41
-      NodeType: V2ray # Node type: V2ray, Shadowsocks, Trojan, Shadowsocks-Plugin
-      Timeout: 120 
-      SpeedLimit: 0 
-      DeviceLimit: 0 
-      RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
+      NodeType: V2ray # Node type: V2ray, Trojan, Shadowsocks, Shadowsocks-Plugin
+      Timeout: 30 # Timeout for the api request
+      EnableVless: false # Enable Vless for V2ray Type
+      EnableXTLS: false # Enable XTLS for V2ray and Trojan
+      SpeedLimit: 0 # Mbps, Local settings will replace remote settings, 0 means disable
+      DeviceLimit: 0 # Local settings will replace remote settings, 0 means disable
+      RuleListPath: # /etc/AikoR/rulelist Path to local rulelist file
+    ControllerConfig:
+      DisableSniffing: false # Default Disable
+      CertConfig:
+        CertMode: dns # Option about how to get certificate: none, file, http, dns. Choose "none" will forcedly disable the tls config.
+        CertDomain: "node1.test.com" # Domain to cert
+        CertFile: /etc/AikoR/server.pem # Provided if the CertMode is file
+        KeyFile: /etc/AikoR/privkey.pem
+        Provider: cloudflare # DNS cert provider, Get the full support list here: https://go-acme.github.io/lego/dns/
+        Email: test@me.com
+        DNSEnv: # DNS ENV option used by DNS provider
+          CLOUDFLARE_EMAIL: aaa
+          CLOUDFLARE_API_KEY: bbb
