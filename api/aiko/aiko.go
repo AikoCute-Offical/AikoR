@@ -284,11 +284,41 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
 
 // ReportNodeStatus implements the API interface
 func (c *APIClient) ReportNodeStatus(nodeStatus *api.NodeStatus) (err error) {
+	res, err := c.client.R().
+		SetQueryParams(map[string]string{
+			"act":      "submit",
+			"nodetype": strings.ToLower(c.NodeType),
+		}).
+		SetBody(nodeStatus).
+		ForceContentType("application/json").
+		Post(c.APIHost)
+	_, err = c.parseResponse(res, "", err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 //ReportNodeOnlineUsers implements the API interface
 func (c *APIClient) ReportNodeOnlineUsers(onlineUserList *[]api.OnlineUser) error {
+	data := make([]OnlineUser, len(*onlineUserList))
+	for i, user := range *onlineUserList {
+		data[i] = OnlineUser{
+			UID: user.UID,
+		}
+	}
+	res, err := c.client.R().
+		SetQueryParams(map[string]string{
+			"act":      "submit",
+			"nodetype": strings.ToLower(c.NodeType),
+		}).
+		SetBody(data).
+		ForceContentType("application/json").
+		Post(c.APIHost)
+	_, err = c.parseResponse(res, "", err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
