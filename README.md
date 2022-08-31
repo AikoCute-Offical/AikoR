@@ -61,6 +61,7 @@ This project is for my personal learning, development and maintenance only, I do
 | [v2board](https://github.com/v2board/v2board)          | √     | √      | √                                           |
 | [PMPanel](https://github.com/ByteInternetHK/PMPanel)   | √     | √      | √                                           |
 | [ProxyPanel](https://github.com/ProxyPanel/ProxyPanel) | √     | √      | √                                           |
+|  V2raysocks                                            | √     | √      | √                                           |
 |  Xflash (Panel Mod From V2board)                       | √     | √      | √                                           |
 
 ## Software installation - release
