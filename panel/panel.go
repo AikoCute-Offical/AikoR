@@ -172,6 +172,8 @@ func (p *Panel) Start() {
 			apiClient = v2board.New(nodeConfig.ApiConfig)
 		case "Xflash":
 			apiClient = xflash.New(nodeConfig.ApiConfig)
+		case "Aiko":
+			apiClient = xflash.New(nodeConfig.ApiConfig)
 		case "PMpanel":
 			apiClient = pmpanel.New(nodeConfig.ApiConfig)
 		case "Proxypanel":
