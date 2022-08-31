@@ -13,7 +13,6 @@ Nodes: #Default AikoR config
       DeviceLimit: 0 # Local settings will replace remote settings, 0 means disable
       RuleListPath: # /etc/AikoR/rulelist Path to local rulelist file
     ControllerConfig:
-      DisableSniffing: false # Default Disable
       CertConfig:
         CertMode: dns # Option about how to get certificate: none, file, http, dns. Choose "none" will forcedly disable the tls config.
         CertDomain: "node1.test.com" # Domain to cert
