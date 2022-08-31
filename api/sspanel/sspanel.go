@@ -169,7 +169,7 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 
 	// New sspanel API
 	disableCustomConfig := c.DisableCustomConfig
-	if nodeInfoResponse.Version == "2021.11" && !disableCustomConfig {
+	if nodeInfoResponse.Version != "" && !disableCustomConfig {
 		// Check if custom_config is empty
 		if configString, err := json.Marshal(nodeInfoResponse.CustomConfig); err != nil || string(configString) == "[]" {
 			log.Printf("custom_config is empty! take config from address now.")
@@ -776,14 +776,20 @@ func (c *APIClient) ParseSSPanelNodeInfo(nodeInfoResponse *NodeInfoResponse) (*a
 	if c.NodeType == "Trojan" {
 		EnableTLS = true
 		TLSType = "tls"
-		if nodeConfig.Grpc == "1" {
-			transportProtocol = "grpc"
-		} else {
-			transportProtocol = "tcp"
-		}
+		transportProtocol = "tcp"
 
+		// Select security type
 		if nodeConfig.EnableXtls == "1" {
 			TLSType = "xtls"
+		} else if nodeConfig.Security != "" {
+			TLSType = nodeConfig.Security // try to read security from config
+		}
+
+		// Select transport protocol
+		if nodeConfig.Grpc == "1" {
+			transportProtocol = "grpc"
+		} else if nodeConfig.Network != "" {
+			transportProtocol = nodeConfig.Network // try to read transport protocol from config
 		}
 	}
 

@@ -172,7 +172,7 @@ func (d *DefaultDispatcher) getLink(ctx context.Context, network net.Network, sn
 						newError("[fakedns client] create a new map").WriteToLog(session.ExportIDToError(ctx))
 					}
 					domain := addr.Domain()
-					ips, err := d.dns.LookupIP(domain, dns.IPOption{true, true, false})
+					ips, err := d.dns.LookupIP(domain, dns.IPOption{IPv4Enable: true, IPv6Enable: true, FakeEnable: false})
 					if err == nil {
 						for _, ip := range ips {
 							ip2domain.Store(ip.String(), domain)
