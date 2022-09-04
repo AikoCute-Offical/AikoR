@@ -291,25 +291,27 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
 
 // ReportNodeStatus implements the API interface /api/v1/server/trojan/users
 func (c *APIClient) ReportNodeStatus(nodeStatus *api.NodeStatus) (err error) {
-	var path string
-	switch c.NodeType {
-	case "V2ray":
-		path = "/api/v1/server/Deepbwork/status"
-	case "Trojan":
-		path = "/api/v1/server/Trojan/status"
-	case "Shadowsocks":
-		path = "/api/v1/server/Shadowsocks/status"
-	}
-	res, err := c.client.R().
-		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
-		SetBody(nodeStatus).
-		ForceContentType("application/json").
-		Post(path)
-	_, err = c.parseResponse(res, path, err)
-	if err != nil {
-		return err
-	}
-	return nil
+	/*
+		var path string
+		switch c.NodeType {
+		case "V2ray":
+			path = "/api/v1/server/Deepbwork/status"
+		case "Trojan":
+			path = "/api/v1/server/Trojan/status"
+		case "Shadowsocks":
+			path = "/api/v1/server/Shadowsocks/status"
+		}
+		res, err := c.client.R().
+			SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
+			SetBody(nodeStatus).
+			ForceContentType("application/json").
+			Post(path)
+		_, err = c.parseResponse(res, path, err)
+		if err != nil {
+			return err
+		}
+	*/
+	return nil //Xflash not Support ReportNodeStatus
 }
 
 // ReportNodeOnlineUsers implements the API interface
