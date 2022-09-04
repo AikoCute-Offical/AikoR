@@ -296,9 +296,9 @@ func (c *APIClient) ReportNodeStatus(nodeStatus *api.NodeStatus) (err error) {
 	case "V2ray":
 		path = "/api/v1/server/Deepbwork/status"
 	case "Trojan":
-		path = "/api/v1/server/TrojanTidalab/status"
+		path = "/api/v1/server/Trojan/status"
 	case "Shadowsocks":
-		path = "/api/v1/server/ShadowsocksTidalab/status"
+		path = "/api/v1/server/Shadowsocks/status"
 	}
 	res, err := c.client.R().
 		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
