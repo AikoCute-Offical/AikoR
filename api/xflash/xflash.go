@@ -341,25 +341,27 @@ func (c *APIClient) ReportNodeOnlineUsers(onlineUserList *[]api.OnlineUser) erro
 
 // ReportIllegal implements the API interface
 func (c *APIClient) ReportIllegal(detectResultList *[]api.DetectResult) error {
-	var path string
-	switch c.NodeType {
-	case "V2ray":
-		path = "/api/v1/server/Deepbwork/illegal"
-	case "Trojan":
-		path = "/api/v1/server/Trojan/illegal"
-	case "Shadowsocks":
-		path = "/api/v1/server/Shadowsocks/illegal"
-	}
-	res, err := c.client.R().
-		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
-		SetBody(detectResultList).
-		ForceContentType("application/json").
-		Post(path)
-	_, err = c.parseResponse(res, path, err)
-	if err != nil {
-		return err
-	}
-	return nil
+	/*
+		var path string
+		switch c.NodeType {
+		case "V2ray":
+			path = "/api/v1/server/Deepbwork/illegal"
+		case "Trojan":
+			path = "/api/v1/server/Trojan/illegal"
+		case "Shadowsocks":
+			path = "/api/v1/server/Shadowsocks/illegal"
+		}
+		res, err := c.client.R().
+			SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
+			SetBody(detectResultList).
+			ForceContentType("application/json").
+			Post(path)
+		_, err = c.parseResponse(res, path, err)
+		if err != nil {
+			return err
+		}
+	*/
+	return nil // Xflash not Support ReportIllegal
 }
 
 // ParseTrojanNodeResponse parse the response for the given nodeinfor format
