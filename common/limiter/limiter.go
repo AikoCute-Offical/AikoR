@@ -158,6 +158,80 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 	}
 }
 
+type UserIp struct {
+	Uid int      `json:"Uid"`
+	IPs []string `json:"Ips"`
+}
+
+func (l *Limiter) GetOnlineUserIp(tag string) ([]UserIp, error) {
+	if value, ok := l.InboundInfo.Load(tag); ok {
+		inboundInfo := value.(*InboundInfo)
+		// Clear Speed Limiter bucket for users who are not online
+		inboundInfo.BucketHub.Range(func(key, value interface{}) bool {
+			if _, exists := inboundInfo.UserOnlineIP.Load(key.(string)); !exists {
+				inboundInfo.BucketHub.Delete(key.(string))
+			}
+			return true
+		})
+		onlineUser := make([]UserIp, 0)
+		var ipMap *sync.Map
+		inboundInfo.UserOnlineIP.Range(func(key, value interface{}) bool {
+			ipMap = value.(*sync.Map)
+			var ip []string
+			ipMap.Range(func(key, v interface{}) bool {
+				if v.(bool) {
+					ip = append(ip, key.(string))
+				}
+				return true
+			})
+			if len(ip) > 0 {
+				if u, ok := inboundInfo.UserInfo.Load(key.(string)); ok {
+					onlineUser = append(onlineUser, UserIp{
+						Uid: u.(UserInfo).UID,
+						IPs: ip,
+					})
+				}
+			}
+			return true
+		})
+		if len(onlineUser) == 0 {
+			return nil, nil
+		}
+		return onlineUser, nil
+	} else {
+		return nil, fmt.Errorf("no such inbound in limiter: %s", tag)
+	}
+}
+
+func (l *Limiter) UpdateOnlineUserIP(tag string, userIpList []UserIp) {
+	if v, ok := l.InboundInfo.Load(tag); ok {
+		inboundInfo := v.(*InboundInfo)
+		//Clear old IP
+		inboundInfo.UserOnlineIP.Range(func(key, value interface{}) bool {
+			inboundInfo.UserOnlineIP.Delete(key)
+			return true
+		})
+		// Update User Online IP
+		for i := range userIpList {
+			ipMap := new(sync.Map)
+			for _, userIp := range (userIpList)[i].IPs {
+				ipMap.Store(userIp, false)
+			}
+			inboundInfo.UserOnlineIP.Store((userIpList)[i].Uid, ipMap)
+		}
+	}
+}
+
+func (l *Limiter) ClearOnlineUserIP(tag string) {
+	if v, ok := l.InboundInfo.Load(tag); ok {
+		inboundInfo := v.(*InboundInfo)
+		inboundInfo.UserOnlineIP.Range(func(key, value interface{}) bool {
+			inboundInfo.UserOnlineIP.Delete(key)
+			return true
+		})
+	}
+}
+
 // determineRate returns the minimum non-zero rate
 func determineRate(nodeLimit, userLimit uint64) (limit uint64) {
 	if nodeLimit == 0 || userLimit == 0 {
