@@ -14,6 +14,8 @@ type Config struct {
 	DisableIVCheck       bool              `mapstructure:"DisableIVCheck"`
 	DisableSniffing      bool              `mapstructure:"DisableSniffing"`
 	FallBackConfigs      []*FallBackConfig `mapstructure:"FallBackConfigs"`
+	EnableIpRecorder     bool              `mapstructure:"EnableIpRecorder"`
+	IpRecorderConfig     *IpReportConfig   `mapstructure:"IpRecorderConfig"`
 }
 
 type CertConfig struct {
@@ -33,4 +35,12 @@ type FallBackConfig struct {
 	Path             string `mapstructure:"Path"`
 	Dest             string `mapstructure:"Dest"`
 	ProxyProtocolVer uint64 `mapstructure:"ProxyProtocolVer"`
+}
+
+type IpReportConfig struct {
+	Url          string `mapstructure:"Url"`
+	Token        string `mapstructure:"Token"`
+	Periodic     int    `mapstructure:"Periodic"`
+	Timeout      int    `mapstructure:"Timeout"`
+	EnableIpSync bool   `mapstructure:"EnableIpSync"`
 }

@@ -1,7 +1,10 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/AikoCute-Offical/AikoR/common/limiter"
+	"github.com/go-resty/resty/v2"
 	"log"
 	"reflect"
 	"time"
@@ -29,6 +32,7 @@ type Controller struct {
 	userList                *[]api.UserInfo
 	nodeInfoMonitorPeriodic *task.Periodic
 	userReportPeriodic      *task.Periodic
+	onlineIpReportPeriodic  *task.Periodic
 	panelType               string
 	ihm                     inbound.Manager
 	ohm                     outbound.Manager
@@ -115,6 +119,17 @@ func (c *Controller) Start() error {
 		time.Sleep(time.Duration(c.config.UpdatePeriodic) * time.Second)
 		_ = c.userReportPeriodic.Start()
 	}()
+	if c.config.EnableIpRecorder {
+		c.onlineIpReportPeriodic = &task.Periodic{
+			Interval: time.Duration(c.config.IpRecorderConfig.Periodic) * time.Second,
+			Execute:  c.onlineIpReport,
+		}
+		go func() {
+			time.Sleep(time.Duration(c.config.UpdatePeriodic) * time.Second)
+			_ = c.onlineIpReportPeriodic.Start()
+		}()
+		log.Printf("[%s: %d] Start report user ip", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
+	}
 	return nil
 }
 
@@ -131,6 +146,12 @@ func (c *Controller) Close() error {
 		err := c.userReportPeriodic.Close()
 		if err != nil {
 			log.Panicf("user report periodic close failed: %s", err)
+		}
+	}
+	if c.onlineIpReportPeriodic != nil {
+		err := c.onlineIpReportPeriodic.Close()
+		if err != nil {
+			log.Panicf("online ip report periodic close failed: %s", err)
 		}
 	}
 	return nil
@@ -459,15 +480,16 @@ func (c *Controller) userInfoMonitor() (err error) {
 			c.resetTraffic(&upCounterList, &downCounterList)
 		}
 	}
-
-	// Report Online info
-	if onlineDevice, err := c.GetOnlineDevice(c.Tag); err != nil {
-		log.Print(err)
-	} else if len(*onlineDevice) > 0 {
-		if err = c.apiClient.ReportNodeOnlineUsers(onlineDevice); err != nil {
+	if !c.config.EnableIpRecorder {
+		// Report Online info
+		if onlineDevice, err := c.GetOnlineDevice(c.Tag); err != nil {
 			log.Print(err)
-		} else {
-			log.Printf("[%s: %d] Report %d online users", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(*onlineDevice))
+		} else if len(*onlineDevice) > 0 {
+			if err = c.apiClient.ReportNodeOnlineUsers(onlineDevice); err != nil {
+				log.Print(err)
+			} else {
+				log.Printf("[%s: %d] Report %d online users", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(*onlineDevice))
+			}
 		}
 	}
 	// Report Illegal user
@@ -480,6 +502,41 @@ func (c *Controller) userInfoMonitor() (err error) {
 			log.Printf("[%s: %d] Report %d illegal behaviors", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(*detectResult))
 		}
 
+	}
+	return nil
+}
+func (c *Controller) onlineIpReport() (err error) {
+	onlineIp, err := c.dispatcher.Limiter.GetOnlineUserIp(c.Tag)
+	if err != nil {
+		log.Print(err)
+		return nil
+	}
+	rsp, err := resty.New().SetTimeout(time.Duration(c.config.IpRecorderConfig.Timeout) * time.Second).
+		R().
+		SetBody(onlineIp).
+		Post(c.config.IpRecorderConfig.Url +
+			"/api/v1/SyncOnlineIp?token=" +
+			c.config.IpRecorderConfig.Token)
+	if err != nil {
+		log.Print(err)
+		c.dispatcher.Limiter.ClearOnlineUserIP(c.Tag)
+		return nil
+	}
+	log.Printf("[%s: %d] report %d online Ip", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(onlineIp))
+	if rsp.StatusCode() == 200 {
+		onlineIp = []limiter.UserIp{}
+		err := json.Unmarshal(rsp.Body(), &onlineIp)
+		if err != nil {
+			log.Print(err)
+			c.dispatcher.Limiter.ClearOnlineUserIP(c.Tag)
+			return nil
+		}
+		if c.config.IpRecorderConfig.EnableIpSync {
+			c.dispatcher.Limiter.UpdateOnlineUserIP(c.Tag, onlineIp)
+			log.Printf("[%s: %d] update %d online Ip", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(onlineIp))
+		}
+	} else {
+		c.dispatcher.Limiter.ClearOnlineUserIP(c.Tag)
 	}
 	return nil
 }

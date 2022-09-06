@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	"fmt"
-
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/xtls/xray-core/common/protocol"
 	"github.com/xtls/xray-core/core"
