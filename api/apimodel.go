@@ -29,7 +29,6 @@ type NodeStatus struct {
 }
 
 type NodeInfo struct {
-	DeviceLimit       int
 	NodeType          string // Must be V2ray, Trojan, and Shadowsocks
 	NodeID            int
 	Port              uint32
@@ -61,8 +60,6 @@ type UserInfo struct {
 	ObfsParam     string
 	UUID          string
 	AlterID       uint16
-	V2rayUser     *V2RayUserInfo  `json:"v2ray_user"`
-	TrojanUser    *TrojanUserInfo `json:"trojan_user"`
 }
 
 type OnlineUser struct {
@@ -92,14 +89,4 @@ type DetectRule struct {
 type DetectResult struct {
 	UID    int
 	RuleID int
-}
-
-type V2RayUserInfo struct {
-	Uuid    string `json:"uuid"`
-	Email   string `json:"email"`
-	AlterId int    `json:"alter_id"`
-}
-
-type TrojanUserInfo struct {
-	Password string `json:"password"`
 }

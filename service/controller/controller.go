@@ -13,8 +13,6 @@ import (
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
 	"github.com/AikoCute-Offical/AikoR/common/legocmd"
 	"github.com/AikoCute-Offical/AikoR/common/serverstatus"
-	"github.com/go-resty/resty/v2"
-	"github.com/goccy/go-json"
 	"github.com/xtls/xray-core/common/protocol"
 	"github.com/xtls/xray-core/common/task"
 	"github.com/xtls/xray-core/core"
@@ -539,40 +537,6 @@ func (c *Controller) onlineIpReport() (err error) {
 		}
 	} else {
 		c.dispatcher.Limiter.ClearOnlineUserIP(c.Tag)
-	}
-	return nil
-}
-
-func (c *Controller) onlineIpReport() (err error) {
-	onlineIp, err := c.server.GetOnlineIP(c.Tag)
-	if err != nil {
-		log.Print(err)
-		return nil
-	}
-	rsp, err := resty.New().SetTimeout(time.Duration(c.config.IpRecorderConfig.Timeout) * time.Second).
-		R().
-		SetBody(onlineIp).
-		Post(c.config.IpRecorderConfig.Url +
-			"/api/v1/SyncOnlineIp?token=" +
-			c.config.IpRecorderConfig.Token)
-	if err != nil {
-		log.Print(err)
-		c.server.ClearOnlineIps(c.Tag)
-		return nil
-	}
-	log.Printf("[Node: %d] Report %d online ip", c.nodeInfo.NodeID, len(onlineIp))
-	if rsp.StatusCode() == 200 {
-		onlineIp = []mydispatcher.UserIp{}
-		err := json.Unmarshal(rsp.Body(), &onlineIp)
-		if err != nil {
-			log.Print(err)
-			c.server.ClearOnlineIps(c.Tag)
-			return nil
-		}
-		c.server.UpdateOnlineIps(c.Tag, onlineIp)
-		log.Printf("[Node: %d] Updated %d online ip", c.nodeInfo.NodeID, len(onlineIp))
-	} else {
-		c.server.ClearOnlineIps(c.Tag)
 	}
 	return nil
 }

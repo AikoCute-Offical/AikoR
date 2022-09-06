@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/AikoCute-Offical/AikoR/api"
-	"github.com/AikoCute-Offical/AikoR/common/limiter"
 	"github.com/xtls/xray-core/common/protocol"
 	"github.com/xtls/xray-core/core"
 	"github.com/xtls/xray-core/features/inbound"
@@ -21,10 +20,6 @@ func (c *Controller) removeInbound(tag string) error {
 func (c *Controller) removeOutbound(tag string) error {
 	err := c.ohm.RemoveHandler(context.Background(), tag)
 	return err
-}
-
-func (c *Controller) GetOnlineIps(tag string) ([]limiter.UserIp, error) {
-	return c.dispatcher.Limiter.GetOnlineUserIp(tag)
 }
 
 func (c *Controller) addInbound(config *core.InboundHandlerConfig) error {
