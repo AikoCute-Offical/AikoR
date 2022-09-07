@@ -15,11 +15,11 @@ Nodes: #Default AikoR config
     ControllerConfig:
       EnableIpRecorder: false # Enable online ip report
       IpRecorderConfig:
-          Url: "http://127.0.0.1:123" # Report url
-          Token: "123" # Report token
-          Periodic: 60 # Report interval, sec.
-          Timeout: 10 # Report timeout, sec.
-          EnableIpSync: false # Enable online ip sync
+        Url: "http://127.0.0.1:123" # Report url
+        Token: "123" # Report token
+        Periodic: 60 # Report interval, sec.
+        Timeout: 10 # Report timeout, sec.
+        EnableIpSync: false # Enable online ip sync
       CertConfig:
         CertMode: dns # Option about how to get certificate: none, file, http, dns. Choose "none" will forcedly disable the tls config.
         CertDomain: "node1.test.com" # Domain to cert
