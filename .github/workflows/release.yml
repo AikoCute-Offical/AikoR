@@ -151,7 +151,7 @@ jobs:
           cp ${GITHUB_WORKSPACE}/AikoR/route.json ./build_assets/route.json
           cp ${GITHUB_WORKSPACE}/AikoR/custom_outbound.json ./build_assets/custom_outbound.json
           cp ${GITHUB_WORKSPACE}/AikoR/custom_inbound.json ./build_assets/custom_inbound.json
-          cp ${GITHUB_WORKSPACE}/AikoR/rulelist ./build_assets/AikoBlock
+          cp ${GITHUB_WORKSPACE}/AikoR/AikoBlock ./build_assets/AikoBlock
           cp ${GITHUB_WORKSPACE}/AikoR/acces.log.example ./build_assets/acces.log
           cp ${GITHUB_WORKSPACE}/AikoR/error.log.example ./build_assets/error.log
           cp ${GITHUB_WORKSPACE}/AikoR/aiko.yml.example ./build_assets/aiko.yml
