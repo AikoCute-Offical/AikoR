@@ -3,11 +3,12 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/AikoCute-Offical/AikoR/common/limiter"
-	"github.com/go-resty/resty/v2"
 	"log"
 	"reflect"
 	"time"
+
+	"github.com/AikoCute-Offical/AikoR/common/limiter"
+	"github.com/go-resty/resty/v2"
 
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
@@ -367,7 +368,7 @@ func (c *Controller) addNewUser(userInfo *[]api.UserInfo, nodeInfo *api.NodeInfo
 			users = c.buildVlessUser(userInfo)
 		} else {
 			var alterID uint16 = 0
-			if (c.panelType == "V2board" || c.panelType == "Xflash" || c.panelType == "V2raysocks" || c.panelType == "Aiko") && len(*userInfo) > 0 {
+			if (c.panelType == "V2board" || c.panelType == "Xflash" || c.panelType == "V2raysocks" || c.panelType == "AikoVPN") && len(*userInfo) > 0 {
 				// use latest userInfo
 				alterID = (*userInfo)[0].AlterID
 			} else {

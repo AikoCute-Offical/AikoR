@@ -4,23 +4,22 @@ import (
 	"testing"
 
 	"github.com/AikoCute-Offical/AikoR/api"
-	"github.com/AikoCute-Offical/AikoR/api/aiko"
+	"github.com/AikoCute-Offical/AikoR/api/xflash"
 )
 
 func CreateClient() api.API {
 	apiConfig := &api.Config{
-		APIHost:  "https://127.0.0.1/",
-		Key:      "123456789",
-		NodeID:   280002,
+		APIHost:  "http://localhost:9897",
+		Key:      "qwertyuiopasdfghjkl",
+		NodeID:   1,
 		NodeType: "V2ray",
 	}
-	client := aiko.New(apiConfig)
+	client := xflash.New(apiConfig)
 	return client
 }
 
 func TestGetV2rayNodeinfo(t *testing.T) {
 	client := CreateClient()
-	client.Debug()
 	nodeInfo, err := client.GetNodeInfo()
 	if err != nil {
 		t.Error(err)
@@ -30,12 +29,12 @@ func TestGetV2rayNodeinfo(t *testing.T) {
 
 func TestGetSSNodeinfo(t *testing.T) {
 	apiConfig := &api.Config{
-		APIHost:  "https://127.0.0.1/",
-		Key:      "123456789",
-		NodeID:   280009,
+		APIHost:  "http://127.0.0.1:668",
+		Key:      "qwertyuiopasdfghjkl",
+		NodeID:   1,
 		NodeType: "Shadowsocks",
 	}
-	client := aiko.New(apiConfig)
+	client := xflash.New(apiConfig)
 	nodeInfo, err := client.GetNodeInfo()
 	if err != nil {
 		t.Error(err)
@@ -45,12 +44,12 @@ func TestGetSSNodeinfo(t *testing.T) {
 
 func TestGetTrojanNodeinfo(t *testing.T) {
 	apiConfig := &api.Config{
-		APIHost:  "https://127.0.0.1/",
-		Key:      "123456789",
-		NodeID:   280008,
+		APIHost:  "http://127.0.0.1:668",
+		Key:      "qwertyuiopasdfghjkl",
+		NodeID:   1,
 		NodeType: "Trojan",
 	}
-	client := aiko.New(apiConfig)
+	client := xflash.New(apiConfig)
 	nodeInfo, err := client.GetNodeInfo()
 	if err != nil {
 		t.Error(err)
