@@ -1,4 +1,4 @@
-//Package generate the InbounderConfig used by add inbound
+// Package generate the InbounderConfig used by add inbound
 package controller
 
 import (
@@ -13,16 +13,16 @@ import (
 	"github.com/xtls/xray-core/infra/conf"
 )
 
-//InboundBuilder build Inbound config for different protocol
+// InboundBuilder build Inbound config for different protocol
 func InboundBuilder(config *Config, nodeInfo *api.NodeInfo, tag string) (*core.InboundHandlerConfig, error) {
 	inboundDetourConfig := &conf.InboundDetourConfig{}
 	// Build Listen IP address
 	if nodeInfo.NodeType == "Shadowsocks-Plugin" {
 		// Shdowsocks listen in 127.0.0.1 for safety
-		inboundDetourConfig.ListenOn = &conf.Address{Address: net.ParseAddress("127.0.0.1")}
+		inboundDetourConfig.ListenOn = &conf.Address{net.ParseAddress("127.0.0.1")}
 	} else if config.ListenIP != "" {
 		ipAddress := net.ParseAddress(config.ListenIP)
-		inboundDetourConfig.ListenOn = &conf.Address{Address: ipAddress}
+		inboundDetourConfig.ListenOn = &conf.Address{ipAddress}
 	}
 
 	// Build Port
