@@ -13,7 +13,7 @@ OutboundConfigPath: # /etc/AikoR/custom_outbound.json # Path to custom outbound 
   BufferSize: 64 # The internal cache size of each connection, kB 
 Nodes: #Default AikoR config
   -
-    PanelType: "Xflash" # Panel type: SSpanel, V2board, PMpanel, Proxypanel, Xflash, V2raysocks
+    PanelType: "Xflash" # Panel type: SSpanel, V2board, PMpanel, Proxypanel, Xflash, V2Raysocks
     ApiConfig:
       ApiHost: "http://127.0.0.1:667"
       ApiKey: "123"

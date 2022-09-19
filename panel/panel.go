@@ -179,7 +179,7 @@ func (p *Panel) Start() {
 			apiClient = pmpanel.New(nodeConfig.ApiConfig)
 		case "Proxypanel":
 			apiClient = proxypanel.New(nodeConfig.ApiConfig)
-		case "V2raysocks":
+		case "V2Raysocks":
 			apiClient = v2raysocks.New(nodeConfig.ApiConfig)
 		default:
 			log.Panicf("Unsupport panel type: %s", nodeConfig.PanelType)
