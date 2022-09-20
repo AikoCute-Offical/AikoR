@@ -57,6 +57,7 @@ This project is for my personal learning, development and maintenance only, I do
 
 | Panel                                                  | v2ray | trojan | shadowsocks                                 |
 | ------------------------------------------------------ | ----- | ------ | ------------------------------------------- |
+|  AikoPanel                                             | √     | √      | √                                           |
 | [sspanel-uim](https://github.com/Anankke/SSPanel-Uim)  | √     | √      | √ (Single-port multi-user and V2ray-Plugin) |
 | [v2board](https://github.com/v2board/v2board)          | √     | √      | √                                           |
 | [PMPanel](https://github.com/ByteInternetHK/PMPanel)   | √     | √      | √                                           |
