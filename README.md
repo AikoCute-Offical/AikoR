@@ -69,10 +69,16 @@ This project is for my personal learning, development and maintenance only, I do
 ```
 wget --no-check-certificate -O AikoR.sh https://raw.githubusercontent.com/AikoCute-Offical/AikoR-Install/master/AikoR.sh && bash AikoR.sh
 ```
-### One main installation - docker
+### One main installation - docker-hub
 ```
-docker pull aikocute/aikor:latest && docker run --restart=always --name aikor -d -v ${PATCH_TO_CONFIG}/aiko.json:/etc/AikoR/aiko.json --network=host aikocute/aikor:latest
+docker pull aikocute/aikor:latest && docker run --restart=always --name aikor -d -v ${PATCH_TO_CONFIG}/aiko.yml:/etc/AikoR/aiko.yml --network=host aikocute/aikor:latest
 ```
+
+### One main installation - docker-package
+```
+docker pull ghcr.io/aikocute-offical/aikor:latest && docker run --restart=always --name aikor -d -v ${PATCH_TO_CONFIG}/aiko.yml:/etc/AikoR/aiko.yml --network=host ghcr.io/aikocute-offical/aikor:latest
+```
+
 ### Configuration file and detailed instructions
 Comming Soon
 ## Telgram
