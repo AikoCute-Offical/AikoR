@@ -13,6 +13,7 @@ Nodes: #Default AikoR config
       DeviceLimit: 0 # Local settings will replace remote settings, 0 means disable
       RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
     ControllerConfig:
+      AikoRNginx: false # Turn on or off the AikoRNginx Proxy forwarding function
       EnableIpRecorder: false # Enable online ip report
       IpRecorderConfig:
         Url: "http://127.0.0.1:123" # Report url
@@ -21,7 +22,6 @@ Nodes: #Default AikoR config
         Timeout: 10 # Report timeout, sec.
         EnableIpSync: false # Enable online ip sync
       CertConfig:
-        AikoRNginx: false # Turn on or off the AikoRNginx Proxy forwarding function
         CertMode: dns # Option about how to get certificate: none, file, http, dns. Choose "none" will forcedly disable the tls config.
         CertDomain: "node1.test.com" # Domain to cert
         CertFile: /etc/AikoR/server.pem # Provided if the CertMode is file
