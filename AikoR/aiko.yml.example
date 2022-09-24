@@ -21,6 +21,7 @@ Nodes: #Default AikoR config
         Timeout: 10 # Report timeout, sec.
         EnableIpSync: false # Enable online ip sync
       CertConfig:
+        AikoRNginx: false # Turn on or off the AikoRNginx Proxy forwarding function
         CertMode: dns # Option about how to get certificate: none, file, http, dns. Choose "none" will forcedly disable the tls config.
         CertDomain: "node1.test.com" # Domain to cert
         CertFile: /etc/AikoR/server.pem # Provided if the CertMode is file
