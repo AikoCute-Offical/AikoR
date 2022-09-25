@@ -143,9 +143,9 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 	var path string
 	switch c.NodeType {
 	case "V2ray":
-		path = "/api/v1/server/Vmess/config"
+		path = "/api/v1/server/Deepbwork/config"
 	case "Trojan":
-		path = "/api/v1/server/Trojan/config"
+		path = "/api/v1/server/TrojanTidalab/config"
 	case "Shadowsocks":
 		if nodeInfo, err = c.ParseSSNodeResponse(); err == nil {
 			return nodeInfo, nil
