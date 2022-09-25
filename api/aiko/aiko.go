@@ -143,9 +143,9 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 	var path string
 	switch c.NodeType {
 	case "V2ray":
-		path = "/api/v1/server/vmess/config"
+		path = "/api/v1/server/Vmess/config"
 	case "Trojan":
-		path = "/api/v1/server/trojan/config"
+		path = "/api/v1/server/Trojan/config"
 	case "Shadowsocks":
 		if nodeInfo, err = c.ParseSSNodeResponse(); err == nil {
 			return nodeInfo, nil
@@ -192,11 +192,11 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 	var path string
 	switch c.NodeType {
 	case "V2ray":
-		path = "/api/v1/server/vmess/users"
+		path = "/api/v1/server/Vmess/users"
 	case "Trojan":
-		path = "/api/v1/server/trojan/users"
+		path = "/api/v1/server/Trojan/users"
 	case "Shadowsocks":
-		path = "/api/v1/server/shadowsocks/users"
+		path = "/api/v1/server/Shadowsocks/users"
 	default:
 		return nil, fmt.Errorf("unsupported Node type: %s", c.NodeType)
 	}
@@ -239,11 +239,11 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 	var path string
 	switch c.NodeType {
 	case "V2ray":
-		path = "/api/v1/server/vmess/submit"
+		path = "/api/v1/server/Vmess/submit"
 	case "Trojan":
-		path = "/api/v1/server/trojan/submit"
+		path = "/api/v1/server/Trojan/submit"
 	case "Shadowsocks":
-		path = "/api/v1/server/shadowsocks/submit"
+		path = "/api/v1/server/Shadowsocks/submit"
 	}
 
 	data := make([]UserTraffic, len(*userTraffic))
