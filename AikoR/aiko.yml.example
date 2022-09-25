@@ -1,16 +1,3 @@
-Log:
-  Level: none # Log level: none, error, warning, info, debug 
-  AccessPath: # /etc/AikoR/access.Log
-  ErrorPath: # /etc/AikoR/error.log
-DnsConfigPath: # /etc/AikoR/dns.json # Path to dns config
-RouteConfigPath: # /etc/AikoR/route.json # Path to route config
-InboundConfigPath: # /etc/AikoR/custom_inbound.json # Path to custom inbound config
-OutboundConfigPath: # /etc/AikoR/custom_outbound.json # Path to custom outbound config
-  Handshake: 4 # Handshake time limit, Second
-  ConnIdle: 30 # Connection idle time limit, Second
-  UplinkOnly: 2 # Time limit when the connection downstream is closed, Second
-  DownlinkOnly: 4 # Time limit when the connection is closed after the uplink is closed, Second
-  BufferSize: 64 # The internal cache size of each connection, kB 
 Nodes: #Default AikoR config
   -
     PanelType: "Xflash" # Panel type: SSpanel, V2board, PMpanel, Proxypanel, Xflash, V2Raysocks
@@ -26,6 +13,7 @@ Nodes: #Default AikoR config
       DeviceLimit: 0 # Local settings will replace remote settings, 0 means disable
       RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
     ControllerConfig:
+      AikoRNginx: false # Turn on or off the AikoRNginx Proxy forwarding function
       EnableIpRecorder: false # Enable online ip report
       IpRecorderConfig:
         Url: "http://127.0.0.1:123" # Report url

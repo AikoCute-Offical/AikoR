@@ -74,6 +74,7 @@ type ControllerConfig struct {
 	EnableFallback       bool              `mapstructure:"EnableFallback"`
 	DisableIVCheck       bool              `mapstructure:"DisableIVCheck"`
 	DisableSniffing      bool              `mapstructure:"DisableSniffing"`
+	AikoRNginx           bool              `mapstructure:"AikoRNginx"`
 	FallBackConfigs      []*FallBackConfig `mapstructure:"FallBackConfigs"`
 	EnableIpRecorder     bool              `mapstructure:"EnableIpRecorder"`
 	IpRecorderConfig     *IpReportConfig   `mapstructure:"IpRecorderConfig"`
