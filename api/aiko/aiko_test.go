@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/AikoCute-Offical/AikoR/api"
-	"github.com/AikoCute-Offical/AikoR/api/xflash"
+	"github.com/AikoCute-Offical/AikoR/api/aiko"
 )
 
 func CreateClient() api.API {
@@ -14,7 +14,7 @@ func CreateClient() api.API {
 		NodeID:   1,
 		NodeType: "V2ray",
 	}
-	client := xflash.New(apiConfig)
+	client := aiko.New(apiConfig)
 	return client
 }
 
@@ -34,7 +34,7 @@ func TestGetSSNodeinfo(t *testing.T) {
 		NodeID:   1,
 		NodeType: "Shadowsocks",
 	}
-	client := xflash.New(apiConfig)
+	client := aiko.New(apiConfig)
 	nodeInfo, err := client.GetNodeInfo()
 	if err != nil {
 		t.Error(err)
@@ -49,7 +49,7 @@ func TestGetTrojanNodeinfo(t *testing.T) {
 		NodeID:   1,
 		NodeType: "Trojan",
 	}
-	client := xflash.New(apiConfig)
+	client := aiko.New(apiConfig)
 	nodeInfo, err := client.GetNodeInfo()
 	if err != nil {
 		t.Error(err)
