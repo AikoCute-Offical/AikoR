@@ -22,8 +22,8 @@ func getDefaultConnetionConfig() *ConnetionConfig {
 
 func getDefaultControllerConfig() *controller.Config {
 	return &controller.Config{
-		ListenIP:        "0.0.0.0",
-		SendIP:          "0.0.0.0",
+		ListenIP:        "127.0.0.1",
+		SendIP:          "127.0.0.1",
 		UpdatePeriodic:  60,
 		DNSType:         "AsIs",
 		DisableSniffing: true,
