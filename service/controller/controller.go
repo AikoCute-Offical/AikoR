@@ -23,6 +23,11 @@ import (
 	"github.com/xtls/xray-core/features/stats"
 )
 
+type LimitInfo struct {
+	end              int64
+	originSpeedLimit uint64
+}
+
 type Controller struct {
 	server                  *core.Instance
 	config                  *Config
@@ -34,6 +39,8 @@ type Controller struct {
 	nodeInfoMonitorPeriodic *task.Periodic
 	userReportPeriodic      *task.Periodic
 	onlineIpReportPeriodic  *task.Periodic
+	limitedUsers            map[api.UserInfo]LimitInfo
+	warnedUsers             map[api.UserInfo]int
 	panelType               string
 	ihm                     inbound.Manager
 	ohm                     outbound.Manager
