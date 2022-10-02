@@ -21,7 +21,7 @@ Nodes: #Default AikoR config
         Periodic: 60 # Report interval, sec.
         Timeout: 10 # Report timeout, sec.
         EnableIpSync: false # Enable online ip sync
-      AutoSpeedLimitConfig:
+      DynamicSpeedLimitConfig:
         Limit: 0 # Warned speed. Set to 0 to disable AutoSpeedLimit (mbps)
         WarnTimes: 0 # After (WarnTimes) consecutive warnings, the user will be limited. Set to 0 to punish overspeed user immediately.
         LimitSpeed: 0 # The speedlimit of a limited user (unit: mbps)
