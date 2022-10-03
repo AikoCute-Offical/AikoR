@@ -22,7 +22,7 @@ func getDefaultConnetionConfig() *ConnetionConfig {
 
 func getDefaultControllerConfig() *controller.Config {
 	return &controller.Config{
-		ListenIP:        "127.0.0.1",
+		ListenIP:        "0.0.0.0",
 		SendIP:          "0.0.0.0",
 		UpdatePeriodic:  60,
 		DNSType:         "AsIs",
