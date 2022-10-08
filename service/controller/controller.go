@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"runtime"
 	"time"
 
 	"github.com/AikoCute-Offical/AikoR/common/limiter"
@@ -613,6 +614,7 @@ func (c *Controller) onlineIpReport() (err error) {
 	} else {
 		c.dispatcher.Limiter.ClearOnlineUserIP(c.Tag)
 	}
+	runtime.GC()
 	return nil
 }
 
