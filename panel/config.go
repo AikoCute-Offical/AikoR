@@ -54,14 +54,6 @@ type FallBackConfig struct {
 	ProxyProtocolVer uint64 `mapstructure:"ProxyProtocolVer"`
 }
 
-type IpReportConfig struct {
-	Url          string `mapstructure:"Url"`
-	Token        string `mapstructure:"Token"`
-	Periodic     int    `mapstructure:"Periodic"`
-	Timeout      int    `mapstructure:"Timeout"`
-	EnableIpSync bool   `mapstructure:"EnableIpSync"`
-}
-
 type ControllerConfig struct {
 	ListenIP             string            `mapstructure:"ListenIP"`
 	SendIP               string            `mapstructure:"SendIP"`
@@ -76,8 +68,6 @@ type ControllerConfig struct {
 	DisableSniffing      bool              `mapstructure:"DisableSniffing"`
 	AikoRNginx           bool              `mapstructure:"AikoRNginx"`
 	FallBackConfigs      []*FallBackConfig `mapstructure:"FallBackConfigs"`
-	EnableIpRecorder     bool              `mapstructure:"EnableIpRecorder"`
-	IpRecorderConfig     *IpReportConfig   `mapstructure:"IpRecorderConfig"`
 	CertConfig           *CertConfig       `mapstructure:"CertConfig"`
 }
 
