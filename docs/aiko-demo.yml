@@ -27,13 +27,6 @@ Nodes: #Default AikoR config
       RuleListPath: # /etc/AikoR/AikoBlock Path to local rulelist file
     ControllerConfig:
       AikoRNginx: false
-      EnableIpRecorder: false # Enable online ip report
-      IpRecorderConfig:
-        Url: "http://127.0.0.1:123" # Report url
-        Token: "123" # Report token
-        Periodic: 60 # Report interval, sec.
-        Timeout: 10 # Report timeout, sec.
-        EnableIpSync: false # Enable online ip sync
       DynamicSpeedLimitConfig:
         Limit: 0 # Warned speed. Set to 0 to disable AutoSpeedLimit (mbps)
         WarnTimes: 0 # After (WarnTimes) consecutive warnings, the user will be limited. Set to 0 to punish overspeed user immediately.
