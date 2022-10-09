@@ -559,16 +559,8 @@ func (c *Controller) userInfoMonitor() (err error) {
 	}
 
 	if !c.config.EnableIpRecorder {
-		// Report Online info
-		if onlineDevice, err := c.GetOnlineDevice(c.Tag); err != nil {
-			log.Print(err)
-		} else if len(*onlineDevice) > 0 {
-			if err = c.apiClient.ReportNodeOnlineUsers(onlineDevice); err != nil {
-				log.Print(err)
-			} else {
-				log.Printf("[%s: %d] Report %d online users", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(*onlineDevice))
-			}
-		}
+		//ClearOnlineIp
+		c.ClearOnlineIp(c.Tag)
 	}
 	// Report Illegal user
 	if detectResult, err := c.GetDetectResult(c.Tag); err != nil {
