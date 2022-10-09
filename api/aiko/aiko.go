@@ -251,7 +251,8 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 		data[i] = UserTraffic{
 			UID:      traffic.UID,
 			Upload:   traffic.Upload,
-			Download: traffic.Download}
+			Download: traffic.Download,
+			Count:    traffic.Count}
 	}
 
 	res, err := c.client.R().
