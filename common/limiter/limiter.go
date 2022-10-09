@@ -3,10 +3,11 @@ package limiter
 
 import (
 	"fmt"
-	"github.com/AikoCute-Offical/AikoR/api"
-	"github.com/juju/ratelimit"
 	"sync"
 	"time"
+
+	"github.com/AikoCute-Offical/AikoR/api"
+	"github.com/juju/ratelimit"
 )
 
 type UserInfo struct {
@@ -189,6 +190,16 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 		return nil, fmt.Errorf("no such inbound in limiter: %s", tag)
 	}
 	return &onlineUser, nil
+}
+
+func (l *Limiter) ClearOnlineUserIp(tag string) {
+	if value, ok := l.InboundInfo.Load(tag); ok {
+		inboundInfo := value.(*InboundInfo)
+		inboundInfo.UserOnlineIP.Range(func(key, value interface{}) bool {
+			inboundInfo.UserOnlineIP.Delete(key)
+			return true
+		})
+	}
 }
 
 func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *ratelimit.Bucket, SpeedLimit bool, Reject bool) {

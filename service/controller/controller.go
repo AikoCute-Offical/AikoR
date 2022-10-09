@@ -135,16 +135,17 @@ func (c *Controller) Start() error {
 		time.Sleep(time.Duration(c.config.UpdatePeriodic) * time.Second)
 		_ = c.userReportPeriodic.Start()
 	}()
+
 	if c.config.EnableIpRecorder {
 		c.onlineIpReportPeriodic = &task.Periodic{
 			Interval: time.Duration(c.config.IpRecorderConfig.Periodic) * time.Second,
 			Execute:  c.onlineIpReport,
 		}
 		go func() {
-			time.Sleep(time.Duration(c.config.UpdatePeriodic) * time.Second)
+			time.Sleep(time.Duration(c.config.IpRecorderConfig.Periodic) * time.Second)
 			_ = c.onlineIpReportPeriodic.Start()
 		}()
-		log.Printf("[%s: %d] Start report user ip", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
+		log.Printf("[%s: %d] Start report online ip", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
 	}
 	return nil
 }
@@ -556,6 +557,7 @@ func (c *Controller) userInfoMonitor() (err error) {
 			c.resetTraffic(&upCounterList, &downCounterList)
 		}
 	}
+
 	if !c.config.EnableIpRecorder {
 		// Report Online info
 		if onlineDevice, err := c.GetOnlineDevice(c.Tag); err != nil {
@@ -579,6 +581,7 @@ func (c *Controller) userInfoMonitor() (err error) {
 		}
 
 	}
+	runtime.GC()
 	return nil
 }
 func (c *Controller) onlineIpReport() (err error) {

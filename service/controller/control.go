@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"fmt"
+
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/xtls/xray-core/common/protocol"
 	"github.com/xtls/xray-core/core"
@@ -155,4 +156,8 @@ func (c *Controller) UpdateRule(tag string, newRuleList []api.DetectRule) error 
 
 func (c *Controller) GetDetectResult(tag string) (*[]api.DetectResult, error) {
 	return c.dispatcher.RuleManager.GetDetectResult(tag)
+}
+
+func (c *Controller) ClearOnlineIp(tag string) {
+	c.dispatcher.Limiter.ClearOnlineUserIp(tag)
 }
