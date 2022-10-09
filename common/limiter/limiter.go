@@ -192,16 +192,6 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 	return &onlineUser, nil
 }
 
-func (l *Limiter) ClearOnlineUserIp(tag string) {
-	if value, ok := l.InboundInfo.Load(tag); ok {
-		inboundInfo := value.(*InboundInfo)
-		inboundInfo.UserOnlineIP.Range(func(key, value interface{}) bool {
-			inboundInfo.UserOnlineIP.Delete(key)
-			return true
-		})
-	}
-}
-
 func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *ratelimit.Bucket, SpeedLimit bool, Reject bool) {
 	if value, ok := l.InboundInfo.Load(tag); ok {
 		inboundInfo := value.(*InboundInfo)
