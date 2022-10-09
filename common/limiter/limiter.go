@@ -21,8 +21,7 @@ type InboundInfo struct {
 	NodeSpeedLimit uint64
 	UserInfo       *sync.Map // Key: Email value: UserInfo
 	BucketHub      *sync.Map // key: Email, value: *ratelimit.Bucket
-	UserOnlineIP   *sync.Map // Key: Email Value: *sync.Map: Key: IP, Value: UID or bool
-	EnableReorder  bool
+	UserOnlineIP   *sync.Map // Key: Email Value: *sync.Map: Key: IP, Value: UID
 }
 
 type Limiter struct {
@@ -32,60 +31,6 @@ type Limiter struct {
 func New() *Limiter {
 	return &Limiter{
 		InboundInfo: new(sync.Map),
-	}
-}
-
-type UserIp struct {
-	Uid int      `json:"Uid"`
-	IPs []string `json:"Ips"`
-}
-
-func (l *Limiter) GetOnlineUserIp(tag string) ([]UserIp, error) {
-	var userIpList []UserIp
-	if v, ok := l.InboundInfo.Load(tag); ok {
-		inboundInfo := v.(*InboundInfo)
-		inboundInfo.UserOnlineIP.Range(func(key, value interface{}) bool {
-			userIp := UserIp{
-				Uid: key.(int),
-			}
-			value.(*sync.Map).Range(func(key, value interface{}) bool {
-				userIp.IPs = append(userIp.IPs, key.(string))
-				return true
-			})
-			userIpList = append(userIpList, userIp)
-			return true
-		})
-		return userIpList, nil
-	} else {
-		return nil, fmt.Errorf("no such inbound in limiter: %s", tag)
-	}
-}
-
-func (l *Limiter) UpdateOnlineUserIP(tag string, userIpList []UserIp) {
-	if v, ok := l.InboundInfo.Load(tag); ok {
-		inboundInfo := v.(*InboundInfo)
-		for _, userIp := range userIpList {
-			if value, ok := inboundInfo.UserOnlineIP.Load(userIp.Uid); ok {
-				value.(*sync.Map).Store(userIp.IPs[0], true)
-			} else {
-				ipMap := new(sync.Map)
-				ipMap.Store(userIp.IPs[0], true)
-				inboundInfo.UserOnlineIP.Store(userIp.Uid, ipMap)
-			}
-		}
-	}
-}
-
-func (l *Limiter) ClearOnlineUserIP(tag string) {
-	if v, ok := l.InboundInfo.Load(tag); ok {
-		inboundInfo := v.(*InboundInfo)
-		inboundInfo.UserOnlineIP.Range(func(key, value interface{}) bool {
-			value.(*sync.Map).Range(func(key, value interface{}) bool {
-				value.(*sync.Map).Delete(key)
-				return true
-			})
-			return true
-		})
 	}
 }
 
@@ -137,21 +82,6 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 	onlineUser := make([]api.OnlineUser, 0)
 	if value, ok := l.InboundInfo.Load(tag); ok {
 		inboundInfo := value.(*InboundInfo)
-		if inboundInfo.EnableReorder {
-			inboundInfo.UserOnlineIP.Range(func(key, value interface{}) bool {
-				onlineUser = append(onlineUser, api.OnlineUser{
-					UID: key.(int),
-				})
-				return true
-			})
-		} else {
-			inboundInfo.BucketHub.Range(func(key, value interface{}) bool {
-				onlineUser = append(onlineUser, api.OnlineUser{
-					UID: key.(int),
-				})
-				return true
-			})
-		}
 		// Clear Speed Limiter bucket for users who are not online
 		inboundInfo.BucketHub.Range(func(key, value interface{}) bool {
 			email := key.(string)
@@ -187,55 +117,32 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 		var uid int = 0
 		if v, ok := inboundInfo.UserInfo.Load(email); ok {
 			u := v.(UserInfo)
+			uid = u.UID
 			userLimit = u.SpeedLimit
 			deviceLimit = u.DeviceLimit
-			uid = u.UID
 		}
+		// Report online device
 		ipMap := new(sync.Map)
-		if inboundInfo.EnableReorder {
-			if v, ok := inboundInfo.UserOnlineIP.Load(uid); ok {
-				ipMap = v.(*sync.Map)
-			} else {
-				inboundInfo.UserOnlineIP.Store(uid, ipMap)
-			}
-		}
+		ipMap.Store(ip, uid)
 		// If any device is online
 		if v, ok := inboundInfo.UserOnlineIP.LoadOrStore(email, ipMap); ok {
 			ipMap := v.(*sync.Map)
 			// If this ip is a new device
-			if inboundInfo.EnableReorder {
-				if _, ok := ipMap.LoadOrStore(ip, true); !ok {
-					counter := 0
-					ipMap.Range(func(key, value interface{}) bool {
-						counter++
-						return true
-					})
-					if counter > deviceLimit && deviceLimit > 0 {
-						ipMap.Delete(ip)
-						return nil, false, true
-					}
-				} else {
-					ipMap.Store(ip, true)
-				}
-			} else {
-				if _, ok := ipMap.LoadOrStore(ip, uid); !ok {
-					counter := 0
-					ipMap.Range(func(key, value interface{}) bool {
-						counter++
-						return true
-					})
-					if counter > deviceLimit && deviceLimit > 0 {
-						ipMap.Delete(ip)
-						return nil, false, true
-					}
-				} else {
-					ipMap.Store(ip, uid)
+			if _, ok := ipMap.LoadOrStore(ip, uid); !ok {
+				counter := 0
+				ipMap.Range(func(key, value interface{}) bool {
+					counter++
+					return true
+				})
+				if counter > deviceLimit && deviceLimit > 0 {
+					ipMap.Delete(ip)
+					return nil, false, true
 				}
 			}
 		}
 		limit := determineRate(nodeLimit, userLimit) // If need the Speed limit
 		if limit > 0 {
-			limiter := ratelimit.NewBucketWithQuantum(time.Second, int64(limit), int64(limit)) // Byte/s
+			limiter := ratelimit.NewBucketWithQuantum(time.Duration(int64(time.Second)), int64(limit), int64(limit)) // Byte/s
 			if v, ok := inboundInfo.BucketHub.LoadOrStore(email, limiter); ok {
 				bucket := v.(*ratelimit.Bucket)
 				return bucket, true, false

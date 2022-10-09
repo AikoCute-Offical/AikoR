@@ -1,15 +1,11 @@
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"reflect"
 	"runtime"
 	"time"
-
-	"github.com/AikoCute-Offical/AikoR/common/limiter"
-	"github.com/go-resty/resty/v2"
 
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
@@ -135,18 +131,6 @@ func (c *Controller) Start() error {
 		time.Sleep(time.Duration(c.config.UpdatePeriodic) * time.Second)
 		_ = c.userReportPeriodic.Start()
 	}()
-
-	if c.config.EnableIpRecorder {
-		c.onlineIpReportPeriodic = &task.Periodic{
-			Interval: time.Duration(c.config.IpRecorderConfig.Periodic) * time.Second,
-			Execute:  c.onlineIpReport,
-		}
-		go func() {
-			time.Sleep(time.Duration(c.config.IpRecorderConfig.Periodic) * time.Second)
-			_ = c.onlineIpReportPeriodic.Start()
-		}()
-		log.Printf("[%s: %d] Start report online ip", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
-	}
 	return nil
 }
 
@@ -558,10 +542,6 @@ func (c *Controller) userInfoMonitor() (err error) {
 		}
 	}
 
-	if !c.config.EnableIpRecorder {
-		//ClearOnlineIp
-		c.ClearOnlineIp(c.Tag)
-	}
 	// Report Illegal user
 	if detectResult, err := c.GetDetectResult(c.Tag); err != nil {
 		log.Print(err)
@@ -572,42 +552,6 @@ func (c *Controller) userInfoMonitor() (err error) {
 			log.Printf("[%s: %d] Report %d illegal behaviors", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(*detectResult))
 		}
 
-	}
-	runtime.GC()
-	return nil
-}
-func (c *Controller) onlineIpReport() (err error) {
-	onlineIp, err := c.dispatcher.Limiter.GetOnlineUserIp(c.Tag)
-	if err != nil {
-		log.Print(err)
-		return nil
-	}
-	rsp, err := resty.New().SetTimeout(time.Duration(c.config.IpRecorderConfig.Timeout) * time.Second).
-		R().
-		SetBody(onlineIp).
-		Post(c.config.IpRecorderConfig.Url +
-			"/api/v1/SyncOnlineIp?token=" +
-			c.config.IpRecorderConfig.Token)
-	if err != nil {
-		log.Print(err)
-		c.dispatcher.Limiter.ClearOnlineUserIP(c.Tag)
-		return nil
-	}
-	log.Printf("[%s: %d] report %d online Ip", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(onlineIp))
-	if rsp.StatusCode() == 200 {
-		onlineIp = []limiter.UserIp{}
-		err := json.Unmarshal(rsp.Body(), &onlineIp)
-		if err != nil {
-			log.Print(err)
-			c.dispatcher.Limiter.ClearOnlineUserIP(c.Tag)
-			return nil
-		}
-		if c.config.IpRecorderConfig.EnableIpSync {
-			c.dispatcher.Limiter.UpdateOnlineUserIP(c.Tag, onlineIp)
-			log.Printf("[%s: %d] update %d online Ip", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(onlineIp))
-		}
-	} else {
-		c.dispatcher.Limiter.ClearOnlineUserIP(c.Tag)
 	}
 	runtime.GC()
 	return nil

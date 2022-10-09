@@ -15,8 +15,6 @@ type Config struct {
 	DisableSniffing         bool                     `mapstructure:"DisableSniffing"`
 	DynamicSpeedLimitConfig *DynamicSpeedLimitConfig `mapstructure:"DynamicSpeedLimitConfig"`
 	FallBackConfigs         []*FallBackConfig        `mapstructure:"FallBackConfigs"`
-	EnableIpRecorder        bool                     `mapstructure:"EnableIpRecorder"`
-	IpRecorderConfig        *IpReportConfig          `mapstructure:"IpRecorderConfig"`
 }
 
 type DynamicSpeedLimitConfig struct {
@@ -42,12 +40,4 @@ type FallBackConfig struct {
 	Path             string `mapstructure:"Path"`
 	Dest             string `mapstructure:"Dest"`
 	ProxyProtocolVer uint64 `mapstructure:"ProxyProtocolVer"`
-}
-
-type IpReportConfig struct {
-	Url          string `mapstructure:"Url"`
-	Token        string `mapstructure:"Token"`
-	Periodic     int    `mapstructure:"Periodic"`
-	Timeout      int    `mapstructure:"Timeout"`
-	EnableIpSync bool   `mapstructure:"EnableIpSync"`
 }
