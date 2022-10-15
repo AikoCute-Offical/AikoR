@@ -156,8 +156,8 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 		return nil, fmt.Errorf("unsupported Node type: %s", c.NodeType)
 	}
 	res, err := c.client.R().
-		ForceContentType("application/json").
 		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
+		ForceContentType("application/json").
 		Get(path)
 
 	response, err := c.parseResponse(res, path, err)
@@ -180,21 +180,8 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("request %s failed: %s", c.assembleURL(path), err)
-	}
-
-	if res.StatusCode() > 400 {
-		body := res.Body()
-		return nil, fmt.Errorf("request %s failed: %s, %s", c.assembleURL(path), string(body), err)
-	}
-
-	var repNodeInfo RepNodeInfo
-	if err := json.Unmarshal(res.Body(), &repNodeInfo); err != nil {
-		return nil, fmt.Errorf("parse node info failed: %s", err)
-	}
-
-	if len(repNodeInfo.Message) > 0 {
-		return nil, fmt.Errorf("api error, message: %s", repNodeInfo.Message)
+		res, _ := response.MarshalJSON()
+		return nil, fmt.Errorf("parse response failed: %s, %s", err, string(res))
 	}
 
 	return nodeInfo, nil
@@ -245,25 +232,6 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 		}
 		userList[i] = user
 	}
-
-	if err != nil {
-		return nil, fmt.Errorf("request %s failed: %s", c.assembleURL(path), err)
-	}
-
-	if res.StatusCode() > 400 {
-		body := res.Body()
-		return nil, fmt.Errorf("request %s failed: %s, %s", c.assembleURL(path), string(body), err)
-	}
-
-	var repUserList RepUserList
-	if err := json.Unmarshal(res.Body(), &repUserList); err != nil {
-		return nil, fmt.Errorf("parse node info failed: %s", err)
-	}
-
-	if len(repUserList.Message) > 0 {
-		return nil, fmt.Errorf("api error, message: %s", repUserList.Message)
-	}
-
 	return &userList, nil
 }
 
@@ -290,7 +258,7 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 
 	res, err := c.client.R().
 		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
-		SetBody(userTraffic).
+		SetBody(data).
 		ForceContentType("application/json").
 		Post(path)
 	_, err = c.parseResponse(res, path, err)
@@ -307,9 +275,11 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 	if err := json.Unmarshal(res.Body(), &repUserTraffic); err != nil {
 		return fmt.Errorf("parse node info failed: %s", err)
 	}
+
 	if len(repUserTraffic.Message) > 0 {
-		return fmt.Errorf("api error, message: %s", repUserTraffic.Message)
+		return fmt.Errorf("request %s failed: %s", c.assembleURL(path), repUserTraffic.Message)
 	}
+
 	return nil
 }
 
