@@ -29,8 +29,8 @@ type RepNodeInfo struct {
 }
 
 type UserInfo struct {
-	ID   int    `json:"id"`
-	UUID string `json:"uuid"`
+	ID  int    `json:"id"`
+	UID string `json:"uuid"`
 }
 
 type RepUserList struct {

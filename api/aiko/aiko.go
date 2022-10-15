@@ -35,7 +35,6 @@ type APIClient struct {
 
 // New create an api instance
 func New(apiConfig *api.Config) *APIClient {
-
 	client := resty.New()
 	client.SetRetryCount(3)
 	if apiConfig.Timeout > 0 {
