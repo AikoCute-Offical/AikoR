@@ -133,7 +133,7 @@ func (c *APIClient) parseResponse(res *resty.Response, path string, err error) (
 	}
 	rtn, err := simplejson.NewJson(res.Body())
 	if err != nil {
-		return nil, fmt.Errorf("Ret %s invalid", res.String())
+		return nil, fmt.Errorf("request %s failed: %s", c.assembleURL(path), err)
 	}
 	return rtn, nil
 }
