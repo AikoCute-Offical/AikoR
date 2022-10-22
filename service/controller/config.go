@@ -15,8 +15,8 @@ type Config struct {
 	DisableSniffing         bool                     `mapstructure:"DisableSniffing"`
 	DynamicSpeedLimitConfig *DynamicSpeedLimitConfig `mapstructure:"DynamicSpeedLimitConfig"`
 	FallBackConfigs         []*FallBackConfig        `mapstructure:"FallBackConfigs"`
-	EnableRedis             bool                     `mapstructure:"EnableIpRedis"`
-	RedisConfig             *RedisReportConfig       `mapstructure:"RedisConfig"`
+	EnableIpRecorder        bool                     `mapstructure:"EnableIpRecorder"`
+	IpRecorderConfig        *IpReportConfig          `mapstructure:"IpRecorderConfig"`
 }
 
 type DynamicSpeedLimitConfig struct {
@@ -25,6 +25,7 @@ type DynamicSpeedLimitConfig struct {
 	LimitSpeed    int `mapstructure:"LimitSpeed"`    // mbps
 	LimitDuration int `mapstructure:"LimitDuration"` // minute
 }
+
 type CertConfig struct {
 	CertMode         string            `mapstructure:"CertMode"` // none, file, http, dns
 	RejectUnknownSni bool              `mapstructure:"RejectUnknownSni"`
@@ -44,10 +45,10 @@ type FallBackConfig struct {
 	ProxyProtocolVer uint64 `mapstructure:"ProxyProtocolVer"`
 }
 
-type RedisReportConfig struct {
-	Addr        string `mapstructure:"Addr"`
-	Port        int    `mapstructure:"Port"`
-	Password    string `mapstructure:"Password"`
-	DB          int    `mapstructure:"DB"`
-	PoolTimeout int    `mapstructure:"PoolTimeout"`
+type IpReportConfig struct {
+	Url          string `mapstructure:"Url"`
+	Token        string `mapstructure:"Token"`
+	Periodic     int    `mapstructure:"Periodic"`
+	Timeout      int    `mapstructure:"Timeout"`
+	EnableIpSync bool   `mapstructure:"EnableIpSync"`
 }
