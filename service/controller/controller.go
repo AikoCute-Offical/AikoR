@@ -1,14 +1,10 @@
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"reflect"
 	"time"
-
-	"github.com/AikoCute-Offical/AikoR/common/limiter"
-	"github.com/go-resty/resty/v2"
 
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
@@ -24,8 +20,9 @@ import (
 )
 
 type LimitInfo struct {
-	end              int64
-	originSpeedLimit uint64
+	end               int64
+	currentSpeedLimit int
+	originSpeedLimit  uint64
 }
 
 type Controller struct {
@@ -38,7 +35,6 @@ type Controller struct {
 	userList                *[]api.UserInfo
 	nodeInfoMonitorPeriodic *task.Periodic
 	userReportPeriodic      *task.Periodic
-	onlineIpReportPeriodic  *task.Periodic
 	limitedUsers            map[api.UserInfo]LimitInfo
 	warnedUsers             map[api.UserInfo]int
 	panelType               string
@@ -134,17 +130,6 @@ func (c *Controller) Start() error {
 		time.Sleep(time.Duration(c.config.UpdatePeriodic) * time.Second)
 		_ = c.userReportPeriodic.Start()
 	}()
-	if c.config.EnableIpRecorder {
-		c.onlineIpReportPeriodic = &task.Periodic{
-			Interval: time.Duration(c.config.IpRecorderConfig.Periodic) * time.Second,
-			Execute:  c.onlineIpReport,
-		}
-		go func() {
-			time.Sleep(time.Duration(c.config.UpdatePeriodic) * time.Second)
-			_ = c.onlineIpReportPeriodic.Start()
-		}()
-		log.Printf("[%s: %d] Start report user ip", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
-	}
 	return nil
 }
 
@@ -161,12 +146,6 @@ func (c *Controller) Close() error {
 		err := c.userReportPeriodic.Close()
 		if err != nil {
 			log.Panicf("user report periodic close failed: %s", err)
-		}
-	}
-	if c.onlineIpReportPeriodic != nil {
-		err := c.onlineIpReportPeriodic.Close()
-		if err != nil {
-			log.Panicf("online ip report periodic close failed: %s", err)
 		}
 	}
 	return nil
@@ -447,17 +426,28 @@ func compareUserList(old, new *[]api.UserInfo) (deleted, added []api.UserInfo) {
 
 func limitUser(c *Controller, user api.UserInfo, silentUsers *[]api.UserInfo) {
 	c.limitedUsers[user] = LimitInfo{
-		end:              time.Now().Unix() + int64(c.config.DynamicSpeedLimitConfig.LimitDuration*60),
-		originSpeedLimit: user.SpeedLimit,
+		end:               time.Now().Unix() + int64(c.config.DynamicSpeedLimitConfig.LimitDuration*60),
+		currentSpeedLimit: c.config.DynamicSpeedLimitConfig.LimitSpeed,
+		originSpeedLimit:  user.SpeedLimit,
 	}
-	log.Printf("    User: %s Speed: %d End: %s", user.Email, user.SpeedLimit, time.Unix(c.limitedUsers[user].end, 0).Format("01-02 15:04:05"))
-	user.SpeedLimit = uint64(c.config.DynamicSpeedLimitConfig.LimitSpeed) * 1024 * 1024 / 8
+	log.Printf("Limit User: %s Speed: %d End: %s", c.buildUserTag(&user), c.config.DynamicSpeedLimitConfig.LimitSpeed, time.Unix(c.limitedUsers[user].end, 0).Format("01-02 15:04:05"))
+	user.SpeedLimit = uint64((c.config.DynamicSpeedLimitConfig.LimitSpeed * 1000000) / 8)
 	*silentUsers = append(*silentUsers, user)
 }
 
 func (c *Controller) userInfoMonitor() (err error) {
 	// Get server status
 	CPU, Mem, Disk, Uptime, err := serverstatus.GetSystemInfo()
+	if err != nil {
+		log.Print(err)
+	}
+	err = c.apiClient.ReportNodeStatus(
+		&api.NodeStatus{
+			CPU:    CPU,
+			Mem:    Mem,
+			Disk:   Disk,
+			Uptime: Uptime,
+		})
 	if err != nil {
 		log.Print(err)
 	}
@@ -469,10 +459,10 @@ func (c *Controller) userInfoMonitor() (err error) {
 			if time.Now().Unix() > limitInfo.end {
 				user.SpeedLimit = limitInfo.originSpeedLimit
 				toReleaseUsers = append(toReleaseUsers, user)
-				log.Printf("    User: %s Speed: %d End: nil (Unlimit)", user.Email, user.SpeedLimit)
+				log.Printf("User: %s Speed: %d End: nil (Unlimit)", c.buildUserTag(&user), user.SpeedLimit)
 				delete(c.limitedUsers, user)
 			} else {
-				log.Printf("    User: %s Speed: %d End: %s", user.Email, user.SpeedLimit, time.Unix(c.limitedUsers[user].end, 0).Format("01-02 15:04:05"))
+				log.Printf("User: %s Speed: %d End: %s", c.buildUserTag(&user), limitInfo.currentSpeedLimit, time.Unix(c.limitedUsers[user].end, 0).Format("01-02 15:04:05"))
 			}
 		}
 		if len(toReleaseUsers) > 0 {
@@ -480,16 +470,6 @@ func (c *Controller) userInfoMonitor() (err error) {
 				log.Print(err)
 			}
 		}
-	}
-	err = c.apiClient.ReportNodeStatus(
-		&api.NodeStatus{
-			CPU:    CPU,
-			Mem:    Mem,
-			Disk:   Disk,
-			Uptime: Uptime,
-		})
-	if err != nil {
-		log.Print(err)
 	}
 
 	// Get User traffic
@@ -504,7 +484,7 @@ func (c *Controller) userInfoMonitor() (err error) {
 		if up > 0 || down > 0 {
 			// Over speed users
 			if AutoSpeedLimit > 0 {
-				if down > AutoSpeedLimit*1024*1024*UpdatePeriodic/8 {
+				if down > AutoSpeedLimit*1000000*UpdatePeriodic/8 || up > AutoSpeedLimit*1000000*UpdatePeriodic/8 {
 					if _, ok := c.limitedUsers[user]; !ok {
 						if c.config.DynamicSpeedLimitConfig.WarnTimes == 0 {
 							limitUser(c, user, &limitedUsers)
@@ -536,7 +516,6 @@ func (c *Controller) userInfoMonitor() (err error) {
 			delete(c.warnedUsers, user)
 		}
 	}
-
 	if len(limitedUsers) > 0 {
 		if err := c.UpdateInboundLimiter(c.Tag, &limitedUsers); err != nil {
 			log.Print(err)
@@ -554,16 +533,15 @@ func (c *Controller) userInfoMonitor() (err error) {
 			c.resetTraffic(&upCounterList, &downCounterList)
 		}
 	}
-	if !c.config.EnableIpRecorder {
-		// Report Online info
-		if onlineDevice, err := c.GetOnlineDevice(c.Tag); err != nil {
+
+	// Report Online info
+	if onlineDevice, err := c.GetOnlineDevice(c.Tag); err != nil {
+		log.Print(err)
+	} else if len(*onlineDevice) > 0 {
+		if err = c.apiClient.ReportNodeOnlineUsers(onlineDevice); err != nil {
 			log.Print(err)
-		} else if len(*onlineDevice) > 0 {
-			if err = c.apiClient.ReportNodeOnlineUsers(onlineDevice); err != nil {
-				log.Print(err)
-			} else {
-				log.Printf("[%s: %d] Report %d online users", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(*onlineDevice))
-			}
+		} else {
+			log.Printf("[%s: %d] Report %d online users", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(*onlineDevice))
 		}
 	}
 	// Report Illegal user
@@ -576,41 +554,6 @@ func (c *Controller) userInfoMonitor() (err error) {
 			log.Printf("[%s: %d] Report %d illegal behaviors", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(*detectResult))
 		}
 
-	}
-	return nil
-}
-func (c *Controller) onlineIpReport() (err error) {
-	onlineIp, err := c.dispatcher.Limiter.GetOnlineUserIp(c.Tag)
-	if err != nil {
-		log.Print(err)
-		return nil
-	}
-	rsp, err := resty.New().SetTimeout(time.Duration(c.config.IpRecorderConfig.Timeout) * time.Second).
-		R().
-		SetBody(onlineIp).
-		Post(c.config.IpRecorderConfig.Url +
-			"/api/v1/SyncOnlineIp?token=" +
-			c.config.IpRecorderConfig.Token)
-	if err != nil {
-		log.Print(err)
-		c.dispatcher.Limiter.ClearOnlineUserIP(c.Tag)
-		return nil
-	}
-	log.Printf("[%s: %d] report %d online Ip", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(onlineIp))
-	if rsp.StatusCode() == 200 {
-		onlineIp = []limiter.UserIp{}
-		err := json.Unmarshal(rsp.Body(), &onlineIp)
-		if err != nil {
-			log.Print(err)
-			c.dispatcher.Limiter.ClearOnlineUserIP(c.Tag)
-			return nil
-		}
-		if c.config.IpRecorderConfig.EnableIpSync {
-			c.dispatcher.Limiter.UpdateOnlineUserIP(c.Tag, onlineIp)
-			log.Printf("[%s: %d] update %d online Ip", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(onlineIp))
-		}
-	} else {
-		c.dispatcher.Limiter.ClearOnlineUserIP(c.Tag)
 	}
 	return nil
 }
