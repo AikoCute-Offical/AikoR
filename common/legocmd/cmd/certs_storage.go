@@ -27,16 +27,15 @@ const (
 //
 // rootPath:
 //
-//     ./.lego/certificates/
-//          │      └── root certificates directory
-//          └── "path" option
+//	./.lego/certificates/
+//	     │      └── root certificates directory
+//	     └── "path" option
 //
 // archivePath:
 //
-//     ./.lego/archives/
-//          │      └── archived certificates directory
-//          └── "path" option
-//
+//	./.lego/archives/
+//	     │      └── archived certificates directory
+//	     └── "path" option
 type CertificatesStorage struct {
 	rootPath    string
 	archivePath string

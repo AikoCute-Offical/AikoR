@@ -234,7 +234,7 @@ func (c *APIClient) ReportNodeStatus(nodeStatus *api.NodeStatus) (err error) {
 	return nil
 }
 
-//ReportNodeOnlineUsers reports online user ip
+// ReportNodeOnlineUsers reports online user ip
 func (c *APIClient) ReportNodeOnlineUsers(onlineUserList *[]api.OnlineUser) error {
 	var nodeType = ""
 	switch c.NodeType {

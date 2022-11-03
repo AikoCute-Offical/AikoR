@@ -1,3 +1,4 @@
+// Package serverstatus generate the server system status
 package serverstatus
 
 import (
