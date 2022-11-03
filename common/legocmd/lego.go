@@ -1,4 +1,4 @@
-// Package legocmd Let's Encrypt client to go!
+// Let's Encrypt client to go!
 // CLI application for generating Let's Encrypt certificates using the ACME package.
 package legocmd
 
@@ -35,17 +35,17 @@ func New() (*LegoCMD, error) {
 	}
 
 	// Set default path to configPath/cert
-	var p = ""
+	var path string = ""
 	configPath := os.Getenv("XRAY_LOCATION_CONFIG")
 	if configPath != "" {
-		p = configPath
+		path = configPath
 	} else if cwd, err := os.Getwd(); err == nil {
-		p = cwd
+		path = cwd
 	} else {
-		p = "."
+		path = "."
 	}
 
-	defaultPath = filepath.Join(p, "cert")
+	defaultPath = filepath.Join(path, "cert")
 
 	app.Flags = cmd.CreateFlags(defaultPath)
 
@@ -71,7 +71,7 @@ func (l *LegoCMD) DNSCert(domain, email, provider string, DNSEnv map[string]stri
 			case error:
 				err = x
 			default:
-				err = errors.New("unknown panic")
+				err = errors.New("unknow panic")
 			}
 			return "", "", err
 		}
@@ -79,20 +79,20 @@ func (l *LegoCMD) DNSCert(domain, email, provider string, DNSEnv map[string]stri
 	}()
 	// Set Env for DNS configuration
 	for key, value := range DNSEnv {
-		os.Setenv(strings.ToUpper(key), value)
+		os.Setenv(key, value)
 	}
 	// First check if the certificate exists
-	CertPath, KeyPath, err = checkCertFile(domain)
+	CertPath, KeyPath, err = checkCertfile(domain)
 	if err == nil {
 		return CertPath, KeyPath, err
 	}
 
-	argString := fmt.Sprintf("lego -a -d %s -m %s --dns %s run", domain, email, provider)
-	err = l.cmdClient.Run(strings.Split(argString, " "))
+	argstring := fmt.Sprintf("lego -a -d %s -m %s --dns %s run", domain, email, provider)
+	err = l.cmdClient.Run(strings.Split(argstring, " "))
 	if err != nil {
 		return "", "", err
 	}
-	CertPath, KeyPath, err = checkCertFile(domain)
+	CertPath, KeyPath, err = checkCertfile(domain)
 	if err != nil {
 		return "", "", err
 	}
@@ -110,32 +110,33 @@ func (l *LegoCMD) HTTPCert(domain, email string) (CertPath string, KeyPath strin
 			case error:
 				err = x
 			default:
-				err = errors.New("unknown panic")
+				err = errors.New("unknow panic")
 			}
 			return "", "", err
 		}
 		return CertPath, KeyPath, nil
 	}()
 	// First check if the certificate exists
-	CertPath, KeyPath, err = checkCertFile(domain)
+	CertPath, KeyPath, err = checkCertfile(domain)
 	if err == nil {
 		return CertPath, KeyPath, err
 	}
-	argString := fmt.Sprintf("lego -a -d %s -m %s --http run", domain, email)
-	err = l.cmdClient.Run(strings.Split(argString, " "))
+	argstring := fmt.Sprintf("lego -a -d %s -m %s --http run", domain, email)
+	err = l.cmdClient.Run(strings.Split(argstring, " "))
 
 	if err != nil {
 		return "", "", err
 	}
-	CertPath, KeyPath, err = checkCertFile(domain)
+	CertPath, KeyPath, err = checkCertfile(domain)
 	if err != nil {
 		return "", "", err
 	}
 	return CertPath, KeyPath, nil
 }
 
-// RenewCert renew a domain cert
+//RenewCert renew a domain cert
 func (l *LegoCMD) RenewCert(domain, email, certMode, provider string, DNSEnv map[string]string) (CertPath string, KeyPath string, err error) {
+	var argstring string
 	defer func() (string, string, error) {
 		// Handle any error
 		if r := recover(); r != nil {
@@ -145,48 +146,42 @@ func (l *LegoCMD) RenewCert(domain, email, certMode, provider string, DNSEnv map
 			case error:
 				err = x
 			default:
-				err = errors.New("unknown panic")
+				err = errors.New("unknow panic")
 			}
 			return "", "", err
 		}
 		return CertPath, KeyPath, nil
 	}()
-
-	var argStr string
-	switch certMode {
-	case "http":
-		argStr = fmt.Sprintf("lego -a -d %s -m %s --http renew --days 30", domain, email)
-	case "dns":
+	if certMode == "http" {
+		argstring = fmt.Sprintf("lego -a -d %s -m %s --http renew --days 30", domain, email)
+	} else if certMode == "dns" {
 		// Set Env for DNS configuration
 		for key, value := range DNSEnv {
 			os.Setenv(key, value)
 		}
-		argStr = fmt.Sprintf("lego -a -d %s -m %s --dns %s renew --days 30", domain, email, provider)
-	default:
-		return "", "", fmt.Errorf("unsupport cert mode: %s", certMode)
+		argstring = fmt.Sprintf("lego -a -d %s -m %s --dns %s renew --days 30", domain, email, provider)
+	} else {
+		return "", "", fmt.Errorf("Unsupport cert mode: %s", certMode)
 	}
+	err = l.cmdClient.Run(strings.Split(argstring, " "))
 
-	err = l.cmdClient.Run(strings.Split(argStr, " "))
 	if err != nil {
 		return "", "", err
 	}
-
-	CertPath, KeyPath, err = checkCertFile(domain)
+	CertPath, KeyPath, err = checkCertfile(domain)
 	if err != nil {
 		return "", "", err
 	}
-
 	return CertPath, KeyPath, nil
 }
-
-func checkCertFile(domain string) (string, string, error) {
+func checkCertfile(domain string) (string, string, error) {
 	keyPath := path.Join(defaultPath, "certificates", fmt.Sprintf("%s.key", domain))
 	certPath := path.Join(defaultPath, "certificates", fmt.Sprintf("%s.crt", domain))
 	if _, err := os.Stat(keyPath); os.IsNotExist(err) {
-		return "", "", fmt.Errorf("cert key failed: %s", domain)
+		return "", "", fmt.Errorf("Cert key failed: %s", domain)
 	}
 	if _, err := os.Stat(certPath); os.IsNotExist(err) {
-		return "", "", fmt.Errorf("cert cert failed: %s", domain)
+		return "", "", fmt.Errorf("Cert cert failed: %s", domain)
 	}
 	absKeyPath, _ := filepath.Abs(keyPath)
 	absCertPath, _ := filepath.Abs(certPath)

@@ -10,7 +10,7 @@ import (
 	"github.com/xtls/xray-core/infra/conf"
 )
 
-// OutboundBuilder build freedom outbund config for addoutbound
+//OutboundBuilder build freedom outbund config for addoutbound
 func OutboundBuilder(config *Config, nodeInfo *api.NodeInfo, tag string) (*core.OutboundHandlerConfig, error) {
 	outboundDetourConfig := &conf.OutboundDetourConfig{}
 	outboundDetourConfig.Protocol = "freedom"

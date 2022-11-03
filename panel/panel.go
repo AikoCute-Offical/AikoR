@@ -8,8 +8,6 @@ import (
 
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
 
-	"github.com/AikoCute-Offical/AikoR/api/xflash"
-
 	_ "github.com/AikoCute-Offical/AikoR/AikoR/distro/all"
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/AikoCute-Offical/AikoR/api/aiko"
@@ -18,6 +16,7 @@ import (
 	"github.com/AikoCute-Offical/AikoR/api/sspanel"
 	"github.com/AikoCute-Offical/AikoR/api/v2board"
 	"github.com/AikoCute-Offical/AikoR/api/v2raysocks"
+	"github.com/AikoCute-Offical/AikoR/api/xflash"
 	"github.com/AikoCute-Offical/AikoR/service"
 	"github.com/AikoCute-Offical/AikoR/service/controller"
 	"github.com/imdario/mergo"
@@ -174,13 +173,13 @@ func (p *Panel) Start() {
 			apiClient = v2board.New(nodeConfig.ApiConfig)
 		case "Xflash":
 			apiClient = xflash.New(nodeConfig.ApiConfig)
-		case "AikoVPN":
+		case "Aiko":
 			apiClient = aiko.New(nodeConfig.ApiConfig)
 		case "PMpanel":
 			apiClient = pmpanel.New(nodeConfig.ApiConfig)
 		case "Proxypanel":
 			apiClient = proxypanel.New(nodeConfig.ApiConfig)
-		case "V2Raysocks":
+		case "V2raysocks":
 			apiClient = v2raysocks.New(nodeConfig.ApiConfig)
 		default:
 			log.Panicf("Unsupport panel type: %s", nodeConfig.PanelType)

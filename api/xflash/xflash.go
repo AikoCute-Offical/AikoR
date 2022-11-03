@@ -3,7 +3,6 @@ package xflash
 import (
 	"bufio"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -36,6 +35,7 @@ type APIClient struct {
 
 // New create an api instance
 func New(apiConfig *api.Config) *APIClient {
+
 	client := resty.New()
 	client.SetRetryCount(3)
 	if apiConfig.Timeout > 0 {
@@ -133,7 +133,7 @@ func (c *APIClient) parseResponse(res *resty.Response, path string, err error) (
 	}
 	rtn, err := simplejson.NewJson(res.Body())
 	if err != nil {
-		return nil, fmt.Errorf("request %s failed: %s", c.assembleURL(path), err)
+		return nil, fmt.Errorf("Ret %s invalid", res.String())
 	}
 	return rtn, nil
 }
@@ -143,9 +143,9 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 	var path string
 	switch c.NodeType {
 	case "V2ray":
-		path = "/api/v1/server/vmess/config"
+		path = "/api/v1/server/Deepbwork/config"
 	case "Trojan":
-		path = "/api/v1/server/trojan/config"
+		path = "/api/v1/server/TrojanTidalab/config"
 	case "Shadowsocks":
 		if nodeInfo, err = c.ParseSSNodeResponse(); err == nil {
 			return nodeInfo, nil
@@ -156,7 +156,7 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 		return nil, fmt.Errorf("unsupported Node type: %s", c.NodeType)
 	}
 	res, err := c.client.R().
-		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
+		SetQueryParam("local_port", "1").
 		ForceContentType("application/json").
 		Get(path)
 
@@ -181,7 +181,7 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 
 	if err != nil {
 		res, _ := response.MarshalJSON()
-		return nil, fmt.Errorf("parse response failed: %s, %s", err, string(res))
+		return nil, fmt.Errorf("Parse node info failed: %s, \nError: %s", string(res), err)
 	}
 
 	return nodeInfo, nil
@@ -192,16 +192,15 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 	var path string
 	switch c.NodeType {
 	case "V2ray":
-		path = "/api/v1/server/vmess/users"
+		path = "/api/v1/server/Deepbwork/user"
 	case "Trojan":
-		path = "/api/v1/server/trojan/users"
+		path = "/api/v1/server/TrojanTidalab/user"
 	case "Shadowsocks":
-		path = "/api/v1/server/shadowsocks/users"
+		path = "/api/v1/server/ShadowsocksTidalab/user"
 	default:
 		return nil, fmt.Errorf("unsupported Node type: %s", c.NodeType)
 	}
 	res, err := c.client.R().
-		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
 		ForceContentType("application/json").
 		Get(path)
 
@@ -240,11 +239,11 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 	var path string
 	switch c.NodeType {
 	case "V2ray":
-		path = "/api/v1/server/vmess/submit"
+		path = "/api/v1/server/Deepbwork/submit"
 	case "Trojan":
-		path = "/api/v1/server/trojan/submit"
+		path = "/api/v1/server/TrojanTidalab/submit"
 	case "Shadowsocks":
-		path = "/api/v1/server/shadowsocks/submit"
+		path = "/api/v1/server/ShadowsocksTidalab/submit"
 	}
 
 	data := make([]UserTraffic, len(*userTraffic))
@@ -252,8 +251,7 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 		data[i] = UserTraffic{
 			UID:      traffic.UID,
 			Upload:   traffic.Upload,
-			Download: traffic.Download,
-			Count:    traffic.Count}
+			Download: traffic.Download}
 	}
 
 	res, err := c.client.R().
@@ -263,23 +261,8 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 		Post(path)
 	_, err = c.parseResponse(res, path, err)
 	if err != nil {
-		return fmt.Errorf("request %s failed: %s", c.assembleURL(path), err)
+		return err
 	}
-
-	if res.StatusCode() > 400 {
-		body := res.Body()
-		return fmt.Errorf("request %s failed: %s, %s", c.assembleURL(path), string(body), err)
-	}
-
-	var repUserTraffic RepUserTraffic
-	if err := json.Unmarshal(res.Body(), &repUserTraffic); err != nil {
-		return fmt.Errorf("parse node info failed: %s", err)
-	}
-
-	if len(repUserTraffic.Message) > 0 {
-		return fmt.Errorf("request %s failed: %s", c.assembleURL(path), repUserTraffic.Message)
-	}
-
 	return nil
 }
 
@@ -290,7 +273,7 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
 		return &ruleList, nil
 	}
 
-	// aiko only support the rule for v2ray
+	// xflash only support the rule for v2ray
 	// fix: reuse config response
 	c.access.Lock()
 	defer c.access.Unlock()
@@ -328,57 +311,53 @@ func (c *APIClient) ReportNodeStatus(nodeStatus *api.NodeStatus) (err error) {
 			return err
 		}
 	*/
-	return nil //aiko not Support ReportNodeStatus
+	return nil //Xflash not Support ReportNodeStatus
 }
 
 // ReportNodeOnlineUsers implements the API interface
 func (c *APIClient) ReportNodeOnlineUsers(onlineUserList *[]api.OnlineUser) error {
-	/*
-		var path string
-		switch c.NodeType {
-		case "V2ray":
-			path = "/api/v1/server/Deepbwork/users"
-		case "Trojan":
-			path = "/api/v1/server/Trojan/users"
-		case "Shadowsocks":
-			path = "/api/v1/server/Shadowsocks/users"
-		}
-		res, err := c.client.R().
-			SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
-			SetBody(onlineUserList).
-			ForceContentType("application/json").
-			Post(path)
-		_, err = c.parseResponse(res, path, err)
-		if err != nil {
-			return err
-		}
-	*/
-	return nil // aiko not Support ReportNodeOnlineUsers
+	var path string
+	switch c.NodeType {
+	case "V2ray":
+		path = "/api/v1/server/Deepbwork/users"
+	case "Trojan":
+		path = "/api/v1/server/Trojan/users"
+	case "Shadowsocks":
+		path = "/api/v1/server/Shadowsocks/users"
+	}
+	res, err := c.client.R().
+		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
+		SetBody(onlineUserList).
+		ForceContentType("application/json").
+		Post(path)
+	_, err = c.parseResponse(res, path, err)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // ReportIllegal implements the API interface
 func (c *APIClient) ReportIllegal(detectResultList *[]api.DetectResult) error {
-	/*
-		var path string
-		switch c.NodeType {
-		case "V2ray":
-			path = "/api/v1/server/Deepbwork/illegal"
-		case "Trojan":
-			path = "/api/v1/server/Trojan/illegal"
-		case "Shadowsocks":
-			path = "/api/v1/server/Shadowsocks/illegal"
-		}
-		res, err := c.client.R().
-			SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
-			SetBody(detectResultList).
-			ForceContentType("application/json").
-			Post(path)
-		_, err = c.parseResponse(res, path, err)
-		if err != nil {
-			return err
-		}
-	*/
-	return nil // aiko not Support ReportIllegal
+	var path string
+	switch c.NodeType {
+	case "V2ray":
+		path = "/api/v1/server/Deepbwork/illegal"
+	case "Trojan":
+		path = "/api/v1/server/Trojan/illegal"
+	case "Shadowsocks":
+		path = "/api/v1/server/Shadowsocks/illegal"
+	}
+	res, err := c.client.R().
+		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
+		SetBody(detectResultList).
+		ForceContentType("application/json").
+		Post(path)
+	_, err = c.parseResponse(res, path, err)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // ParseTrojanNodeResponse parse the response for the given nodeinfor format
@@ -442,13 +421,13 @@ func (c *APIClient) ParseV2rayNodeResponse(nodeInfoResponse *simplejson.Json) (*
 	inboundInfo := simplejson.New()
 	if tmpInboundInfo, ok := nodeInfoResponse.CheckGet("inbound"); ok {
 		inboundInfo = tmpInboundInfo
-		// Compatible with aiko 1.16.4
+		// Compatible with xflash 1.16.4
 	} else if tmpInboundInfo, ok := nodeInfoResponse.CheckGet("inbounds"); ok {
 		tmpInboundInfo := tmpInboundInfo.MustArray()
 		marshalByte, _ := json.Marshal(tmpInboundInfo[0].(map[string]interface{}))
 		inboundInfo, _ = simplejson.NewJson(marshalByte)
 	} else {
-		return nil, errors.New("inbound not found")
+		return nil, fmt.Errorf("Unable to find inbound(s) in the nodeInfo.")
 	}
 
 	port := uint32(inboundInfo.Get("port").MustUint64())

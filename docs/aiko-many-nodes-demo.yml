@@ -13,12 +13,7 @@ Nodes:
       DeviceLimit: 0 # Local settings will replace remote settings, 0 means disable
       RuleListPath: # /etc/AikoR/rulelist Path to local rulelist file
     ControllerConfig:
-      AikoRNginx: false
-      DynamicSpeedLimitConfig:
-        Limit: 0 # Warned speed. Set to 0 to disable AutoSpeedLimit (mbps)
-        WarnTimes: 0 # After (WarnTimes) consecutive warnings, the user will be limited. Set to 0 to punish overspeed user immediately.
-        LimitSpeed: 0 # The speedlimit of a limited user (unit: mbps)
-        LimitDuration: 0 # How many minutes will the limiting last (unit: minute)
+      DisableSniffing: false # Default Disable
       CertConfig:
         CertMode: file # Option about how to get certificate: none, file, http, dns. Choose "none" will forcedly disable the tls config.
         CertDomain: "node1.test.com" # Domain to cert
@@ -43,14 +38,7 @@ Nodes:
       DeviceLimit: 0 # Local settings will replace remote settings, 0 means disable
       RuleListPath: # /etc/AikoR/rulelist Path to local rulelist file
     ControllerConfig:
-      AikoRNginx: false
-      EnableIpRecorder: false # Enable online ip report
-      IpRecorderConfig:
-        Url: "http://127.0.0.1:123" # Report url
-        Token: "123" # Report token
-        Periodic: 60 # Report interval, sec.
-        Timeout: 10 # Report timeout, sec.
-        EnableIpSync: false # Enable online ip sync
+      DisableSniffing: false # Default Disable
       CertConfig:
         CertMode: none # Option about how to get certificate: none, file, http, dns. Choose "none" will forcedly disable the tls config.
         CertDomain: "node1.test.com" # Domain to cert

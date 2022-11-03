@@ -80,7 +80,6 @@ func TestReportReportUserTraffic(t *testing.T) {
 			UID:      userInfo.UID,
 			Upload:   114514,
 			Download: 114514,
-			Count:    114514,
 		}
 	}
 	//client.Debug()

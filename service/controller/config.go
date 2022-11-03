@@ -1,28 +1,19 @@
 package controller
 
 type Config struct {
-	ListenIP                string                   `mapstructure:"ListenIP"`
-	SendIP                  string                   `mapstructure:"SendIP"`
-	UpdatePeriodic          int                      `mapstructure:"UpdatePeriodic"`
-	CertConfig              *CertConfig              `mapstructure:"CertConfig"`
-	EnableDNS               bool                     `mapstructure:"EnableDNS"`
-	DNSType                 string                   `mapstructure:"DNSType"`
-	DisableUploadTraffic    bool                     `mapstructure:"DisableUploadTraffic"`
-	DisableGetRule          bool                     `mapstructure:"DisableGetRule"`
-	EnableProxyProtocol     bool                     `mapstructure:"EnableProxyProtocol"`
-	EnableFallback          bool                     `mapstructure:"EnableFallback"`
-	DisableIVCheck          bool                     `mapstructure:"DisableIVCheck"`
-	DisableSniffing         bool                     `mapstructure:"DisableSniffing"`
-	DynamicSpeedLimitConfig *DynamicSpeedLimitConfig `mapstructure:"DynamicSpeedLimitConfig"`
-	FallBackConfigs         []*FallBackConfig        `mapstructure:"FallBackConfigs"`
-	EnableRedis             bool                     `mapstructure:"EnableRedis"`
-}
-
-type DynamicSpeedLimitConfig struct {
-	Limit         int `mapstructure:"Limit"` // mbps
-	WarnTimes     int `mapstructure:"WarnTimes"`
-	LimitSpeed    int `mapstructure:"LimitSpeed"`    // mbps
-	LimitDuration int `mapstructure:"LimitDuration"` // minute
+	ListenIP             string            `mapstructure:"ListenIP"`
+	SendIP               string            `mapstructure:"SendIP"`
+	UpdatePeriodic       int               `mapstructure:"UpdatePeriodic"`
+	CertConfig           *CertConfig       `mapstructure:"CertConfig"`
+	EnableDNS            bool              `mapstructure:"EnableDNS"`
+	DNSType              string            `mapstructure:"DNSType"`
+	DisableUploadTraffic bool              `mapstructure:"DisableUploadTraffic"`
+	DisableGetRule       bool              `mapstructure:"DisableGetRule"`
+	EnableProxyProtocol  bool              `mapstructure:"EnableProxyProtocol"`
+	EnableFallback       bool              `mapstructure:"EnableFallback"`
+	DisableIVCheck       bool              `mapstructure:"DisableIVCheck"`
+	DisableSniffing      bool              `mapstructure:"DisableSniffing"`
+	FallBackConfigs      []*FallBackConfig `mapstructure:"FallBackConfigs"`
 }
 
 type CertConfig struct {
@@ -42,11 +33,4 @@ type FallBackConfig struct {
 	Path             string `mapstructure:"Path"`
 	Dest             string `mapstructure:"Dest"`
 	ProxyProtocolVer uint64 `mapstructure:"ProxyProtocolVer"`
-}
-
-type RedisReportConfig struct {
-	Addr      string `mapstructure:"Addr"`
-	Password  string `mapstructure:"Password"`
-	DB        int    `mapstructure:"DB"`
-	CacheTime int    `mapstructure:"CacheTime"`
 }

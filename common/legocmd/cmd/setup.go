@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -97,7 +98,7 @@ func createNonExistingFolder(path string) error {
 }
 
 func readCSRFile(filename string) (*x509.CertificateRequest, error) {
-	bytes, err := os.ReadFile(filename)
+	bytes, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
