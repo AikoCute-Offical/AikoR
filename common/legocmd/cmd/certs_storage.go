@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/x509"
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -27,16 +26,15 @@ const (
 //
 // rootPath:
 //
-//     ./.lego/certificates/
-//          │      └── root certificates directory
-//          └── "path" option
+//	./.lego/certificates/
+//	     │      └── root certificates directory
+//	     └── "path" option
 //
 // archivePath:
 //
-//     ./.lego/archives/
-//          │      └── archived certificates directory
-//          └── "path" option
-//
+//	./.lego/archives/
+//	     │      └── archived certificates directory
+//	     └── "path" option
 type CertificatesStorage struct {
 	rootPath    string
 	archivePath string
@@ -144,7 +142,7 @@ func (s *CertificatesStorage) ExistsFile(domain, extension string) bool {
 }
 
 func (s *CertificatesStorage) ReadFile(domain, extension string) ([]byte, error) {
-	return ioutil.ReadFile(s.GetFileName(domain, extension))
+	return os.ReadFile(s.GetFileName(domain, extension))
 }
 
 func (s *CertificatesStorage) GetFileName(domain, extension string) string {
@@ -172,7 +170,7 @@ func (s *CertificatesStorage) WriteFile(domain, extension string, data []byte) e
 
 	filePath := filepath.Join(s.rootPath, baseFileName+extension)
 
-	return ioutil.WriteFile(filePath, data, filePerm)
+	return os.WriteFile(filePath, data, filePerm)
 }
 
 func (s *CertificatesStorage) MoveToArchive(domain string) error {

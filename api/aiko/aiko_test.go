@@ -9,7 +9,7 @@ import (
 
 func CreateClient() api.API {
 	apiConfig := &api.Config{
-		APIHost:  "http://localhost:9897",
+		APIHost:  "http://127.0.0.1:668",
 		Key:      "qwertyuiopasdfghjkl",
 		NodeID:   1,
 		NodeType: "V2ray",
@@ -18,7 +18,7 @@ func CreateClient() api.API {
 	return client
 }
 
-func TestGetV2rayNodeinfo(t *testing.T) {
+func TestGetV2rayNodeInfo(t *testing.T) {
 	client := CreateClient()
 	nodeInfo, err := client.GetNodeInfo()
 	if err != nil {
@@ -27,7 +27,7 @@ func TestGetV2rayNodeinfo(t *testing.T) {
 	t.Log(nodeInfo)
 }
 
-func TestGetSSNodeinfo(t *testing.T) {
+func TestGetSSNodeInfo(t *testing.T) {
 	apiConfig := &api.Config{
 		APIHost:  "http://127.0.0.1:668",
 		Key:      "qwertyuiopasdfghjkl",
@@ -42,7 +42,7 @@ func TestGetSSNodeinfo(t *testing.T) {
 	t.Log(nodeInfo)
 }
 
-func TestGetTrojanNodeinfo(t *testing.T) {
+func TestGetTrojanNodeInfo(t *testing.T) {
 	apiConfig := &api.Config{
 		APIHost:  "http://127.0.0.1:668",
 		Key:      "qwertyuiopasdfghjkl",
@@ -80,10 +80,9 @@ func TestReportReportUserTraffic(t *testing.T) {
 			UID:      userInfo.UID,
 			Upload:   114514,
 			Download: 114514,
-			Count:    114514,
 		}
 	}
-	//client.Debug()
+	// client.Debug()
 	err = client.ReportUserTraffic(&generalUserTraffic)
 	if err != nil {
 		t.Error(err)

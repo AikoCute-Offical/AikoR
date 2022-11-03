@@ -7,7 +7,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -30,36 +29,35 @@ const (
 //
 // rootPath:
 //
-//     ./.lego/accounts/
-//          │      └── root accounts directory
-//          └── "path" option
+//	./.lego/accounts/
+//	     │      └── root accounts directory
+//	     └── "path" option
 //
 // rootUserPath:
 //
-//     ./.lego/accounts/localhost_14000/hubert@hubert.com/
-//          │      │             │             └── userID ("email" option)
-//          │      │             └── CA server ("server" option)
-//          │      └── root accounts directory
-//          └── "path" option
+//	./.lego/accounts/localhost_14000/hubert@hubert.com/
+//	     │      │             │             └── userID ("email" option)
+//	     │      │             └── CA server ("server" option)
+//	     │      └── root accounts directory
+//	     └── "path" option
 //
 // keysPath:
 //
-//     ./.lego/accounts/localhost_14000/hubert@hubert.com/keys/
-//          │      │             │             │           └── root keys directory
-//          │      │             │             └── userID ("email" option)
-//          │      │             └── CA server ("server" option)
-//          │      └── root accounts directory
-//          └── "path" option
+//	./.lego/accounts/localhost_14000/hubert@hubert.com/keys/
+//	     │      │             │             │           └── root keys directory
+//	     │      │             │             └── userID ("email" option)
+//	     │      │             └── CA server ("server" option)
+//	     │      └── root accounts directory
+//	     └── "path" option
 //
 // accountFilePath:
 //
-//     ./.lego/accounts/localhost_14000/hubert@hubert.com/account.json
-//          │      │             │             │             └── account file
-//          │      │             │             └── userID ("email" option)
-//          │      │             └── CA server ("server" option)
-//          │      └── root accounts directory
-//          └── "path" option
-//
+//	./.lego/accounts/localhost_14000/hubert@hubert.com/account.json
+//	     │      │             │             │             └── account file
+//	     │      │             │             └── userID ("email" option)
+//	     │      │             └── CA server ("server" option)
+//	     │      └── root accounts directory
+//	     └── "path" option
 type AccountsStorage struct {
 	userID          string
 	rootPath        string
@@ -122,11 +120,11 @@ func (s *AccountsStorage) Save(account *Account) error {
 		return err
 	}
 
-	return ioutil.WriteFile(s.accountFilePath, jsonBytes, filePerm)
+	return os.WriteFile(s.accountFilePath, jsonBytes, filePerm)
 }
 
 func (s *AccountsStorage) LoadAccount(privateKey crypto.PrivateKey) *Account {
-	fileBytes, err := ioutil.ReadFile(s.accountFilePath)
+	fileBytes, err := os.ReadFile(s.accountFilePath)
 	if err != nil {
 		log.Panicf("Could not load file for account %s: %v", s.userID, err)
 	}
@@ -207,7 +205,7 @@ func generatePrivateKey(file string, keyType certcrypto.KeyType) (crypto.Private
 }
 
 func loadPrivateKey(file string) (crypto.PrivateKey, error) {
-	keyBytes, err := ioutil.ReadFile(file)
+	keyBytes, err := os.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
