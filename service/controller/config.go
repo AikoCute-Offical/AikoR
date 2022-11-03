@@ -1,5 +1,7 @@
 package controller
 
+import "github.com/AikoCute-Offical/AikoR/common/limiter"
+
 type Config struct {
 	ListenIP             string                `mapstructure:"ListenIP"`
 	SendIP               string                `mapstructure:"SendIP"`
@@ -14,6 +16,7 @@ type Config struct {
 	DisableIVCheck       bool                  `mapstructure:"DisableIVCheck"`
 	DisableSniffing      bool                  `mapstructure:"DisableSniffing"`
 	AutoSpeedLimitConfig *AutoSpeedLimitConfig `mapstructure:"AutoSpeedLimitConfig"`
+	RedisConfig          *limiter.RedisConfig  `mapstructure:"RedisConfig"`
 	FallBackConfigs      []*FallBackConfig     `mapstructure:"FallBackConfigs"`
 }
 

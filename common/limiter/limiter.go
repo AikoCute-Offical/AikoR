@@ -2,10 +2,14 @@
 package limiter
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/AikoCute-Offical/AikoR/api"
+	"github.com/go-redis/redis/v8"
 	"golang.org/x/time/rate"
 )
 
@@ -24,7 +28,12 @@ type InboundInfo struct {
 }
 
 type Limiter struct {
-	InboundInfo *sync.Map // Key: Tag, Value: *InboundInfo
+	InboundInfo *sync.Map     // Key: Tag, Value: *InboundInfo
+	r           *redis.Client // todo
+	g           struct {
+		limit  int
+		expiry int
+	}
 }
 
 func New() *Limiter {
@@ -33,7 +42,17 @@ func New() *Limiter {
 	}
 }
 
-func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList *[]api.UserInfo) error {
+func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList *[]api.UserInfo, Redis *RedisConfig) error {
+	// global limit
+	if Redis.Limit > 0 {
+		l.r = redis.NewClient(&redis.Options{
+			Addr:     Redis.RedisAddr,
+			Password: Redis.RedisPassword,
+			DB:       Redis.RedisDB,
+		})
+		l.g.limit = Redis.Limit
+		l.g.expiry = Redis.Expiry
+	}
 	inboundInfo := &InboundInfo{
 		Tag:            tag,
 		NodeSpeedLimit: nodeSpeedLimit,
@@ -65,8 +84,7 @@ func (l *Limiter) UpdateInboundLimiter(tag string, updatedUserList *[]api.UserIn
 				DeviceLimit: u.DeviceLimit,
 			})
 			// Update old limiter bucket
-			limit := determineRate(inboundInfo.NodeSpeedLimit, u.SpeedLimit)
-			if limit > 0 {
+			if limit := determineRate(inboundInfo.NodeSpeedLimit, u.SpeedLimit); limit > 0 {
 				if bucket, ok := inboundInfo.BucketHub.Load(fmt.Sprintf("%s|%s|%d", tag, u.Email, u.UID)); ok {
 					limiter := bucket.(*rate.Limiter)
 					limiter.SetLimit(rate.Limit(limit))
@@ -119,18 +137,40 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 
 func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *rate.Limiter, SpeedLimit bool, Reject bool) {
 	if value, ok := l.InboundInfo.Load(tag); ok {
+		var (
+			userLimit               uint64 = 0
+			deviceLimit, uid, Redis int
+		)
+		Redis = l.g.limit
 		inboundInfo := value.(*InboundInfo)
 		nodeLimit := inboundInfo.NodeSpeedLimit
-		var userLimit uint64 = 0
-		var deviceLimit int = 0
-		var uid int = 0
 		if v, ok := inboundInfo.UserInfo.Load(email); ok {
 			u := v.(UserInfo)
 			uid = u.UID
 			userLimit = u.SpeedLimit
 			deviceLimit = u.DeviceLimit
 		}
-		// Report online device
+		// Online device limit
+		// todo global device limit
+		if Redis > 0 {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+			defer cancel()
+
+			trimEmail := strings.Split(email, "|")[1]
+			if l.r.Exists(ctx, trimEmail).Val() == 0 {
+				l.r.HSet(ctx, trimEmail, ip, uid)
+				l.r.Expire(ctx, trimEmail, time.Duration(l.g.expiry)*time.Minute)
+			} else {
+				l.r.HSet(ctx, trimEmail, ip, uid)
+			}
+
+			if l.r.HLen(ctx, trimEmail).Val() > int64(l.g.limit) {
+				l.r.HDel(ctx, trimEmail, ip)
+				return nil, false, true
+			}
+		}
+
+		// Local device limit
 		ipMap := new(sync.Map)
 		ipMap.Store(ip, uid)
 		// If any device is online
@@ -149,8 +189,7 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 				}
 			}
 		}
-		limit := determineRate(nodeLimit, userLimit) // If need the Speed limit
-		if limit > 0 {
+		if limit := determineRate(nodeLimit, userLimit); limit > 0 {
 			limiter := rate.NewLimiter(rate.Limit(limit), int(limit)) // Byte/s
 			if v, ok := inboundInfo.BucketHub.LoadOrStore(email, limiter); ok {
 				bucket := v.(*rate.Limiter)

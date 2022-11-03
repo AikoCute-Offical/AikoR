@@ -9,6 +9,7 @@ import (
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
 	"github.com/AikoCute-Offical/AikoR/common/legocmd"
+	"github.com/AikoCute-Offical/AikoR/common/limiter"
 	"github.com/AikoCute-Offical/AikoR/common/serverstatus"
 	"github.com/xtls/xray-core/common/protocol"
 	"github.com/xtls/xray-core/common/task"
@@ -88,10 +89,15 @@ func (c *Controller) Start() error {
 	//sync controller userList
 	c.userList = userInfo
 
+	// Init global device limit
+	if c.config.RedisConfig == nil {
+		c.config.RedisConfig = &limiter.RedisConfig{Limit: 0}
+	}
 	// Add Limiter
-	if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, userInfo); err != nil {
+	if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, userInfo, c.config.RedisConfig); err != nil {
 		log.Print(err)
 	}
+
 	// Add Rule Manager
 	if !c.config.DisableGetRule {
 		if ruleList, err := c.apiClient.GetNodeRule(); err != nil {
@@ -230,7 +236,7 @@ func (c *Controller) nodeInfoMonitor() (err error) {
 			return nil
 		}
 		// Add Limiter
-		if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, newUserInfo); err != nil {
+		if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, newUserInfo, c.config.RedisConfig); err != nil {
 			log.Print(err)
 			return nil
 		}
