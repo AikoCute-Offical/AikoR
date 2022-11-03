@@ -16,7 +16,6 @@ type Config struct {
 	DynamicSpeedLimitConfig *DynamicSpeedLimitConfig `mapstructure:"DynamicSpeedLimitConfig"`
 	FallBackConfigs         []*FallBackConfig        `mapstructure:"FallBackConfigs"`
 	EnableRedis             bool                     `mapstructure:"EnableRedis"`
-	RedisConfig             *RedisReportConfig       `mapstructure:"RedisConfig"`
 }
 
 type DynamicSpeedLimitConfig struct {

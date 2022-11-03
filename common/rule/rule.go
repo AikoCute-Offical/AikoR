@@ -60,7 +60,7 @@ func (r *RuleManager) GetDetectResult(tag string) (*[]api.DetectResult, error) {
 
 func (r *RuleManager) Detect(tag string, destination string, email string) (reject bool) {
 	reject = false
-	var hitRuleID int = -1
+	var hitRuleID = -1
 	// If we have some rule for this inbound
 	if value, ok := r.InboundRule.Load(tag); ok {
 		ruleList := value.([]api.DetectRule)
