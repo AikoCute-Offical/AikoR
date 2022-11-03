@@ -9,7 +9,7 @@ import (
 	"github.com/AikoCute-Offical/AikoR/api"
 )
 
-const apiaiko = "/api/v1/server"
+const apiSuffix = "/api/v1/server"
 
 // APIClient create an api client to the panel.
 type APIClient struct {
@@ -18,6 +18,8 @@ type APIClient struct {
 	NodeID        int
 	Key           string
 	NodeType      string
+	EnableVless   bool
+	EnableXTLS    bool
 	SpeedLimit    float64
 	DeviceLimit   int
 	LocalRuleList []api.DetectRule
