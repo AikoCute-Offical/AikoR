@@ -1,6 +1,8 @@
 package controller
 
-import "github.com/AikoCute-Offical/AikoR/common/limiter"
+import (
+	"github.com/AikoCute-Offical/AikoR/common/limiter"
+)
 
 type Config struct {
 	ListenIP             string                `mapstructure:"ListenIP"`

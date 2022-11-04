@@ -8,9 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/go-redis/redis/v8"
 	"golang.org/x/time/rate"
+
+	"github.com/AikoCute-Offical/AikoR/api"
 )
 
 type UserInfo struct {
@@ -28,8 +29,8 @@ type InboundInfo struct {
 }
 
 type Limiter struct {
-	InboundInfo *sync.Map     // Key: Tag, Value: *InboundInfo
-	r           *redis.Client // todo
+	InboundInfo *sync.Map // Key: Tag, Value: *InboundInfo
+	r           *redis.Client
 	g           struct {
 		limit  int
 		expiry int
@@ -53,6 +54,7 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 		l.g.limit = Redis.Limit
 		l.g.expiry = Redis.Expiry
 	}
+
 	inboundInfo := &InboundInfo{
 		Tag:            tag,
 		NodeSpeedLimit: nodeSpeedLimit,
@@ -84,7 +86,8 @@ func (l *Limiter) UpdateInboundLimiter(tag string, updatedUserList *[]api.UserIn
 				DeviceLimit: u.DeviceLimit,
 			})
 			// Update old limiter bucket
-			if limit := determineRate(inboundInfo.NodeSpeedLimit, u.SpeedLimit); limit > 0 {
+			limit := determineRate(inboundInfo.NodeSpeedLimit, u.SpeedLimit)
+			if limit > 0 {
 				if bucket, ok := inboundInfo.BucketHub.Load(fmt.Sprintf("%s|%s|%d", tag, u.Email, u.UID)); ok {
 					limiter := bucket.(*rate.Limiter)
 					limiter.SetLimit(rate.Limit(limit))
@@ -107,7 +110,6 @@ func (l *Limiter) DeleteInboundLimiter(tag string) error {
 
 func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 	onlineUser := make([]api.OnlineUser, 0)
-
 	if value, ok := l.InboundInfo.Load(tag); ok {
 		inboundInfo := value.(*InboundInfo)
 		// Clear Speed Limiter bucket for users who are not online
@@ -144,6 +146,7 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 			userLimit        uint64 = 0
 			deviceLimit, uid int
 		)
+
 		if v, ok := inboundInfo.UserInfo.Load(email); ok {
 			u := v.(UserInfo)
 			uid = u.UID
@@ -159,8 +162,6 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 			exist, err := l.r.Exists(ctx, trimEmail).Result()
 			if err != nil {
 				newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
-				l.r.HSet(ctx, trimEmail, ip, uid)
-				l.r.Expire(ctx, trimEmail, time.Duration(l.g.expiry)*time.Minute)
 			} else {
 				if exist == 0 {
 					l.r.HSet(ctx, trimEmail, ip, uid)
@@ -172,11 +173,6 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 					l.r.HDel(ctx, trimEmail, ip)
 					return nil, false, true
 				}
-			}
-
-			if l.r.HLen(ctx, trimEmail).Val() > int64(l.g.limit) {
-				l.r.HDel(ctx, trimEmail, ip)
-				return nil, false, true
 			}
 		}
 
@@ -199,7 +195,8 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 				}
 			}
 		}
-		if limit := determineRate(nodeLimit, userLimit); limit > 0 {
+		limit := determineRate(nodeLimit, userLimit) // If need the Speed limit
+		if limit > 0 {
 			limiter := rate.NewLimiter(rate.Limit(limit), int(limit)) // Byte/s
 			if v, ok := inboundInfo.BucketHub.LoadOrStore(email, limiter); ok {
 				bucket := v.(*rate.Limiter)
