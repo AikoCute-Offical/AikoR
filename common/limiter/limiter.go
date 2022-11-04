@@ -107,6 +107,7 @@ func (l *Limiter) DeleteInboundLimiter(tag string) error {
 
 func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 	onlineUser := make([]api.OnlineUser, 0)
+
 	if value, ok := l.InboundInfo.Load(tag); ok {
 		inboundInfo := value.(*InboundInfo)
 		// Clear Speed Limiter bucket for users who are not online
@@ -150,8 +151,7 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 			userLimit = u.SpeedLimit
 			deviceLimit = u.DeviceLimit
 		}
-		// Online device limit
-		// todo global device limit
+
 		if Redis > 0 {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 			defer cancel()

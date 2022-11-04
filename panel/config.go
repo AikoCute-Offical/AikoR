@@ -67,7 +67,16 @@ type ControllerConfig struct {
 	DisableIVCheck       bool              `mapstructure:"DisableIVCheck"`
 	DisableSniffing      bool              `mapstructure:"DisableSniffing"`
 	FallBackConfigs      []*FallBackConfig `mapstructure:"FallBackConfigs"`
+	RedisConfig          *RedisConfig      `mapstructure:"RedisConfig"`
 	CertConfig           *CertConfig       `mapstructure:"CertConfig"`
+}
+
+type RedisConfig struct {
+	Limit         int    `mapstructure:"Limit"`
+	RedisAddr     string `mapstructure:"RedisAddr"` // host:port
+	RedisPassword string `mapstructure:"RedisPassword"`
+	RedisDB       int    `mapstructure:"RedisDB"`
+	Expiry        int    `mapstructure:"Expiry"` // second
 }
 
 type ApiConfig struct {
