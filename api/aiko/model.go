@@ -9,8 +9,6 @@ import (
 	"github.com/AikoCute-Offical/AikoR/api"
 )
 
-const apiSuffix = "/api/v1/server"
-
 // APIClient create an api client to the panel.
 type APIClient struct {
 	client        *resty.Client
