@@ -1,6 +1,6 @@
 Nodes: #Default AikoR config
   -
-    PanelType: "Xflash" # Panel type: SSpanel, V2board, PMpanel, Proxypanel, Xflash, V2raysocks
+    PanelType: "V2board" # Panel type: SSpanel, V2board, PMpanel, Proxypanel, Xflash, V2raysocks
     ApiConfig:
       ApiHost: "http://127.0.0.1:667"
       ApiKey: "123"

@@ -22,7 +22,7 @@ var (
 )
 
 var (
-	version  = "0.8.6"
+	version  = "0.8.7 - V2ray Core"
 	codename = "AikoR"
 	intro    = "Backend AikoR For Aiko"
 )
@@ -48,7 +48,7 @@ func getConfig() *viper.Viper {
 		os.Setenv("V2RAY_LOCATION_CONFIG", configPath)
 	} else {
 		// Set default config path
-		config.SetConfigName("config")
+		config.SetConfigName("aiko")
 		config.SetConfigType("yml")
 		config.AddConfigPath(".")
 	}
