@@ -22,7 +22,7 @@ var (
 )
 
 var (
-	version  = "0.8.7 - V2ray Core"
+	version  = "0.9.0 - V2ray Core"
 	codename = "AikoR"
 	intro    = "Backend AikoR For Aiko"
 )
