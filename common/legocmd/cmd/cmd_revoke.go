@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"github.com/AikoCute-Offical/AikoR/common/legocmd/log"
 	"github.com/urfave/cli"
+
+	"github.com/AikoCute-Offical/AikoR/common/legocmd/log"
 )
 
 func createRevoke() cli.Command {

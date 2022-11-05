@@ -6,18 +6,19 @@ import (
 	"reflect"
 	"time"
 
+	core "github.com/v2fly/v2ray-core/v5"
+	"github.com/v2fly/v2ray-core/v5/common/protocol"
+	"github.com/v2fly/v2ray-core/v5/common/task"
+	"github.com/v2fly/v2ray-core/v5/features/inbound"
+	"github.com/v2fly/v2ray-core/v5/features/outbound"
+	"github.com/v2fly/v2ray-core/v5/features/routing"
+	"github.com/v2fly/v2ray-core/v5/features/stats"
+
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
 	"github.com/AikoCute-Offical/AikoR/common/legocmd"
 	"github.com/AikoCute-Offical/AikoR/common/limiter"
 	"github.com/AikoCute-Offical/AikoR/common/serverstatus"
-	"github.com/xtls/xray-core/common/protocol"
-	"github.com/xtls/xray-core/common/task"
-	"github.com/xtls/xray-core/core"
-	"github.com/xtls/xray-core/features/inbound"
-	"github.com/xtls/xray-core/features/outbound"
-	"github.com/xtls/xray-core/features/routing"
-	"github.com/xtls/xray-core/features/stats"
 )
 
 type LimitInfo struct {
@@ -36,6 +37,7 @@ type Controller struct {
 	userList                *[]api.UserInfo
 	nodeInfoMonitorPeriodic *task.Periodic
 	userReportPeriodic      *task.Periodic
+	renewCertPeriodic       *task.Periodic
 	limitedUsers            map[api.UserInfo]LimitInfo
 	warnedUsers             map[api.UserInfo]int
 	panelType               string
@@ -57,6 +59,7 @@ func New(server *core.Instance, api api.API, config *Config, panelType string) *
 		stm:        server.GetFeature(stats.ManagerType()).(stats.Manager),
 		dispatcher: server.GetFeature(routing.DispatcherType()).(*mydispatcher.DefaultDispatcher),
 	}
+
 	return controller
 }
 
@@ -86,18 +89,17 @@ func (c *Controller) Start() error {
 	if err != nil {
 		return err
 	}
-	//sync controller userList
+	// sync controller userList
 	c.userList = userInfo
 
 	// Init global device limit
-	if c.config.RedisConfig == nil {
-		c.config.RedisConfig = &limiter.RedisConfig{Limit: 0}
+	if c.config.GlobalDeviceLimitConfig == nil {
+		c.config.GlobalDeviceLimitConfig = &limiter.GlobalDeviceLimitConfig{Limit: 0}
 	}
 	// Add Limiter
-	if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, userInfo, c.config.RedisConfig); err != nil {
+	if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, userInfo, c.config.GlobalDeviceLimitConfig); err != nil {
 		log.Print(err)
 	}
-
 	// Add Rule Manager
 	if !c.config.DisableGetRule {
 		if ruleList, err := c.apiClient.GetNodeRule(); err != nil {
@@ -116,6 +118,10 @@ func (c *Controller) Start() error {
 		Interval: time.Duration(c.config.UpdatePeriodic) * time.Second,
 		Execute:  c.userInfoMonitor,
 	}
+	c.renewCertPeriodic = &task.Periodic{
+		Interval: time.Duration(c.config.UpdatePeriodic) * time.Second * 60,
+		Execute:  c.certMonitor,
+	}
 	if c.config.AutoSpeedLimitConfig == nil {
 		c.config.AutoSpeedLimitConfig = &AutoSpeedLimitConfig{0, 0, 0, 0}
 	}
@@ -123,19 +129,23 @@ func (c *Controller) Start() error {
 		c.limitedUsers = make(map[api.UserInfo]LimitInfo)
 		c.warnedUsers = make(map[api.UserInfo]int)
 	}
-	log.Printf("[%s: %d] Start monitor node status", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
-	// delay to start nodeInfoMonitor
-	go func() {
-		time.Sleep(time.Duration(c.config.UpdatePeriodic) * time.Second)
-		_ = c.nodeInfoMonitorPeriodic.Start()
-	}()
 
-	log.Printf("[%s: %d] Start report node status", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
+	// delay to start nodeInfoMonitor
+	log.Printf("[%s: %d] Start monitor node status", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
+	go time.AfterFunc(time.Duration(c.config.UpdatePeriodic)*time.Second, func() {
+		c.nodeInfoMonitorPeriodic.Start()
+	})
+
 	// delay to start userReport
-	go func() {
-		time.Sleep(time.Duration(c.config.UpdatePeriodic) * time.Second)
-		_ = c.userReportPeriodic.Start()
-	}()
+	log.Printf("[%s: %d] Start report user status", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
+	go time.AfterFunc(time.Duration(c.config.UpdatePeriodic)*time.Second, func() {
+		c.userReportPeriodic.Start()
+	})
+
+	// start certMonitor
+	log.Printf("[%s: %d] Start monitor cert status", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
+	go c.renewCertPeriodic.Start()
+
 	return nil
 }
 
@@ -154,6 +164,14 @@ func (c *Controller) Close() error {
 			log.Panicf("user report periodic close failed: %s", err)
 		}
 	}
+
+	if c.renewCertPeriodic != nil {
+		err := c.renewCertPeriodic.Close()
+		if err != nil {
+			log.Panicf("renew cert periodic close failed: %s", err)
+		}
+	}
+
 	return nil
 }
 
@@ -176,8 +194,8 @@ func (c *Controller) nodeInfoMonitor() (err error) {
 	// If nodeInfo changed
 	if !reflect.DeepEqual(c.nodeInfo, newNodeInfo) {
 		// Remove old tag
-		oldtag := c.Tag
-		err := c.removeOldTag(oldtag)
+		oldTag := c.Tag
+		err := c.removeOldTag(oldTag)
 		if err != nil {
 			log.Print(err)
 			return nil
@@ -199,7 +217,7 @@ func (c *Controller) nodeInfoMonitor() (err error) {
 		}
 		nodeInfoChanged = true
 		// Remove Old limiter
-		if err = c.DeleteInboundLimiter(oldtag); err != nil {
+		if err = c.DeleteInboundLimiter(oldTag); err != nil {
 			log.Print(err)
 			return nil
 		}
@@ -216,19 +234,6 @@ func (c *Controller) nodeInfoMonitor() (err error) {
 		}
 	}
 
-	// Check Cert
-	if c.nodeInfo.EnableTLS && (c.config.CertConfig.CertMode == "dns" || c.config.CertConfig.CertMode == "http") {
-		lego, err := legocmd.New()
-		if err != nil {
-			log.Print(err)
-		}
-		// Xray-core supports the OcspStapling certification hot renew
-		_, _, err = lego.RenewCert(c.config.CertConfig.CertDomain, c.config.CertConfig.Email, c.config.CertConfig.CertMode, c.config.CertConfig.Provider, c.config.CertConfig.DNSEnv)
-		if err != nil {
-			log.Print(err)
-		}
-	}
-
 	if nodeInfoChanged {
 		err = c.addNewUser(newUserInfo, newNodeInfo)
 		if err != nil {
@@ -236,7 +241,7 @@ func (c *Controller) nodeInfoMonitor() (err error) {
 			return nil
 		}
 		// Add Limiter
-		if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, newUserInfo, c.config.RedisConfig); err != nil {
+		if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, newUserInfo, c.config.GlobalDeviceLimitConfig); err != nil {
 			log.Print(err)
 			return nil
 		}
@@ -268,12 +273,12 @@ func (c *Controller) nodeInfoMonitor() (err error) {
 	return nil
 }
 
-func (c *Controller) removeOldTag(oldtag string) (err error) {
-	err = c.removeInbound(oldtag)
+func (c *Controller) removeOldTag(oldTag string) (err error) {
+	err = c.removeInbound(oldTag)
 	if err != nil {
 		return err
 	}
-	err = c.removeOutbound(oldtag)
+	err = c.removeOutbound(oldTag)
 	if err != nil {
 		return err
 	}
@@ -309,7 +314,7 @@ func (c *Controller) addNewTag(newNodeInfo *api.NodeInfo) (err error) {
 }
 
 func (c *Controller) addInboundForSSPlugin(newNodeInfo api.NodeInfo) (err error) {
-	// Shadowsocks-Plugin require a seaperate inbound for other TransportProtocol likes: ws, grpc
+	// Shadowsocks-Plugin require a separate inbound for other TransportProtocol likes: ws, grpc
 	fakeNodeInfo := newNodeInfo
 	fakeNodeInfo.TransportProtocol = "tcp"
 	fakeNodeInfo.EnableTLS = false
@@ -363,18 +368,15 @@ func (c *Controller) addInboundForSSPlugin(newNodeInfo api.NodeInfo) (err error)
 func (c *Controller) addNewUser(userInfo *[]api.UserInfo, nodeInfo *api.NodeInfo) (err error) {
 	users := make([]*protocol.User, 0)
 	if nodeInfo.NodeType == "V2ray" {
-		if nodeInfo.EnableVless {
-			users = c.buildVlessUser(userInfo)
+		var alterID uint16 = 0
+		if (c.panelType == "V2board" || c.panelType == "V2RaySocks") && len(*userInfo) > 0 {
+			// use latest userInfo
+			alterID = (*userInfo)[0].AlterID
 		} else {
-			var alterID uint16 = 0
-			if (c.panelType == "V2board" || c.panelType == "V2RaySocks" || c.panelType == "AikoVPN" || c.panelType == "Xflash") && len(*userInfo) > 0 {
-				// use latest userInfo
-				alterID = (*userInfo)[0].AlterID
-			} else {
-				alterID = nodeInfo.AlterID
-			}
-			users = c.buildVmessUser(userInfo, alterID)
+			alterID = nodeInfo.AlterID
 		}
+		users = c.buildVmessUser(userInfo, alterID)
+
 	} else if nodeInfo.NodeType == "Trojan" {
 		users = c.buildTrojanUser(userInfo)
 	} else if nodeInfo.NodeType == "Shadowsocks" {
@@ -393,34 +395,34 @@ func (c *Controller) addNewUser(userInfo *[]api.UserInfo, nodeInfo *api.NodeInfo
 }
 
 func compareUserList(old, new *[]api.UserInfo) (deleted, added []api.UserInfo) {
-	msrc := make(map[api.UserInfo]byte) //按源数组建索引
-	mall := make(map[api.UserInfo]byte) //源+目所有元素建索引
+	// init intersection slice, source user and target user map
+	var intersection []api.UserInfo
+	srcMap := make(map[api.UserInfo]bool)
+	tarMap := make(map[api.UserInfo]bool)
 
-	var set []api.UserInfo //交集
-
-	//1.源数组建立map
+	// create users map
 	for _, v := range *old {
-		msrc[v] = 0
-		mall[v] = 0
+		srcMap[v] = false
+		tarMap[v] = false
 	}
-	//2.目数组中，存不进去，即重复元素，所有存不进去的集合就是并集
+
 	for _, v := range *new {
-		l := len(mall)
-		mall[v] = 1
-		if l != len(mall) { //长度变化，即可以存
-			l = len(mall)
-		} else { //存不了，进并集
-			set = append(set, v)
+		l := len(tarMap)
+		tarMap[v] = true
+		// if previous length == current then save to intersection
+		if l == len(tarMap) {
+			intersection = append(intersection, v)
 		}
 	}
-	//3.遍历交集，在并集中找，找到就从并集中删，删完后就是补集（即并-交=所有变化的元素）
-	for _, v := range set {
-		delete(mall, v)
+
+	// delete element from intersection, The rest is the change element
+	for _, v := range intersection {
+		delete(tarMap, v)
 	}
-	//4.此时，mall是补集，所有元素去源中找，找到就是删除的，找不到的必定能在目数组中找到，即新加的
-	for v := range mall {
-		_, exist := msrc[v]
-		if exist {
+
+	// range the change element. if the change element in source uses map, then delete else add
+	for v := range tarMap {
+		if _, ok := srcMap[v]; ok {
 			deleted = append(deleted, v)
 		} else {
 			added = append(added, v)
@@ -485,6 +487,7 @@ func (c *Controller) userInfoMonitor() (err error) {
 	AutoSpeedLimit := int64(c.config.AutoSpeedLimitConfig.Limit)
 	UpdatePeriodic := int64(c.config.UpdatePeriodic)
 	limitedUsers := make([]api.UserInfo, 0)
+
 	for _, user := range *c.userList {
 		up, down, upCounter, downCounter := c.getTraffic(c.buildUserTag(&user))
 		if up > 0 || down > 0 {
@@ -510,7 +513,8 @@ func (c *Controller) userInfoMonitor() (err error) {
 				UID:      user.UID,
 				Email:    user.Email,
 				Upload:   up,
-				Download: down})
+				Download: down,
+			})
 
 			if upCounter != nil {
 				upCounterList = append(upCounterList, upCounter)
@@ -560,6 +564,23 @@ func (c *Controller) userInfoMonitor() (err error) {
 			log.Printf("[%s: %d] Report %d illegal behaviors", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(*detectResult))
 		}
 
+	}
+	return nil
+}
+
+func (c *Controller) certMonitor() (err error) {
+	// Check Cert
+	if c.nodeInfo.EnableTLS && (c.config.CertConfig.CertMode == "dns" || c.config.CertConfig.CertMode == "http") {
+		lego, err := legocmd.New()
+		if err != nil {
+			log.Print(err)
+			return err
+		}
+		_, _, err = lego.RenewCert(c.config.CertConfig.CertDomain, c.config.CertConfig.Email, c.config.CertConfig.CertMode, c.config.CertConfig.Provider, c.config.CertConfig.DNSEnv)
+		if err != nil {
+			log.Print(err)
+			return err
+		}
 	}
 	return nil
 }

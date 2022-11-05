@@ -16,7 +16,7 @@ type NodeInfoResponse struct {
 	Host            string  `json:"host"`
 	Path            string  `json:"path"`
 	Grpc            bool    `json:"grpc"`
-	Sni             string  `json:sni`
+	Sni             string  `json:"sni"`
 }
 
 // UserResponse is the response of user
@@ -41,7 +41,7 @@ type PostData struct {
 	Onlines interface{} `json:"onlines"`
 }
 
-// SystemLoad is the data structure of systemload
+// SystemLoad is the data structure of system load
 type SystemLoad struct {
 	Uptime string `json:"uptime"`
 	Load   string `json:"load"`

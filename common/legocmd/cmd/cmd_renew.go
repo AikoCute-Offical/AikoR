@@ -5,11 +5,12 @@ import (
 	"crypto/x509"
 	"time"
 
-	"github.com/AikoCute-Offical/AikoR/common/legocmd/log"
 	"github.com/go-acme/lego/v4/certcrypto"
 	"github.com/go-acme/lego/v4/certificate"
 	"github.com/go-acme/lego/v4/lego"
 	"github.com/urfave/cli"
+
+	"github.com/AikoCute-Offical/AikoR/common/legocmd/log"
 )
 
 const (

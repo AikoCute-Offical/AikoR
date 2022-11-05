@@ -1,6 +1,8 @@
 // Package rule is to control the audit rule behaviors
 package rule
 
+//go:generate go run github.com/v2fly/v2ray-core/v5/common/errors/errorgen
+
 import (
 	"fmt"
 	"reflect"
@@ -8,35 +10,36 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/AikoCute-Offical/AikoR/api"
 	mapset "github.com/deckarep/golang-set"
+
+	"github.com/AikoCute-Offical/AikoR/api"
 )
 
-type RuleManager struct {
+type Manager struct {
 	InboundRule         *sync.Map // Key: Tag, Value: []api.DetectRule
 	InboundDetectResult *sync.Map // key: Tag, Value: mapset.NewSet []api.DetectResult
 }
 
-func New() *RuleManager {
-	return &RuleManager{
+func New() *Manager {
+	return &Manager{
 		InboundRule:         new(sync.Map),
 		InboundDetectResult: new(sync.Map),
 	}
 }
 
-func (r *RuleManager) UpdateRule(tag string, newRuleList []api.DetectRule) error {
-	if value, ok := r.InboundRule.LoadOrStore(tag, newRuleList); ok {
+func (m *Manager) UpdateRule(tag string, newRuleList []api.DetectRule) error {
+	if value, ok := m.InboundRule.LoadOrStore(tag, newRuleList); ok {
 		oldRuleList := value.([]api.DetectRule)
 		if !reflect.DeepEqual(oldRuleList, newRuleList) {
-			r.InboundRule.Store(tag, newRuleList)
+			m.InboundRule.Store(tag, newRuleList)
 		}
 	}
 	return nil
 }
 
-func (r *RuleManager) GetDetectResult(tag string) (*[]api.DetectResult, error) {
+func (m *Manager) GetDetectResult(tag string) (*[]api.DetectResult, error) {
 	detectResult := make([]api.DetectResult, 0)
-	if value, ok := r.InboundDetectResult.LoadAndDelete(tag); ok {
+	if value, ok := m.InboundDetectResult.LoadAndDelete(tag); ok {
 		resultSet := value.(mapset.Set)
 		it := resultSet.Iterator()
 		for result := range it.C {
@@ -46,11 +49,11 @@ func (r *RuleManager) GetDetectResult(tag string) (*[]api.DetectResult, error) {
 	return &detectResult, nil
 }
 
-func (r *RuleManager) Detect(tag string, destination string, email string) (reject bool) {
+func (m *Manager) Detect(tag string, destination string, email string) (reject bool) {
 	reject = false
-	var hitRuleID int = -1
+	var hitRuleID = -1
 	// If we have some rule for this inbound
-	if value, ok := r.InboundRule.Load(tag); ok {
+	if value, ok := m.InboundRule.Load(tag); ok {
 		ruleList := value.([]api.DetectRule)
 		for _, r := range ruleList {
 			if r.Pattern.Match([]byte(destination)) {
@@ -69,11 +72,11 @@ func (r *RuleManager) Detect(tag string, destination string, email string) (reje
 			}
 			newSet := mapset.NewSetWith(api.DetectResult{UID: uid, RuleID: hitRuleID})
 			// If there are any hit history
-			if v, ok := r.InboundDetectResult.LoadOrStore(tag, newSet); ok {
+			if v, ok := m.InboundDetectResult.LoadOrStore(tag, newSet); ok {
 				resultSet := v.(mapset.Set)
 				// If this is a new record
 				if resultSet.Add(api.DetectResult{UID: uid, RuleID: hitRuleID}) {
-					r.InboundDetectResult.Store(tag, resultSet)
+					m.InboundDetectResult.Store(tag, resultSet)
 				}
 			}
 		}

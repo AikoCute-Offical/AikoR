@@ -5,14 +5,12 @@ import (
 	"regexp"
 )
 
-// API config
+// Config API config
 type Config struct {
 	APIHost             string  `mapstructure:"ApiHost"`
 	NodeID              int     `mapstructure:"NodeID"`
 	Key                 string  `mapstructure:"ApiKey"`
 	NodeType            string  `mapstructure:"NodeType"`
-	EnableVless         bool    `mapstructure:"EnableVless"`
-	EnableXTLS          bool    `mapstructure:"EnableXTLS"`
 	Timeout             int     `mapstructure:"Timeout"`
 	SpeedLimit          float64 `mapstructure:"SpeedLimit"`
 	DeviceLimit         int     `mapstructure:"DeviceLimit"`
@@ -20,7 +18,7 @@ type Config struct {
 	DisableCustomConfig bool    `mapstructure:"DisableCustomConfig"`
 }
 
-// Node status
+// NodeStatus Node status
 type NodeStatus struct {
 	CPU    float64
 	Mem    float64
@@ -40,7 +38,6 @@ type NodeInfo struct {
 	Path              string
 	EnableTLS         bool
 	TLSType           string
-	EnableVless       bool
 	CypherMethod      string
 	ServiceName       string
 	Header            json.RawMessage
@@ -60,7 +57,6 @@ type UserInfo struct {
 	ObfsParam     string
 	UUID          string
 	AlterID       uint16
-	Count         int64
 }
 
 type OnlineUser struct {
@@ -73,7 +69,6 @@ type UserTraffic struct {
 	Email    string
 	Upload   int64
 	Download int64
-	Count    int64
 }
 
 type ClientInfo struct {

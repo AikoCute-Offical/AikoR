@@ -19,7 +19,7 @@ func CreateClient() api.API {
 	return client
 }
 
-func TestGetV2rayNodeinfo(t *testing.T) {
+func TestGetV2rayNodeInfo(t *testing.T) {
 	client := CreateClient()
 	client.Debug()
 	nodeInfo, err := client.GetNodeInfo()
@@ -29,7 +29,7 @@ func TestGetV2rayNodeinfo(t *testing.T) {
 	t.Log(nodeInfo)
 }
 
-func TestGetSSNodeinfo(t *testing.T) {
+func TestGetSSNodeInfo(t *testing.T) {
 	apiConfig := &api.Config{
 		APIHost:  "http://webapi.yyds.me",
 		Key:      "123456",
@@ -45,7 +45,7 @@ func TestGetSSNodeinfo(t *testing.T) {
 	t.Log(nodeInfo)
 }
 
-func TestGetTrojanNodeinfo(t *testing.T) {
+func TestGetTrojanNodeInfo(t *testing.T) {
 	apiConfig := &api.Config{
 		APIHost:  "http://webapi.yyds.me",
 		Key:      "123456",
@@ -61,7 +61,7 @@ func TestGetTrojanNodeinfo(t *testing.T) {
 	t.Log(nodeInfo)
 }
 
-func TestGetSSinfo(t *testing.T) {
+func TestGetSSInfo(t *testing.T) {
 	client := CreateClient()
 
 	nodeInfo, err := client.GetNodeInfo()
@@ -85,7 +85,7 @@ func TestGetUserList(t *testing.T) {
 func TestReportNodeStatus(t *testing.T) {
 	client := CreateClient()
 	nodeStatus := &api.NodeStatus{
-		1, 1, 1, 256,
+		CPU: 1, Mem: 1, Disk: 1, Uptime: 256,
 	}
 	err := client.ReportNodeStatus(nodeStatus)
 	if err != nil {
@@ -107,7 +107,7 @@ func TestReportReportNodeOnlineUsers(t *testing.T) {
 			IP:  fmt.Sprintf("1.1.1.%d", i),
 		}
 	}
-	//client.Debug()
+	// client.Debug()
 	err = client.ReportNodeOnlineUsers(&onlineUserList)
 	if err != nil {
 		t.Error(err)
@@ -128,7 +128,7 @@ func TestReportReportUserTraffic(t *testing.T) {
 			Download: 114514,
 		}
 	}
-	//client.Debug()
+	// client.Debug()
 	err = client.ReportUserTraffic(&generalUserTraffic)
 	if err != nil {
 		t.Error(err)
@@ -150,8 +150,8 @@ func TestReportIllegal(t *testing.T) {
 	client := CreateClient()
 
 	detectResult := []api.DetectResult{
-		api.DetectResult{1, 2},
-		api.DetectResult{1, 3},
+		{1, 2},
+		{1, 3},
 	}
 	client.Debug()
 	err := client.ReportIllegal(&detectResult)

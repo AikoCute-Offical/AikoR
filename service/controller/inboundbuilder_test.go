@@ -59,6 +59,12 @@ func TestBuildTrojan(t *testing.T) {
 		DNSEnv:     DNSEnv,
 	}
 	config := &Config{
+		EnableFallback: true,
+		FallBackConfigs: []*FallBackConfig{
+			{
+				Dest: "https://www.baidu.com",
+			},
+		},
 		CertConfig: certConfig,
 	}
 	_, err := InboundBuilder(config, nodeInfo, "test_tag")

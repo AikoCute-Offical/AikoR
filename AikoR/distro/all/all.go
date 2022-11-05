@@ -3,70 +3,99 @@ package all
 import (
 	// The following are necessary as they register handlers in their init functions.
 
-	// Required features. Can't remove unless there is replacements.
-	// _ "github.com/xtls/xray-core/app/dispatcher"
+	// Mandatory features. Can't remove unless there are replacements.
+	_ "github.com/v2fly/v2ray-core/v5/app/proxyman/inbound"
+	_ "github.com/v2fly/v2ray-core/v5/app/proxyman/outbound"
+
+	// My dispatcher
 	_ "github.com/AikoCute-Offical/AikoR/app/mydispatcher"
-	_ "github.com/xtls/xray-core/app/proxyman/inbound"
-	_ "github.com/xtls/xray-core/app/proxyman/outbound"
 
 	// Default commander and all its services. This is an optional feature.
-	_ "github.com/xtls/xray-core/app/commander"
-	_ "github.com/xtls/xray-core/app/log/command"
-	_ "github.com/xtls/xray-core/app/proxyman/command"
-	_ "github.com/xtls/xray-core/app/stats/command"
+	_ "github.com/v2fly/v2ray-core/v5/app/commander"
+	_ "github.com/v2fly/v2ray-core/v5/app/log/command"
+	_ "github.com/v2fly/v2ray-core/v5/app/proxyman/command"
+	_ "github.com/v2fly/v2ray-core/v5/app/stats/command"
+
+	// Developer preview services
+	_ "github.com/v2fly/v2ray-core/v5/app/instman/command"
+	_ "github.com/v2fly/v2ray-core/v5/app/observatory/command"
 
 	// Other optional features.
-	_ "github.com/xtls/xray-core/app/dns"
-	_ "github.com/xtls/xray-core/app/log"
-	_ "github.com/xtls/xray-core/app/metrics"
-	_ "github.com/xtls/xray-core/app/policy"
-	_ "github.com/xtls/xray-core/app/reverse"
-	_ "github.com/xtls/xray-core/app/router"
-	_ "github.com/xtls/xray-core/app/stats"
+	_ "github.com/v2fly/v2ray-core/v5/app/dns"
+	_ "github.com/v2fly/v2ray-core/v5/app/dns/fakedns"
+	_ "github.com/v2fly/v2ray-core/v5/app/log"
+	_ "github.com/v2fly/v2ray-core/v5/app/policy"
+	_ "github.com/v2fly/v2ray-core/v5/app/reverse"
+	_ "github.com/v2fly/v2ray-core/v5/app/router"
+	_ "github.com/v2fly/v2ray-core/v5/app/stats"
+
+	// Fix dependency cycle caused by core import in internet package
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/tagged/taggedimpl"
+
+	// Developer preview features
+	_ "github.com/v2fly/v2ray-core/v5/app/instman"
+	_ "github.com/v2fly/v2ray-core/v5/app/observatory"
+	_ "github.com/v2fly/v2ray-core/v5/app/restfulapi"
 
 	// Inbound and outbound proxies.
-	_ "github.com/xtls/xray-core/proxy/blackhole"
-	_ "github.com/xtls/xray-core/proxy/dns"
-	_ "github.com/xtls/xray-core/proxy/dokodemo"
-	_ "github.com/xtls/xray-core/proxy/freedom"
-	_ "github.com/xtls/xray-core/proxy/http"
-	_ "github.com/xtls/xray-core/proxy/mtproto"
-	_ "github.com/xtls/xray-core/proxy/shadowsocks"
-	_ "github.com/xtls/xray-core/proxy/socks"
-	_ "github.com/xtls/xray-core/proxy/trojan"
-	_ "github.com/xtls/xray-core/proxy/vless/inbound"
-	_ "github.com/xtls/xray-core/proxy/vless/outbound"
-	_ "github.com/xtls/xray-core/proxy/vmess/inbound"
-	_ "github.com/xtls/xray-core/proxy/vmess/outbound"
+	_ "github.com/v2fly/v2ray-core/v5/proxy/blackhole"
+	_ "github.com/v2fly/v2ray-core/v5/proxy/dns"
+	_ "github.com/v2fly/v2ray-core/v5/proxy/dokodemo"
+	_ "github.com/v2fly/v2ray-core/v5/proxy/freedom"
+	_ "github.com/v2fly/v2ray-core/v5/proxy/http"
+	_ "github.com/v2fly/v2ray-core/v5/proxy/shadowsocks"
+	_ "github.com/v2fly/v2ray-core/v5/proxy/socks"
+	_ "github.com/v2fly/v2ray-core/v5/proxy/trojan"
+	_ "github.com/v2fly/v2ray-core/v5/proxy/vmess/inbound"
+	_ "github.com/v2fly/v2ray-core/v5/proxy/vmess/outbound"
+
+	// Developer preview proxies
+	_ "github.com/v2fly/v2ray-core/v5/proxy/vlite/inbound"
+	_ "github.com/v2fly/v2ray-core/v5/proxy/vlite/outbound"
 
 	// Transports
-	_ "github.com/xtls/xray-core/transport/internet/domainsocket"
-	_ "github.com/xtls/xray-core/transport/internet/http"
-	_ "github.com/xtls/xray-core/transport/internet/kcp"
-	_ "github.com/xtls/xray-core/transport/internet/quic"
-	_ "github.com/xtls/xray-core/transport/internet/tcp"
-	_ "github.com/xtls/xray-core/transport/internet/tls"
-	_ "github.com/xtls/xray-core/transport/internet/udp"
-	_ "github.com/xtls/xray-core/transport/internet/websocket"
-	_ "github.com/xtls/xray-core/transport/internet/xtls"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/domainsocket"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/grpc"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/http"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/kcp"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/quic"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/tcp"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/tls"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/udp"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/websocket"
 
 	// Transport headers
-	_ "github.com/xtls/xray-core/transport/internet/headers/http"
-	_ "github.com/xtls/xray-core/transport/internet/headers/noop"
-	_ "github.com/xtls/xray-core/transport/internet/headers/srtp"
-	_ "github.com/xtls/xray-core/transport/internet/headers/tls"
-	_ "github.com/xtls/xray-core/transport/internet/headers/utp"
-	_ "github.com/xtls/xray-core/transport/internet/headers/wechat"
-	_ "github.com/xtls/xray-core/transport/internet/headers/wireguard"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/headers/http"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/headers/noop"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/headers/srtp"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/headers/tls"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/headers/utp"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/headers/wechat"
+	_ "github.com/v2fly/v2ray-core/v5/transport/internet/headers/wireguard"
 
-	// JSON & TOML & YAML
-	_ "github.com/xtls/xray-core/main/json"
-	_ "github.com/xtls/xray-core/main/toml"
-	_ "github.com/xtls/xray-core/main/yaml"
+	// Geo loaders
+	_ "github.com/v2fly/v2ray-core/v5/infra/conf/geodata/memconservative"
+	_ "github.com/v2fly/v2ray-core/v5/infra/conf/geodata/standard"
 
-	// Load config from file or http(s)
-	_ "github.com/xtls/xray-core/main/confloader/external"
+	// JSON, TOML, YAML config support. (jsonv4) This disable selective compile
+	_ "github.com/v2fly/v2ray-core/v5/main/formats"
 
-	// Commands
-	_ "github.com/xtls/xray-core/main/commands/all"
+	// commands
+	_ "github.com/v2fly/v2ray-core/v5/main/commands/all"
+
+	// engineering commands
+	_ "github.com/v2fly/v2ray-core/v5/main/commands/all/engineering"
+
+	// Commands that rely on jsonv4 format This disables selective compile
+	_ "github.com/v2fly/v2ray-core/v5/main/commands/all/api/jsonv4"
+	_ "github.com/v2fly/v2ray-core/v5/main/commands/all/jsonv4"
+
+	// V5 version of json configure file parser
+	_ "github.com/v2fly/v2ray-core/v5/infra/conf/v5cfg"
+
+	// Simplified config
+	_ "github.com/v2fly/v2ray-core/v5/proxy/http/simplified"
+	_ "github.com/v2fly/v2ray-core/v5/proxy/shadowsocks/simplified"
+	_ "github.com/v2fly/v2ray-core/v5/proxy/socks/simplified"
+	_ "github.com/v2fly/v2ray-core/v5/proxy/trojan/simplified"
 )

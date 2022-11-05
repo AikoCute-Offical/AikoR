@@ -1,16 +1,20 @@
-// Package generate the InbounderConfig used by add inbound
+// Package controller Package generate the InboundConfig used by add inbound
 package controller
 
 import (
 	"encoding/json"
 	"fmt"
 
+	core "github.com/v2fly/v2ray-core/v5"
+	"github.com/v2fly/v2ray-core/v5/common/net"
+	"github.com/v2fly/v2ray-core/v5/infra/conf/cfgcommon"
+	"github.com/v2fly/v2ray-core/v5/infra/conf/cfgcommon/sniffer"
+	"github.com/v2fly/v2ray-core/v5/infra/conf/cfgcommon/socketcfg"
+	"github.com/v2fly/v2ray-core/v5/infra/conf/cfgcommon/tlscfg"
+	conf "github.com/v2fly/v2ray-core/v5/infra/conf/v4"
+
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/AikoCute-Offical/AikoR/common/legocmd"
-	"github.com/xtls/xray-core/common/net"
-	"github.com/xtls/xray-core/common/uuid"
-	"github.com/xtls/xray-core/core"
-	"github.com/xtls/xray-core/infra/conf"
 )
 
 // InboundBuilder build Inbound config for different protocol
@@ -19,23 +23,20 @@ func InboundBuilder(config *Config, nodeInfo *api.NodeInfo, tag string) (*core.I
 	// Build Listen IP address
 	if nodeInfo.NodeType == "Shadowsocks-Plugin" {
 		// Shdowsocks listen in 127.0.0.1 for safety
-		inboundDetourConfig.ListenOn = &conf.Address{net.ParseAddress("127.0.0.1")}
+		inboundDetourConfig.ListenOn = &cfgcommon.Address{Address: net.ParseAddress("127.0.0.1")}
 	} else if config.ListenIP != "" {
 		ipAddress := net.ParseAddress(config.ListenIP)
-		inboundDetourConfig.ListenOn = &conf.Address{ipAddress}
+		inboundDetourConfig.ListenOn = &cfgcommon.Address{Address: ipAddress}
 	}
 
 	// Build Port
-	portList := &conf.PortList{
-		Range: []conf.PortRange{{From: nodeInfo.Port, To: nodeInfo.Port}},
-	}
-	inboundDetourConfig.PortList = portList
+	inboundDetourConfig.PortRange = &cfgcommon.PortRange{From: nodeInfo.Port, To: nodeInfo.Port}
 	// Build Tag
 	inboundDetourConfig.Tag = tag
 	// SniffingConfig
-	sniffingConfig := &conf.SniffingConfig{
+	sniffingConfig := &sniffer.SniffingConfig{
 		Enabled:      true,
-		DestOverride: &conf.StringList{"http", "tls"},
+		DestOverride: &cfgcommon.StringList{"http", "tls"},
 	}
 	if config.DisableSniffing {
 		sniffingConfig.Enabled = false
@@ -48,63 +49,44 @@ func InboundBuilder(config *Config, nodeInfo *api.NodeInfo, tag string) (*core.I
 		setting       json.RawMessage
 	)
 
-	var proxySetting interface{}
+	var proxySetting any
 	// Build Protocol and Protocol setting
-	if nodeInfo.NodeType == "V2ray" {
-		if nodeInfo.EnableVless {
-			protocol = "vless"
-			// Enable fallback
-			if config.EnableFallback {
-				fallbackConfigs, err := buildVlessFallbacks(config.FallBackConfigs)
-				if err == nil {
-					proxySetting = &conf.VLessInboundConfig{
-						Decryption: "none",
-						Fallbacks:  fallbackConfigs,
-					}
-				} else {
-					return nil, err
-				}
-			} else {
-				proxySetting = &conf.VLessInboundConfig{
-					Decryption: "none",
-				}
-			}
-		} else {
-			protocol = "vmess"
-			proxySetting = &conf.VMessInboundConfig{}
-		}
-	} else if nodeInfo.NodeType == "Trojan" {
+	switch nodeInfo.NodeType {
+	case "V2ray":
+		protocol = "vmess"
+		proxySetting = &conf.VMessInboundConfig{}
+	case "Trojan":
 		protocol = "trojan"
 		// Enable fallback
 		if config.EnableFallback {
 			fallbackConfigs, err := buildTrojanFallbacks(config.FallBackConfigs)
 			if err == nil {
-				proxySetting = &conf.TrojanServerConfig{
-					Fallbacks: fallbackConfigs,
-				}
+				proxySetting = struct {
+					Fallbacks []*conf.TrojanInboundFallback `json:"fallbacks"`
+				}{Fallbacks: fallbackConfigs}
 			} else {
 				return nil, err
 			}
-		} else {
-			proxySetting = &conf.TrojanServerConfig{}
 		}
-	} else if nodeInfo.NodeType == "Shadowsocks" || nodeInfo.NodeType == "Shadowsocks-Plugin" {
-		protocol = "shadowsocks"
-		proxySetting = &conf.ShadowsocksServerConfig{}
-		randomPasswd := uuid.New()
-		defaultSSuser := &conf.ShadowsocksUserConfig{
-			Cipher:   "aes-128-gcm",
-			Password: randomPasswd.String(),
-		}
-		proxySetting, _ := proxySetting.(*conf.ShadowsocksServerConfig)
-		proxySetting.Users = append(proxySetting.Users, defaultSSuser)
-		proxySetting.NetworkList = &conf.NetworkList{"tcp", "udp"}
-		proxySetting.IVCheck = true
-		if config.DisableIVCheck {
-			proxySetting.IVCheck = false
-		}
+	case "Shadowsocks", "Shadowsocks-Plugin":
+		// v2ray official not support single port multi-user
 
-	} else if nodeInfo.NodeType == "dokodemo-door" {
+		// protocol = "shadowsocks"
+		// proxySetting = &conf.ShadowsocksServerConfig{}
+		// randomPasswd := uuid.New()
+		// defaultSSUser := &conf.ShadowsocksUserConfig{
+		// 	Cipher:   "aes-128-gcm",
+		// 	Password: randomPasswd.String(),
+		// }
+		// proxySetting, _ := proxySetting.(*conf.ShadowsocksServerConfig)
+		// proxySetting.Users = append(proxySetting.Users, defaultSSUser)
+		// proxySetting.NetworkList = &conf.NetworkList{"tcp", "udp"}
+		// proxySetting.IVCheck = true
+		// if config.DisableIVCheck {
+		// 	proxySetting.IVCheck = false
+		// }
+		return nil, newError("not support Shadowsocks on single port multi-user")
+	case "dokodemo-door":
 		protocol = "dokodemo-door"
 		proxySetting = struct {
 			Host        string   `json:"address"`
@@ -113,13 +95,13 @@ func InboundBuilder(config *Config, nodeInfo *api.NodeInfo, tag string) (*core.I
 			Host:        "v1.mux.cool",
 			NetworkList: []string{"tcp", "udp"},
 		}
-	} else {
-		return nil, fmt.Errorf("Unsupported node type: %s, Only support: V2ray, Trojan, Shadowsocks, and Shadowsocks-Plugin", nodeInfo.NodeType)
+	default:
+		return nil, newError(fmt.Sprintf("unsupported node type: %s, Only support: V2ray, Trojan, Shadowsocks, and Shadowsocks-Plugin", nodeInfo.NodeType)).AtError()
 	}
 
 	setting, err := json.Marshal(proxySetting)
 	if err != nil {
-		return nil, fmt.Errorf("Marshal proxy %s config fialed: %s", nodeInfo.NodeType, err)
+		return nil, fmt.Errorf("marshal proxy %s config fialed: %s", nodeInfo.NodeType, err)
 	}
 
 	// Build streamSettings
@@ -127,63 +109,49 @@ func InboundBuilder(config *Config, nodeInfo *api.NodeInfo, tag string) (*core.I
 	transportProtocol := conf.TransportProtocol(nodeInfo.TransportProtocol)
 	networkType, err := transportProtocol.Build()
 	if err != nil {
-		return nil, fmt.Errorf("convert TransportProtocol failed: %s", err)
+		return nil, newError(fmt.Sprintf("convert TransportProtocol failed: %s", err)).AtError()
 	}
-	if networkType == "tcp" {
-		tcpSetting := &conf.TCPConfig{
+
+	switch networkType {
+	case "tcp":
+		streamSetting.TCPSettings = &conf.TCPConfig{
 			AcceptProxyProtocol: config.EnableProxyProtocol,
 			HeaderConfig:        nodeInfo.Header,
 		}
-		streamSetting.TCPSettings = tcpSetting
-	} else if networkType == "websocket" {
-		headers := make(map[string]string)
-		headers["Host"] = nodeInfo.Host
-		wsSettings := &conf.WebSocketConfig{
+	case "websocket":
+		streamSetting.WSSettings = &conf.WebSocketConfig{
 			AcceptProxyProtocol: config.EnableProxyProtocol,
 			Path:                nodeInfo.Path,
-			Headers:             headers,
+			Headers:             map[string]string{"Host": nodeInfo.Host},
 		}
-		streamSetting.WSSettings = wsSettings
-	} else if networkType == "http" {
-		hosts := conf.StringList{nodeInfo.Host}
-		httpSettings := &conf.HTTPConfig{
-			Host: &hosts,
+	case "http":
+		streamSetting.HTTPSettings = &conf.HTTPConfig{
+			Host: &cfgcommon.StringList{nodeInfo.Host},
 			Path: nodeInfo.Path,
 		}
-		streamSetting.HTTPSettings = httpSettings
-	} else if networkType == "grpc" {
-		grpcSettings := &conf.GRPCConfig{
-			ServiceName: nodeInfo.ServiceName,
-		}
-		streamSetting.GRPCConfig = grpcSettings
+	case "grpc":
+		streamSetting.GRPCSettings = &conf.GunConfig{ServiceName: nodeInfo.ServiceName}
 	}
 
 	streamSetting.Network = &transportProtocol
-	// Build TLS and XTLS settings
+	// Build TLS settings
 	if nodeInfo.EnableTLS && config.CertConfig.CertMode != "none" {
 		streamSetting.Security = nodeInfo.TLSType
 		certFile, keyFile, err := getCertFile(config.CertConfig)
 		if err != nil {
 			return nil, err
 		}
-		if nodeInfo.TLSType == "tls" {
-			tlsSettings := &conf.TLSConfig{
-				RejectUnknownSNI: config.CertConfig.RejectUnknownSni,
-			}
-			tlsSettings.Certs = append(tlsSettings.Certs, &conf.TLSCertConfig{CertFile: certFile, KeyFile: keyFile, OcspStapling: 3600})
-
-			streamSetting.TLSSettings = tlsSettings
-		} else if nodeInfo.TLSType == "xtls" {
-			xtlsSettings := &conf.XTLSConfig{
-				RejectUnknownSNI: config.CertConfig.RejectUnknownSni,
-			}
-			xtlsSettings.Certs = append(xtlsSettings.Certs, &conf.XTLSCertConfig{CertFile: certFile, KeyFile: keyFile, OcspStapling: 3600})
-			streamSetting.XTLSSettings = xtlsSettings
+		tlsSettings := &tlscfg.TLSConfig{
+			VerifyClientCertificate: config.CertConfig.VerifyClientCertificate,
 		}
+		tlsSettings.Certs = append(tlsSettings.Certs, &tlscfg.TLSCertConfig{CertFile: certFile, KeyFile: keyFile})
+
+		streamSetting.TLSSettings = tlsSettings
+
 	}
 	// Support ProxyProtocol for any transport protocol
 	if networkType != "tcp" && networkType != "ws" && config.EnableProxyProtocol {
-		sockoptConfig := &conf.SocketConfig{
+		sockoptConfig := &socketcfg.SocketConfig{
 			AcceptProxyProtocol: config.EnableProxyProtocol,
 		}
 		streamSetting.SocketSettings = sockoptConfig
@@ -198,7 +166,7 @@ func InboundBuilder(config *Config, nodeInfo *api.NodeInfo, tag string) (*core.I
 func getCertFile(certConfig *CertConfig) (certFile string, keyFile string, err error) {
 	if certConfig.CertMode == "file" {
 		if certConfig.CertFile == "" || certConfig.KeyFile == "" {
-			return "", "", fmt.Errorf("Cert file path or key file path not exist")
+			return "", "", fmt.Errorf("cert file path or key file path not exist")
 		}
 		return certConfig.CertFile, certConfig.KeyFile, nil
 	} else if certConfig.CertMode == "dns" {
@@ -223,56 +191,28 @@ func getCertFile(certConfig *CertConfig) (certFile string, keyFile string, err e
 		return certPath, keyPath, err
 	}
 
-	return "", "", fmt.Errorf("Unsupported certmode: %s", certConfig.CertMode)
-}
-
-func buildVlessFallbacks(fallbackConfigs []*FallBackConfig) ([]*conf.VLessInboundFallback, error) {
-	if fallbackConfigs == nil {
-		return nil, fmt.Errorf("You must provide FallBackConfigs")
-	}
-
-	vlessFallBacks := make([]*conf.VLessInboundFallback, len(fallbackConfigs))
-	for i, c := range fallbackConfigs {
-
-		if c.Dest == "" {
-			return nil, fmt.Errorf("Dest is required for fallback fialed")
-		}
-
-		var dest json.RawMessage
-		dest, err := json.Marshal(c.Dest)
-		if err != nil {
-			return nil, fmt.Errorf("Marshal dest %s config fialed: %s", dest, err)
-		}
-		vlessFallBacks[i] = &conf.VLessInboundFallback{
-			Name: c.SNI,
-			Alpn: c.Alpn,
-			Path: c.Path,
-			Dest: dest,
-			Xver: c.ProxyProtocolVer,
-		}
-	}
-	return vlessFallBacks, nil
+	return "", "", fmt.Errorf("unsupported certmode: %s", certConfig.CertMode)
 }
 
 func buildTrojanFallbacks(fallbackConfigs []*FallBackConfig) ([]*conf.TrojanInboundFallback, error) {
 	if fallbackConfigs == nil {
-		return nil, fmt.Errorf("You must provide FallBackConfigs")
+		return nil, fmt.Errorf("you must provide FallBackConfigs")
 	}
 
 	trojanFallBacks := make([]*conf.TrojanInboundFallback, len(fallbackConfigs))
 	for i, c := range fallbackConfigs {
 
 		if c.Dest == "" {
-			return nil, fmt.Errorf("Dest is required for fallback fialed")
+			return nil, fmt.Errorf("dest is required for fallback fialed")
 		}
 
 		var dest json.RawMessage
 		dest, err := json.Marshal(c.Dest)
 		if err != nil {
-			return nil, fmt.Errorf("Marshal dest %s config fialed: %s", dest, err)
+			return nil, fmt.Errorf("marshal dest %s config fialed: %s", dest, err)
 		}
 		trojanFallBacks[i] = &conf.TrojanInboundFallback{
-			Name: c.SNI,
+			Type: c.Type,
 			Alpn: c.Alpn,
 			Path: c.Path,
 			Dest: dest,

@@ -8,29 +8,30 @@ import (
 	"syscall"
 	"testing"
 
-	_ "github.com/AikoCute-Offical/AikoR/AikoR/distro/all"
+	core "github.com/v2fly/v2ray-core/v5"
+	"github.com/v2fly/v2ray-core/v5/infra/conf/synthetic/log"
+	conf "github.com/v2fly/v2ray-core/v5/infra/conf/v4"
+
 	"github.com/AikoCute-Offical/AikoR/api"
-	"github.com/AikoCute-Offical/AikoR/api/sspanel"
+	"github.com/AikoCute-Offical/AikoR/api/v2board"
 	. "github.com/AikoCute-Offical/AikoR/service/controller"
-	"github.com/xtls/xray-core/core"
-	"github.com/xtls/xray-core/infra/conf"
 )
 
 func TestController(t *testing.T) {
 	serverConfig := &conf.Config{
 		Stats:     &conf.StatsConfig{},
-		LogConfig: &conf.LogConfig{LogLevel: "debug"},
+		LogConfig: &log.LogConfig{LogLevel: "debug"},
 	}
 	policyConfig := &conf.PolicyConfig{}
-	policyConfig.Levels = map[uint32]*conf.Policy{0: &conf.Policy{
+	policyConfig.Levels = map[uint32]*conf.Policy{0: {
 		StatsUserUplink:   true,
 		StatsUserDownlink: true,
 	}}
 	serverConfig.Policy = policyConfig
 	config, _ := serverConfig.Build()
 
-	// config := &core.Config{
-	// 	App: []*serial.TypedMessage{
+	// config = &core.Config{
+	// 	App: []*anypb.Any{
 	// 		serial.ToTypedMessage(&dispatcher.Config{}),
 	// 		serial.ToTypedMessage(&proxyman.InboundConfig{}),
 	// 		serial.ToTypedMessage(&proxyman.OutboundConfig{}),
@@ -51,7 +52,7 @@ func TestController(t *testing.T) {
 		Provider:   "alidns",
 		Email:      "ss@ss.com",
 	}
-	controlerconfig := &Config{
+	controllerConfig := &Config{
 		UpdatePeriodic: 5,
 		CertConfig:     certConfig,
 	}
@@ -61,14 +62,14 @@ func TestController(t *testing.T) {
 		NodeID:   41,
 		NodeType: "V2ray",
 	}
-	apiclient := sspanel.New(apiConfig)
-	c := New(server, apiclient, controlerconfig, "SSpanel")
+	apiClient := v2board.New(apiConfig)
+	c := New(server, apiClient, controllerConfig, "V2board")
 	fmt.Println("Sleep 1s")
 	err = c.Start()
 	if err != nil {
 		t.Error(err)
 	}
-	//Explicitly triggering GC to remove garbage from config loading.
+	// Explicitly triggering GC to remove garbage from config loading.
 	runtime.GC()
 
 	{

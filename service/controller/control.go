@@ -1,17 +1,20 @@
 package controller
 
+//go:generate go run github.com/v2fly/v2ray-core/v5/common/errors/errorgen
+
 import (
 	"context"
 	"fmt"
 
+	core "github.com/v2fly/v2ray-core/v5"
+	"github.com/v2fly/v2ray-core/v5/common/protocol"
+	"github.com/v2fly/v2ray-core/v5/features/inbound"
+	"github.com/v2fly/v2ray-core/v5/features/outbound"
+	"github.com/v2fly/v2ray-core/v5/features/stats"
+	"github.com/v2fly/v2ray-core/v5/proxy"
+
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/AikoCute-Offical/AikoR/common/limiter"
-	"github.com/xtls/xray-core/common/protocol"
-	"github.com/xtls/xray-core/core"
-	"github.com/xtls/xray-core/features/inbound"
-	"github.com/xtls/xray-core/features/outbound"
-	"github.com/xtls/xray-core/features/stats"
-	"github.com/xtls/xray-core/proxy"
 )
 
 func (c *Controller) removeInbound(tag string) error {
@@ -57,7 +60,7 @@ func (c *Controller) addOutbound(config *core.OutboundHandlerConfig) error {
 func (c *Controller) addUsers(users []*protocol.User, tag string) error {
 	handler, err := c.ihm.GetHandler(context.Background(), tag)
 	if err != nil {
-		return fmt.Errorf("No such inbound tag: %s", err)
+		return fmt.Errorf("no such inbound tag: %s", err)
 	}
 	inboundInstance, ok := handler.(proxy.GetInbound)
 	if !ok {
@@ -84,7 +87,7 @@ func (c *Controller) addUsers(users []*protocol.User, tag string) error {
 func (c *Controller) removeUsers(users []string, tag string) error {
 	handler, err := c.ihm.GetHandler(context.Background(), tag)
 	if err != nil {
-		return fmt.Errorf("No such inbound tag: %s", err)
+		return fmt.Errorf("no such inbound tag: %s", err)
 	}
 	inboundInstance, ok := handler.(proxy.GetInbound)
 	if !ok {
@@ -131,8 +134,8 @@ func (c *Controller) resetTraffic(upCounterList *[]stats.Counter, downCounterLis
 	}
 }
 
-func (c *Controller) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList *[]api.UserInfo, RedisConfig *limiter.RedisConfig) error {
-	err := c.dispatcher.Limiter.AddInboundLimiter(tag, nodeSpeedLimit, userList, RedisConfig)
+func (c *Controller) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList *[]api.UserInfo, globalDeviceLimitConfig *limiter.GlobalDeviceLimitConfig) error {
+	err := c.dispatcher.Limiter.AddInboundLimiter(tag, nodeSpeedLimit, userList, globalDeviceLimitConfig)
 	return err
 }
 

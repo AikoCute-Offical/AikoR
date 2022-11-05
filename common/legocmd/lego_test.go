@@ -19,9 +19,9 @@ func TestLegoDNSCert(t *testing.T) {
 		t.Error(err)
 	}
 	var (
-		domain   string = "node1.test.com"
-		email    string = "test@gmail.com"
-		provider string = "alidns"
+		domain   = "node1.test.com"
+		email    = "test@gmail.com"
+		provider = "alidns"
 		DNSEnv   map[string]string
 	)
 	DNSEnv = make(map[string]string)
@@ -41,8 +41,8 @@ func TestLegoHTTPCert(t *testing.T) {
 		t.Error(err)
 	}
 	var (
-		domain string = "node1.test.com"
-		email  string = "test@gmail.com"
+		domain = "node1.test.com"
+		email  = "test@gmail.com"
 	)
 	certPath, keyPath, err := lego.HTTPCert(domain, email)
 	if err != nil {
@@ -58,9 +58,9 @@ func TestLegoRenewCert(t *testing.T) {
 		t.Error(err)
 	}
 	var (
-		domain   string = "node1.test.com"
-		email    string = "test@gmail.com"
-		provider string = "alidns"
+		domain   = "node1.test.com"
+		email    = "test@gmail.com"
+		provider = "alidns"
 		DNSEnv   map[string]string
 	)
 	DNSEnv = make(map[string]string)

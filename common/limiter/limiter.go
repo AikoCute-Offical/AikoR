@@ -1,5 +1,7 @@
-// Package limiter is to control the links that go into the dispather
+// Package limiter is to control the links that go into the dispatcher
 package limiter
+
+//go:generate go run github.com/v2fly/v2ray-core/v5/common/errors/errorgen
 
 import (
 	"context"
@@ -43,16 +45,16 @@ func New() *Limiter {
 	}
 }
 
-func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList *[]api.UserInfo, Redis *RedisConfig) error {
+func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList *[]api.UserInfo, globalDeviceLimit *GlobalDeviceLimitConfig) error {
 	// global limit
-	if Redis.Limit > 0 {
+	if globalDeviceLimit.Limit > 0 {
 		l.r = redis.NewClient(&redis.Options{
-			Addr:     Redis.RedisAddr,
-			Password: Redis.RedisPassword,
-			DB:       Redis.RedisDB,
+			Addr:     globalDeviceLimit.RedisAddr,
+			Password: globalDeviceLimit.RedisPassword,
+			DB:       globalDeviceLimit.RedisDB,
 		})
-		l.g.limit = Redis.Limit
-		l.g.expiry = Redis.Expiry
+		l.g.limit = globalDeviceLimit.Limit
+		l.g.expiry = globalDeviceLimit.Expiry
 	}
 
 	inboundInfo := &InboundInfo{
@@ -75,7 +77,6 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 }
 
 func (l *Limiter) UpdateInboundLimiter(tag string, updatedUserList *[]api.UserInfo) error {
-
 	if value, ok := l.InboundInfo.Load(tag); ok {
 		inboundInfo := value.(*InboundInfo)
 		// Update User info
@@ -86,8 +87,7 @@ func (l *Limiter) UpdateInboundLimiter(tag string, updatedUserList *[]api.UserIn
 				DeviceLimit: u.DeviceLimit,
 			})
 			// Update old limiter bucket
-			limit := determineRate(inboundInfo.NodeSpeedLimit, u.SpeedLimit)
-			if limit > 0 {
+			if limit := determineRate(inboundInfo.NodeSpeedLimit, u.SpeedLimit); limit > 0 {
 				if bucket, ok := inboundInfo.BucketHub.Load(fmt.Sprintf("%s|%s|%d", tag, u.Email, u.UID)); ok {
 					limiter := bucket.(*rate.Limiter)
 					limiter.SetLimit(rate.Limit(limit))
@@ -110,6 +110,7 @@ func (l *Limiter) DeleteInboundLimiter(tag string) error {
 
 func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 	onlineUser := make([]api.OnlineUser, 0)
+
 	if value, ok := l.InboundInfo.Load(tag); ok {
 		inboundInfo := value.(*InboundInfo)
 		// Clear Speed Limiter bucket for users who are not online
@@ -140,13 +141,13 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 
 func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *rate.Limiter, SpeedLimit bool, Reject bool) {
 	if value, ok := l.InboundInfo.Load(tag); ok {
-		inboundInfo := value.(*InboundInfo)
-		nodeLimit := inboundInfo.NodeSpeedLimit
 		var (
 			userLimit        uint64 = 0
 			deviceLimit, uid int
 		)
 
+		inboundInfo := value.(*InboundInfo)
+		nodeLimit := inboundInfo.NodeSpeedLimit
 		if v, ok := inboundInfo.UserInfo.Load(email); ok {
 			u := v.(UserInfo)
 			uid = u.UID
@@ -154,6 +155,7 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 			deviceLimit = u.DeviceLimit
 		}
 
+		// Global device limit
 		if l.g.limit > 0 {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 			defer cancel()
@@ -195,8 +197,9 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 				}
 			}
 		}
-		limit := determineRate(nodeLimit, userLimit) // If need the Speed limit
-		if limit > 0 {
+
+		// Speed limit
+		if limit := determineRate(nodeLimit, userLimit); limit > 0 {
 			limiter := rate.NewLimiter(rate.Limit(limit), int(limit)) // Byte/s
 			if v, ok := inboundInfo.BucketHub.LoadOrStore(email, limiter); ok {
 				bucket := v.(*rate.Limiter)

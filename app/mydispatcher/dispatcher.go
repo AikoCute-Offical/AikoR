@@ -1,4 +1,3 @@
-// Package dispather implement the rate limiter and the onlie device counter
 package mydispatcher
 
-//go:generate go run github.com/xtls/xray-core/common/errors/errorgen
+//go:generate go run github.com/v2fly/v2ray-core/v5/common/errors/errorgen

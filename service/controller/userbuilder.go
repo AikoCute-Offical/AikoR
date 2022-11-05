@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/v2fly/v2ray-core/v5/common/protocol"
+	"github.com/v2fly/v2ray-core/v5/common/serial"
+	conf "github.com/v2fly/v2ray-core/v5/infra/conf/v4"
+	"github.com/v2fly/v2ray-core/v5/proxy/shadowsocks"
+	"github.com/v2fly/v2ray-core/v5/proxy/trojan"
+
 	"github.com/AikoCute-Offical/AikoR/api"
-	"github.com/xtls/xray-core/common/protocol"
-	"github.com/xtls/xray-core/common/serial"
-	"github.com/xtls/xray-core/infra/conf"
-	"github.com/xtls/xray-core/proxy/shadowsocks"
-	"github.com/xtls/xray-core/proxy/trojan"
-	"github.com/xtls/xray-core/proxy/vless"
 )
 
-var AEADMethod = []shadowsocks.CipherType{shadowsocks.CipherType_AES_128_GCM, shadowsocks.CipherType_AES_256_GCM, shadowsocks.CipherType_CHACHA20_POLY1305, shadowsocks.CipherType_XCHACHA20_POLY1305}
+var AEADMethod = []shadowsocks.CipherType{shadowsocks.CipherType_AES_128_GCM, shadowsocks.CipherType_AES_256_GCM, shadowsocks.CipherType_CHACHA20_POLY1305}
 
 func (c *Controller) buildVmessUser(userInfo *[]api.UserInfo, serverAlterID uint16) (users []*protocol.User) {
 	users = make([]*protocol.User, len(*userInfo))
@@ -32,28 +32,11 @@ func (c *Controller) buildVmessUser(userInfo *[]api.UserInfo, serverAlterID uint
 	return users
 }
 
-func (c *Controller) buildVlessUser(userInfo *[]api.UserInfo) (users []*protocol.User) {
-	users = make([]*protocol.User, len(*userInfo))
-	for i, user := range *userInfo {
-		vlessAccount := &vless.Account{
-			Id:   user.UUID,
-			Flow: "xtls-rprx-direct",
-		}
-		users[i] = &protocol.User{
-			Level:   0,
-			Email:   c.buildUserTag(&user),
-			Account: serial.ToTypedMessage(vlessAccount),
-		}
-	}
-	return users
-}
-
 func (c *Controller) buildTrojanUser(userInfo *[]api.UserInfo) (users []*protocol.User) {
 	users = make([]*protocol.User, len(*userInfo))
 	for i, user := range *userInfo {
 		trojanAccount := &trojan.Account{
 			Password: user.UUID,
-			Flow:     "xtls-rprx-direct",
 		}
 		users[i] = &protocol.User{
 			Level:   0,

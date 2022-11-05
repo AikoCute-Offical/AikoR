@@ -4,16 +4,16 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/AikoCute-Offical/AikoR/common/legocmd/log"
 	"github.com/go-acme/lego/v4/certcrypto"
 	"github.com/go-acme/lego/v4/lego"
 	"github.com/go-acme/lego/v4/registration"
 	"github.com/urfave/cli"
+
+	"github.com/AikoCute-Offical/AikoR/common/legocmd/log"
 )
 
 const filePerm os.FileMode = 0o600
@@ -98,7 +98,7 @@ func createNonExistingFolder(path string) error {
 }
 
 func readCSRFile(filename string) (*x509.CertificateRequest, error) {
-	bytes, err := ioutil.ReadFile(filename)
+	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}

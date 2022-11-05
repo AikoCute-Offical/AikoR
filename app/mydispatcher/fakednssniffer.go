@@ -1,17 +1,19 @@
+//go:build !confonly
+
 package mydispatcher
 
 import (
 	"context"
 	"strings"
 
-	"github.com/xtls/xray-core/common"
-	"github.com/xtls/xray-core/common/net"
-	"github.com/xtls/xray-core/common/session"
-	"github.com/xtls/xray-core/core"
-	"github.com/xtls/xray-core/features/dns"
+	core "github.com/v2fly/v2ray-core/v5"
+	"github.com/v2fly/v2ray-core/v5/common"
+	"github.com/v2fly/v2ray-core/v5/common/net"
+	"github.com/v2fly/v2ray-core/v5/common/session"
+	"github.com/v2fly/v2ray-core/v5/features/dns"
 )
 
-// newFakeDNSSniffer Create a Fake DNS metadata sniffer
+// newFakeDNSSniffer Creates a Fake DNS metadata sniffer
 func newFakeDNSSniffer(ctx context.Context) (protocolSnifferWithMetadata, error) {
 	var fakeDNSEngine dns.FakeDNSEngine
 	{
@@ -84,8 +86,7 @@ func (f DNSThenOthersSniffResult) Domain() string {
 	return f.domainName
 }
 
-func newFakeDNSThenOthers(ctx context.Context, fakeDNSSniffer protocolSnifferWithMetadata, others []protocolSnifferWithMetadata) (
-	protocolSnifferWithMetadata, error) { // nolint: unparam
+func newFakeDNSThenOthers(ctx context.Context, fakeDNSSniffer protocolSnifferWithMetadata, others []protocolSnifferWithMetadata) (protocolSnifferWithMetadata, error) { // nolint: unparam
 	// ctx may be used in the future
 	_ = ctx
 	return protocolSnifferWithMetadata{

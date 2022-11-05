@@ -1,5 +1,7 @@
-// Package serverstatus generate the server system status
+// Package serverstatus Package server status generate the server system status
 package serverstatus
+
+//go:generate go run github.com/v2fly/v2ray-core/v5/common/errors/errorgen
 
 import (
 	"fmt"
@@ -12,8 +14,7 @@ import (
 
 // GetSystemInfo get the system info of a given periodic
 func GetSystemInfo() (Cpu float64, Mem float64, Disk float64, Uptime uint64, err error) {
-
-	error_string := ""
+	errorString := ""
 
 	cpuPercent, err := cpu.Percent(0, false)
 	// Check if cpuPercent is empty
@@ -21,32 +22,32 @@ func GetSystemInfo() (Cpu float64, Mem float64, Disk float64, Uptime uint64, err
 		Cpu = cpuPercent[0]
 	} else {
 		Cpu = 0
-		error_string += fmt.Sprintf("get cpu usage failed: %s ", err)
+		errorString += fmt.Sprintf("get cpu usage failed: %s ", err)
 	}
 
 	memUsage, err := mem.VirtualMemory()
 	if err != nil {
-		error_string += fmt.Sprintf("get mem usage failed: %s ", err)
+		errorString += fmt.Sprintf("get mem usage failed: %s ", err)
 	} else {
 		Mem = memUsage.UsedPercent
 	}
 
 	diskUsage, err := disk.Usage("/")
 	if err != nil {
-		error_string += fmt.Sprintf("get disk usage failed: %s ", err)
+		errorString += fmt.Sprintf("get disk usage failed: %s ", err)
 	} else {
 		Disk = diskUsage.UsedPercent
 	}
 
 	uptime, err := host.Uptime()
 	if err != nil {
-		error_string += fmt.Sprintf("get uptime failed: %s ", err)
+		errorString += fmt.Sprintf("get uptime failed: %s ", err)
 	} else {
 		Uptime = uptime
 	}
 
-	if error_string != "" {
-		err = fmt.Errorf(error_string)
+	if errorString != "" {
+		err = newError(errorString)
 	}
 
 	return Cpu, Mem, Disk, Uptime, err
