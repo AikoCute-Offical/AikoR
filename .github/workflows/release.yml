@@ -191,12 +191,9 @@ jobs:
             ./AikoR-${{ steps.get_filename.outputs.ASSET_NAME }}/*
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
+        if: github.event_name == 'release'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./AikoR-${{ steps.get_filename.outputs.ASSET_NAME }}.zip
-          asset_name: AikoR-${{ steps.get_filename.outputs.ASSET_NAME }}.zip
+          file: ./XrayR-${{ steps.get_filename.outputs.ASSET_NAME }}.zip*
           tag: ${{ github.ref }}
-          overwrite: true
           file_glob: true
-          draft: false
-          prerelease: false
