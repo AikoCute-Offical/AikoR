@@ -16,7 +16,6 @@ import (
 
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
-	"github.com/AikoCute-Offical/AikoR/common/legocmd"
 	"github.com/AikoCute-Offical/AikoR/common/limiter"
 	"github.com/AikoCute-Offical/AikoR/common/serverstatus"
 )
@@ -37,14 +36,14 @@ type Controller struct {
 	userList                *[]api.UserInfo
 	nodeInfoMonitorPeriodic *task.Periodic
 	userReportPeriodic      *task.Periodic
-	renewCertPeriodic       *task.Periodic
 	limitedUsers            map[api.UserInfo]LimitInfo
 	warnedUsers             map[api.UserInfo]int
 	panelType               string
-	ihm                     inbound.Manager
-	ohm                     outbound.Manager
+	ibm                     inbound.Manager
+	obm                     outbound.Manager
 	stm                     stats.Manager
 	dispatcher              *mydispatcher.DefaultDispatcher
+	startAt                 time.Time
 }
 
 // New return a Controller service with default parameters.
@@ -54,10 +53,11 @@ func New(server *core.Instance, api api.API, config *Config, panelType string) *
 		config:     config,
 		apiClient:  api,
 		panelType:  panelType,
-		ihm:        server.GetFeature(inbound.ManagerType()).(inbound.Manager),
-		ohm:        server.GetFeature(outbound.ManagerType()).(outbound.Manager),
+		ibm:        server.GetFeature(inbound.ManagerType()).(inbound.Manager),
+		obm:        server.GetFeature(outbound.ManagerType()).(outbound.Manager),
 		stm:        server.GetFeature(stats.ManagerType()).(stats.Manager),
 		dispatcher: server.GetFeature(routing.DispatcherType()).(*mydispatcher.DefaultDispatcher),
+		startAt:    time.Now(),
 	}
 
 	return controller
@@ -118,10 +118,7 @@ func (c *Controller) Start() error {
 		Interval: time.Duration(c.config.UpdatePeriodic) * time.Second,
 		Execute:  c.userInfoMonitor,
 	}
-	c.renewCertPeriodic = &task.Periodic{
-		Interval: time.Duration(c.config.UpdatePeriodic) * time.Second * 60,
-		Execute:  c.certMonitor,
-	}
+
 	if c.config.AutoSpeedLimitConfig == nil {
 		c.config.AutoSpeedLimitConfig = &AutoSpeedLimitConfig{0, 0, 0, 0}
 	}
@@ -130,21 +127,13 @@ func (c *Controller) Start() error {
 		c.warnedUsers = make(map[api.UserInfo]int)
 	}
 
-	// delay to start nodeInfoMonitor
-	log.Printf("[%s: %d] Start monitor node status", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
-	go time.AfterFunc(time.Duration(c.config.UpdatePeriodic)*time.Second, func() {
-		c.nodeInfoMonitorPeriodic.Start()
-	})
+	// Start nodeInfoMonitor
+	log.Printf("%s Start monitor node status", c.logPrefix())
+	go c.nodeInfoMonitorPeriodic.Start()
 
-	// delay to start userReport
-	log.Printf("[%s: %d] Start report user status", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
-	go time.AfterFunc(time.Duration(c.config.UpdatePeriodic)*time.Second, func() {
-		c.userReportPeriodic.Start()
-	})
-
-	// start certMonitor
-	log.Printf("[%s: %d] Start monitor cert status", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
-	go c.renewCertPeriodic.Start()
+	// Start userReport
+	log.Printf("%s Start report user status", c.logPrefix())
+	go c.userReportPeriodic.Start()
 
 	return nil
 }
@@ -154,21 +143,14 @@ func (c *Controller) Close() error {
 	if c.nodeInfoMonitorPeriodic != nil {
 		err := c.nodeInfoMonitorPeriodic.Close()
 		if err != nil {
-			log.Panicf("node info periodic close failed: %s", err)
+			log.Panicf("%s node info periodic close failed: %s", c.logPrefix(), err)
 		}
 	}
 
-	if c.nodeInfoMonitorPeriodic != nil {
+	if c.userReportPeriodic != nil {
 		err := c.userReportPeriodic.Close()
 		if err != nil {
-			log.Panicf("user report periodic close failed: %s", err)
-		}
-	}
-
-	if c.renewCertPeriodic != nil {
-		err := c.renewCertPeriodic.Close()
-		if err != nil {
-			log.Panicf("renew cert periodic close failed: %s", err)
+			log.Panicf("%s user report periodic close failed: %s", c.logPrefix(), err)
 		}
 	}
 
@@ -176,6 +158,11 @@ func (c *Controller) Close() error {
 }
 
 func (c *Controller) nodeInfoMonitor() (err error) {
+	// Delay to handle
+	if time.Since(c.startAt) < time.Duration(c.config.UpdatePeriodic)*time.Second {
+		return nil
+	}
+
 	// First fetch Node Info
 	newNodeInfo, err := c.apiClient.GetNodeInfo()
 	if err != nil {
@@ -267,7 +254,7 @@ func (c *Controller) nodeInfoMonitor() (err error) {
 				log.Print(err)
 			}
 		}
-		log.Printf("[%s: %d] %d user deleted, %d user added", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(deleted), len(added))
+		log.Printf("%s %d user deleted, %d user added", c.logPrefix(), len(deleted), len(added))
 	}
 	c.userList = newUserInfo
 	return nil
@@ -349,17 +336,14 @@ func (c *Controller) addInboundForSSPlugin(newNodeInfo api.NodeInfo) (err error)
 	}
 	err = c.addInbound(inboundConfig)
 	if err != nil {
-
 		return err
 	}
 	outBoundConfig, err = OutboundBuilder(c.config, &fakeNodeInfo, dokodemoTag)
 	if err != nil {
-
 		return err
 	}
 	err = c.addOutbound(outBoundConfig)
 	if err != nil {
-
 		return err
 	}
 	return nil
@@ -390,7 +374,7 @@ func (c *Controller) addNewUser(userInfo *[]api.UserInfo, nodeInfo *api.NodeInfo
 	if err != nil {
 		return err
 	}
-	log.Printf("[%s: %d] Added %d new users", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(*userInfo))
+	log.Printf("%s Added %d new users", c.logPrefix(), len(*userInfo))
 	return nil
 }
 
@@ -444,6 +428,11 @@ func limitUser(c *Controller, user api.UserInfo, silentUsers *[]api.UserInfo) {
 }
 
 func (c *Controller) userInfoMonitor() (err error) {
+	// Delay to handle
+	if time.Since(c.startAt) < time.Duration(c.config.UpdatePeriodic)*time.Second {
+		return nil
+	}
+
 	// Get server status
 	CPU, Mem, Disk, Uptime, err := serverstatus.GetSystemInfo()
 	if err != nil {
@@ -461,7 +450,7 @@ func (c *Controller) userInfoMonitor() (err error) {
 	}
 	// Unlock users
 	if c.config.AutoSpeedLimitConfig.Limit > 0 && len(c.limitedUsers) > 0 {
-		log.Printf("Limited users:")
+		log.Printf("%s Limited users:", c.logPrefix())
 		toReleaseUsers := make([]api.UserInfo, 0)
 		for user, limitInfo := range c.limitedUsers {
 			if time.Now().Unix() > limitInfo.end {
@@ -551,7 +540,7 @@ func (c *Controller) userInfoMonitor() (err error) {
 		if err = c.apiClient.ReportNodeOnlineUsers(onlineDevice); err != nil {
 			log.Print(err)
 		} else {
-			log.Printf("[%s: %d] Report %d online users", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(*onlineDevice))
+			log.Printf("%s Report %d online users", c.logPrefix(), len(*onlineDevice))
 		}
 	}
 	// Report Illegal user
@@ -561,30 +550,17 @@ func (c *Controller) userInfoMonitor() (err error) {
 		if err = c.apiClient.ReportIllegal(detectResult); err != nil {
 			log.Print(err)
 		} else {
-			log.Printf("[%s: %d] Report %d illegal behaviors", c.nodeInfo.NodeType, c.nodeInfo.NodeID, len(*detectResult))
+			log.Printf("%s Report %d illegal behaviors", c.logPrefix(), len(*detectResult))
 		}
 
-	}
-	return nil
-}
-
-func (c *Controller) certMonitor() (err error) {
-	// Check Cert
-	if c.nodeInfo.EnableTLS && (c.config.CertConfig.CertMode == "dns" || c.config.CertConfig.CertMode == "http") {
-		lego, err := legocmd.New()
-		if err != nil {
-			log.Print(err)
-			return err
-		}
-		_, _, err = lego.RenewCert(c.config.CertConfig.CertDomain, c.config.CertConfig.Email, c.config.CertConfig.CertMode, c.config.CertConfig.Provider, c.config.CertConfig.DNSEnv)
-		if err != nil {
-			log.Print(err)
-			return err
-		}
 	}
 	return nil
 }
 
 func (c *Controller) buildNodeTag() string {
 	return fmt.Sprintf("%s_%s_%d", c.nodeInfo.NodeType, c.config.ListenIP, c.nodeInfo.Port)
+}
+
+func (c *Controller) logPrefix() string {
+	return fmt.Sprintf("[%s] %s(ID=%d)", c.clientInfo.APIHost, c.nodeInfo.NodeType, c.nodeInfo.NodeID)
 }

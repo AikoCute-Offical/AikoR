@@ -14,6 +14,7 @@ import (
 
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/AikoCute-Offical/AikoR/api/v2board"
+	"github.com/AikoCute-Offical/AikoR/common/mylego"
 	. "github.com/AikoCute-Offical/AikoR/service/controller"
 )
 
@@ -46,7 +47,7 @@ func TestController(t *testing.T) {
 	if err = server.Start(); err != nil {
 		t.Errorf("Failed to start instance: %s", err)
 	}
-	certConfig := &CertConfig{
+	certConfig := &mylego.CertConfig{
 		CertMode:   "http",
 		CertDomain: "test.ss.tk",
 		Provider:   "alidns",

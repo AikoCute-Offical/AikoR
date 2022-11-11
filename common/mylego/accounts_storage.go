@@ -1,23 +1,18 @@
-package cmd
+package mylego
 
 import (
 	"crypto"
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
-	"errors"
-	"fmt"
-	"net/url"
+	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/go-acme/lego/v4/certcrypto"
 	"github.com/go-acme/lego/v4/lego"
 	"github.com/go-acme/lego/v4/registration"
-	"github.com/urfave/cli"
-
-	"github.com/AikoCute-Offical/AikoR/common/legocmd/log"
+	"golang.org/x/crypto/acme"
 )
 
 const (
@@ -65,32 +60,21 @@ type AccountsStorage struct {
 	rootUserPath    string
 	keysPath        string
 	accountFilePath string
-	ctx             *cli.Context
 }
 
-// NewAccountsStorage Creates a new AccountsStorage.
-func NewAccountsStorage(ctx *cli.Context) *AccountsStorage {
-	// TODO: move to account struct? Currently MUST pass email.
-	email := getEmail(ctx)
+func (s *AccountsStorage) setup() (*Account, *lego.Client) {
+	privateKey := s.GetPrivateKey(certcrypto.EC256)
 
-	serverURL, err := url.Parse(ctx.GlobalString("server"))
-	if err != nil {
-		log.Panic(err)
+	var account *Account
+	if s.ExistsAccountFilePath() {
+		account = s.LoadAccount(privateKey)
+	} else {
+		account = &Account{Email: s.GetUserID(), key: privateKey}
 	}
 
-	rootPath := filepath.Join(ctx.GlobalString("path"), baseAccountsRootFolderName)
-	serverPath := strings.NewReplacer(":", "_", "/", string(os.PathSeparator)).Replace(serverURL.Host)
-	accountsPath := filepath.Join(rootPath, serverPath)
-	rootUserPath := filepath.Join(accountsPath, email)
+	client := newClient(account, certcrypto.EC256)
 
-	return &AccountsStorage{
-		userID:          email,
-		rootPath:        rootPath,
-		rootUserPath:    rootUserPath,
-		keysPath:        filepath.Join(rootUserPath, baseKeysFolderName),
-		accountFilePath: filepath.Join(rootUserPath, accountFileName),
-		ctx:             ctx,
-	}
+	return account, client
 }
 
 func (s *AccountsStorage) ExistsAccountFilePath() bool {
@@ -139,7 +123,7 @@ func (s *AccountsStorage) LoadAccount(privateKey crypto.PrivateKey) *Account {
 	account.key = privateKey
 
 	if account.Registration == nil || account.Registration.Body.Status == "" {
-		reg, err := tryRecoverRegistration(s.ctx, privateKey)
+		reg, err := tryRecoverRegistration(privateKey)
 		if err != nil {
 			log.Panicf("Could not load account for %s. Registration is nil: %#v", s.userID, err)
 		}
@@ -158,7 +142,7 @@ func (s *AccountsStorage) GetPrivateKey(keyType certcrypto.KeyType) crypto.Priva
 	accKeyPath := filepath.Join(s.keysPath, s.userID+".key")
 
 	if _, err := os.Stat(accKeyPath); os.IsNotExist(err) {
-		log.Printf("No key found for account %s. Generating a %s key.", s.userID, keyType)
+		newError("No key found for account %s. Generating a %s key.", s.userID, keyType).WriteToLog()
 		s.createKeysFolder()
 
 		privateKey, err := generatePrivateKey(accKeyPath, keyType)
@@ -166,7 +150,7 @@ func (s *AccountsStorage) GetPrivateKey(keyType certcrypto.KeyType) crypto.Priva
 			log.Panicf("Could not generate RSA private account key for account %s: %v", s.userID, err)
 		}
 
-		log.Printf("Saved key to %s", accKeyPath)
+		newError("Saved key to %s", accKeyPath).WriteToLog()
 		return privateKey
 	}
 
@@ -220,14 +204,14 @@ func loadPrivateKey(file string) (crypto.PrivateKey, error) {
 		return x509.ParseECPrivateKey(keyBlock.Bytes)
 	}
 
-	return nil, errors.New("unknown private key type")
+	return nil, newError("unknown private key type").AtError()
 }
 
-func tryRecoverRegistration(ctx *cli.Context, privateKey crypto.PrivateKey) (*registration.Resource, error) {
+func tryRecoverRegistration(privateKey crypto.PrivateKey) (*registration.Resource, error) {
 	// couldn't load account but got a key. Try to look the account up.
 	config := lego.NewConfig(&Account{key: privateKey})
-	config.CADirURL = ctx.GlobalString("server")
-	config.UserAgent = fmt.Sprintf("lego-cli/%s", ctx.App.Version)
+	config.CADirURL = acme.LetsEncryptURL
+	config.UserAgent = "lego-cli/dev"
 
 	client, err := lego.NewClient(config)
 	if err != nil {

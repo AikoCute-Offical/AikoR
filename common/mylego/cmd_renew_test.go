@@ -1,4 +1,4 @@
-package cmd
+package mylego
 
 import (
 	"crypto/x509"
@@ -110,9 +110,26 @@ func Test_needRenewal(t *testing.T) {
 	for _, test := range testCases {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
-			actual := needRenewal(test.x509Cert, "foo.com", test.days)
+			l := &LegoCMD{C: &CertConfig{CertDomain: "foo.com"}}
+			actual := l.needRenewal(test.x509Cert, test.days)
 
 			assert.Equal(t, test.expected, actual)
 		})
 	}
+}
+
+func merge(prevDomains, nextDomains []string) []string {
+	for _, next := range nextDomains {
+		var found bool
+		for _, prev := range prevDomains {
+			if prev == next {
+				found = true
+				break
+			}
+		}
+		if !found {
+			prevDomains = append(prevDomains, next)
+		}
+	}
+	return prevDomains
 }
