@@ -91,7 +91,7 @@ func (c *Controller) Start() error {
 
 	// Init global device limit
 	if c.config.RedisConfig == nil {
-		c.config.RedisConfig = &limiter.RedisConfig{Limit: 0}
+		c.config.RedisConfig = &limiter.RedisConfig{RedisLimit: 0}
 	}
 	// Add Limiter
 	if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, userInfo, c.config.RedisConfig); err != nil {

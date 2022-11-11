@@ -19,10 +19,11 @@ Nodes: #Default AikoR config
         LimitSpeed: 0 # The speedlimit of a limited user (unit: mbps)
         LimitDuration: 0 # How many minutes will the limiting last (unit: minute)
       RedisConfig:
-        Limit: 0 # The Redis limit of a user, 0 means disable
+        RedisLimit: 0 # The Redis limit of a user, 0 means disable
         RedisAddr: 127.0.0.1:6379 # The redis server address format: (IP:Port)
-        RedisPassword: YOUR PASSWORD # Redis password
+        RedisPassword: PASSWORD # Redis password
         RedisDB: 0 # Redis DB (Redis database number, default 0, no need to change)
+        Timeout: 5 # Timeout for Redis request
         Expiry: 60 # Expiry time ( Cache time of online IP, unit: second )
       CertConfig:
         CertMode: dns # Option about how to get certificate: none, file, http, dns. Choose "none" will forcedly disable the tls config.
