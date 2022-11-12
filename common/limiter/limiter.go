@@ -32,7 +32,7 @@ type Limiter struct {
 	InboundInfo *sync.Map // Key: Tag, Value: *InboundInfo
 	r           *redis.Client
 	g           struct {
-		RedisLimit int
+		redislimit int
 		timeout    int
 		expiry     int
 	}
@@ -52,7 +52,7 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 			Password: Redis.RedisPassword,
 			DB:       Redis.RedisDB,
 		})
-		l.g.RedisLimit = Redis.RedisLimit
+		l.g.redislimit = Redis.RedisLimit
 		l.g.timeout = Redis.Timeout
 		l.g.expiry = Redis.Expiry
 	}
@@ -157,7 +157,7 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 		}
 
 		// Global device limit
-		if l.g.RedisLimit > 0 {
+		if l.g.redislimit > 0 {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(l.g.timeout))
 			defer cancel()
 			uidString := strconv.Itoa(uid)
@@ -173,7 +173,7 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 					newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
 				} else if !online {
 					l.r.SAdd(ctx, uidString, ip)
-					if l.r.SCard(ctx, uidString).Val() > int64(l.g.RedisLimit) {
+					if l.r.SCard(ctx, uidString).Val() > int64(l.g.redislimit) {
 						l.r.SRem(ctx, uidString, ip)
 						return nil, false, true
 					}
