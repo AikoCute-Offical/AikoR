@@ -1,10 +1,10 @@
 package limiter
 
 type RedisConfig struct {
-	RedisLimit    int    `mapstructure:"Limit"`
+	RedisLimit    int    `mapstructure:"RedisLimit"`
 	RedisAddr     string `mapstructure:"RedisAddr"` // host:port
 	RedisPassword string `mapstructure:"RedisPassword"`
 	RedisDB       int    `mapstructure:"RedisDB"`
-	Timeout       int    `mapstructure:"Timeout"`
+	RedisTimeout  int    `mapstructure:"RedisTimeout"`
 	Expiry        int    `mapstructure:"Expiry"` // minute
 }

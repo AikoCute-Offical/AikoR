@@ -93,6 +93,7 @@ func (c *Controller) Start() error {
 	if c.config.RedisConfig == nil {
 		c.config.RedisConfig = &limiter.RedisConfig{RedisLimit: 0}
 	}
+
 	// Add Limiter
 	if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, userInfo, c.config.RedisConfig); err != nil {
 		log.Print(err)

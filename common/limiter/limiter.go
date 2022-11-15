@@ -33,9 +33,9 @@ type Limiter struct {
 	InboundInfo *sync.Map // Key: Tag, Value: *InboundInfo
 	r           *redis.Client
 	g           struct {
-		redislimit int
-		timeout    int
-		expiry     int
+		redislimit   int
+		redistimeout int
+		expiry       int
 	}
 }
 
@@ -54,7 +54,7 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 			DB:       Redis.RedisDB,
 		})
 		l.g.redislimit = Redis.RedisLimit
-		l.g.timeout = Redis.Timeout
+		l.g.redistimeout = Redis.RedisTimeout
 		l.g.expiry = Redis.Expiry
 	}
 
@@ -159,7 +159,7 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 		}
 
 		if l.g.redislimit > 0 {
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(l.g.timeout))
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(l.g.redistimeout))
 			defer cancel()
 
 			trimEmail := strings.Split(email, "|")[1]
