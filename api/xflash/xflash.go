@@ -319,11 +319,11 @@ func (c *APIClient) ReportNodeOnlineUsers(onlineUserList *[]api.OnlineUser) erro
 	var path string
 	switch c.NodeType {
 	case "V2ray":
-		path = "/api/v1/server/Deepbwork/users"
+		path = "/api/v1/server/Deepbwork/user"
 	case "Trojan":
-		path = "/api/v1/server/Trojan/users"
+		path = "/api/v1/server/Trojan/user"
 	case "Shadowsocks":
-		path = "/api/v1/server/Shadowsocks/users"
+		path = "/api/v1/server/Shadowsocks/user"
 	}
 	res, err := c.client.R().
 		SetQueryParam("node_id", strconv.Itoa(c.NodeID)).
