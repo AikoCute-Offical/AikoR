@@ -48,6 +48,7 @@ func New() *Limiter {
 func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList *[]api.UserInfo, Redis *RedisConfig) error {
 	// global limit
 	if Redis.RedisLimit > 0 {
+		log.Printf("[%s] Redis limit: %d", tag, Redis.RedisLimit)
 		l.r = redis.NewClient(&redis.Options{
 			Addr:     Redis.RedisAddr,
 			Password: Redis.RedisPassword,
@@ -101,7 +102,7 @@ func (l *Limiter) UpdateInboundLimiter(tag string, updatedUserList *[]api.UserIn
 			}
 		}
 	} else {
-		return fmt.Errorf("no such inbound in limiter: %s", tag)
+		return newError("no such inbound in limiter: %s", tag).AtError()
 	}
 	return nil
 }
@@ -137,7 +138,7 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 			return true
 		})
 	} else {
-		return nil, fmt.Errorf("no such inbound in limiter: %s", tag)
+		return nil, newError("no such inbound in limiter: %s", tag).AtError()
 	}
 	return &onlineUser, nil
 }
@@ -162,24 +163,25 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(l.g.redistimeout))
 			defer cancel()
 
-			trimEmail := strings.Split(email, "|")[1]
-			exist, err := l.r.Exists(ctx, trimEmail).Result()
-			switch {
-			case err != nil:
-				log.Printf("[%s] Redis limit failure, Redis: %v", tag, err)
-				goto next
-			case exist == 0:
-				l.r.HSet(ctx, trimEmail, ip, uid)
+			trimEmail := email[strings.Index(email, "|")+1:]
+			if exists, err := l.r.Exists(ctx, trimEmail).Result(); err != nil {
+				newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
+			} else if exists == 0 {
+				l.r.SAdd(ctx, trimEmail, ip)
 				l.r.Expire(ctx, trimEmail, time.Second*time.Duration(l.g.expiry))
-			default:
-				l.r.HSet(ctx, trimEmail, ip, uid)
-				if l.r.HLen(ctx, trimEmail).Val() > int64(l.g.redislimit) {
-					l.r.HDel(ctx, trimEmail, ip)
-					return nil, false, true
+			} else {
+				if online, err := l.r.SIsMember(ctx, trimEmail, ip).Result(); err != nil {
+					newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
+				} else if !online {
+					l.r.SAdd(ctx, trimEmail, ip)
+					if l.r.SCard(ctx, trimEmail).Val() > int64(l.g.redislimit) {
+						l.r.SRem(ctx, trimEmail, ip)
+						return nil, false, true
+					}
 				}
 			}
 		}
-	next:
+
 		// Local device limit
 		ipMap := new(sync.Map)
 		ipMap.Store(ip, uid)
