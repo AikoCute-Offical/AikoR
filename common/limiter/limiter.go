@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"sync"
 	"time"
 
@@ -147,6 +146,36 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 	return &onlineUser, nil
 }
 
+// check redis limit
+func (l *Limiter) checkRedisLimit(tag string, email string) bool {
+	if l.r != nil {
+		key := fmt.Sprintf("%s|%s", tag, email)
+		_, err := l.r.SetNX(context.Background(), key, 1, time.Duration(l.g.expiry)*time.Second).Result()
+		if err != nil {
+			log.Printf("[%s] Redis setnx failed: %s", tag, err)
+			return false
+		}
+		count, err := l.r.Incr(context.Background(), key).Result()
+		if err != nil {
+			log.Printf("[%s] Redis incr failed: %s", tag, err)
+			return false
+		}
+		if count > int64(l.g.redislimit) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// updateRedisLimit
+func (l *Limiter) updateRedisLimit(tag string, email string) {
+	if l.r != nil {
+		key := fmt.Sprintf("%s|%s", tag, email)
+		l.r.Expire(context.Background(), key, time.Duration(l.g.expiry)*time.Second)
+	}
+}
+
 func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *rate.Limiter, SpeedLimit bool, Reject bool) {
 	if value, ok := l.InboundInfo.Load(tag); ok {
 		var (
@@ -163,28 +192,11 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 			deviceLimit = u.DeviceLimit
 		}
 
-		// Global device limit
 		if l.g.redislimit > 0 {
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(l.g.redistimeout))
-			defer cancel()
-
-			uidString := strconv.Itoa(uid)
-			if exists, err := l.r.Exists(ctx, uidString).Result(); err != nil {
-				newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
-			} else if exists == 0 { // No user is online
-				l.r.SAdd(ctx, uidString, ip)
-				l.r.Expire(ctx, uidString, time.Second*time.Duration(l.g.expiry))
+			if !l.checkRedisLimit(tag, email) {
+				return nil, false, true
 			} else {
-				// If this ip is a new device
-				if online, err := l.r.SIsMember(ctx, uidString, ip).Result(); err != nil {
-					newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
-				} else if !online {
-					l.r.SAdd(ctx, uidString, ip)
-					if l.r.SCard(ctx, uidString).Val() > int64(l.g.redislimit) {
-						l.r.SRem(ctx, uidString, ip)
-						return nil, false, true
-					}
-				}
+				l.updateRedisLimit(tag, email)
 			}
 		}
 
