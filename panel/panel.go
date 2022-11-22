@@ -1,12 +1,15 @@
 package panel
 
 import (
+	"context"
 	"encoding/json"
 	io "io/ioutil"
 	"log"
 	"sync"
 
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
+	"github.com/AikoCute-Offical/AikoR/common/limiter"
+	"github.com/go-redis/redis/v8"
 
 	_ "github.com/AikoCute-Offical/AikoR/AikoR/distro/all"
 	"github.com/AikoCute-Offical/AikoR/api"
@@ -152,7 +155,7 @@ func (p *Panel) loadCore(panelConfig *Config) *core.Instance {
 }
 
 // Start Start the panel
-func (p *Panel) Start() {
+func (p *Panel) Start(Redis *limiter.RedisConfig) {
 	p.access.Lock()
 	defer p.access.Unlock()
 	log.Print("Start the panel..")
@@ -194,6 +197,22 @@ func (p *Panel) Start() {
 		controllerService = controller.New(server, apiClient, controllerConfig, nodeConfig.PanelType)
 		p.Service = append(p.Service, controllerService)
 
+	}
+
+	// Display a message if redis limit is used
+	if Redis != nil {
+		// Check connect to redis
+		redisClient := redis.NewClient(&redis.Options{
+			Addr:     Redis.RedisAddr,
+			Password: Redis.RedisPassword,
+			DB:       Redis.RedisDB,
+		})
+		_, err := redisClient.Ping(context.Background()).Result()
+		if err != nil {
+			log.Panicf("Failed to connect to redis: %s", err)
+		} else {
+			log.Print("Redis connected With Address: ", Redis.RedisAddr)
+		}
 	}
 
 	// Start all the service
