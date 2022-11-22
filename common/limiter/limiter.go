@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"sync"
 	"time"
 
@@ -171,21 +170,21 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(l.g.redistimeout))
 			defer cancel()
 
-			trimEmail := email[strings.Index(email, "|")+1:]
-			if exists, err := l.r.Exists(ctx, trimEmail).Result(); err != nil {
-				newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
-			} else if exists == 0 {
-				l.r.SAdd(ctx, trimEmail, ip)
-				l.r.Expire(ctx, trimEmail, time.Second*time.Duration(l.g.expiry))
-			} else {
-				if online, err := l.r.SIsMember(ctx, trimEmail, ip).Result(); err != nil {
-					newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
-				} else if !online {
-					l.r.SAdd(ctx, trimEmail, ip)
-					if l.r.SCard(ctx, trimEmail).Val() > int64(l.g.redislimit) {
-						l.r.SRem(ctx, trimEmail, ip)
-						return nil, false, true
-					}
+			// Check global limit
+			if l.g.redislimit > 0 {
+				redisLimit := l.g.redislimit
+				redisKey := fmt.Sprintf("Redis|%d", redisLimit)
+				redisValue, err := l.r.Incr(ctx, redisKey).Result()
+				if err != nil {
+					log.Printf("Redis incr failed: %s", err)
+					return nil, false, true
+				}
+				if redisValue > int64(redisLimit) {
+					log.Printf("Redis limit exceeded: %d", redisValue)
+					return nil, false, true
+				}
+				if redisValue == 1 {
+					l.r.Expire(ctx, redisKey, time.Second*time.Duration(l.g.expiry))
 				}
 			}
 		}
@@ -221,7 +220,7 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 			return nil, false, false
 		}
 	} else {
-		newError("Get Inbound Limiter information failed").AtDebug().WriteToLog()
+		fmt.Printf("no such inbound in limiter: %s", tag)
 		return nil, false, false
 	}
 }
