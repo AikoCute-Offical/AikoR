@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"sync"
 	"time"
 
@@ -44,12 +45,9 @@ func New() *Limiter {
 	}
 }
 
-// re
-
 func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList *[]api.UserInfo, Redis *RedisConfig) error {
 	// global limit
 	if Redis.RedisLimit > 0 {
-		log.Printf("[%s] Redis limit: %d", tag, Redis.RedisLimit)
 		l.r = redis.NewClient(&redis.Options{
 			Addr:     Redis.RedisAddr,
 			Password: Redis.RedisPassword,
@@ -63,6 +61,7 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 			return fmt.Errorf("redis ping failed: %s", err)
 		} else {
 			log.Printf("[%s] Redis ping: %s", tag, pong)
+			log.Printf("[%s] Redis limit: %d", tag, Redis.RedisLimit)
 		}
 	}
 
@@ -86,7 +85,6 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 }
 
 func (l *Limiter) UpdateInboundLimiter(tag string, updatedUserList *[]api.UserInfo) error {
-
 	if value, ok := l.InboundInfo.Load(tag); ok {
 		inboundInfo := value.(*InboundInfo)
 		// Update User info
@@ -97,8 +95,7 @@ func (l *Limiter) UpdateInboundLimiter(tag string, updatedUserList *[]api.UserIn
 				DeviceLimit: u.DeviceLimit,
 			})
 			// Update old limiter bucket
-			limit := determineRate(inboundInfo.NodeSpeedLimit, u.SpeedLimit)
-			if limit > 0 {
+			if limit := determineRate(inboundInfo.NodeSpeedLimit, u.SpeedLimit); limit > 0 {
 				if bucket, ok := inboundInfo.BucketHub.Load(fmt.Sprintf("%s|%s|%d", tag, u.Email, u.UID)); ok {
 					limiter := bucket.(*rate.Limiter)
 					limiter.SetLimit(rate.Limit(limit))
@@ -109,7 +106,7 @@ func (l *Limiter) UpdateInboundLimiter(tag string, updatedUserList *[]api.UserIn
 			}
 		}
 	} else {
-		return fmt.Errorf("no such inbound in limiter: %s", tag)
+		return newError("no such inbound in limiter: %s", tag).AtError()
 	}
 	return nil
 }
@@ -145,7 +142,7 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 			return true
 		})
 	} else {
-		return nil, fmt.Errorf("no such inbound in limiter: %s", tag)
+		return nil, newError("no such inbound in limiter: %s", tag).AtError()
 	}
 	return &onlineUser, nil
 }
@@ -166,25 +163,27 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 			deviceLimit = u.DeviceLimit
 		}
 
+		// Global device limit
 		if l.g.redislimit > 0 {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(l.g.redistimeout))
 			defer cancel()
 
-			// Check global limit
-			if l.g.redislimit > 0 {
-				redisLimit := l.g.redislimit
-				redisKey := fmt.Sprintf("Redis|%d", redisLimit)
-				redisValue, err := l.r.Incr(ctx, redisKey).Result()
-				if err != nil {
-					log.Printf("Redis incr failed: %s", err)
-					return nil, false, true
-				}
-				if redisValue > int64(redisLimit) {
-					log.Printf("Redis limit exceeded: %d", redisValue)
-					return nil, false, true
-				}
-				if redisValue == 1 {
-					l.r.Expire(ctx, redisKey, time.Second*time.Duration(l.g.expiry))
+			uidString := strconv.Itoa(uid)
+			if exists, err := l.r.Exists(ctx, uidString).Result(); err != nil {
+				newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
+			} else if exists == 0 { // No user is online
+				l.r.SAdd(ctx, uidString, ip)
+				l.r.Expire(ctx, uidString, time.Second*time.Duration(l.g.expiry))
+			} else {
+				// If this ip is a new device
+				if online, err := l.r.SIsMember(ctx, uidString, ip).Result(); err != nil {
+					newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
+				} else if !online {
+					l.r.SAdd(ctx, uidString, ip)
+					if l.r.SCard(ctx, uidString).Val() > int64(l.g.redislimit) {
+						l.r.SRem(ctx, uidString, ip)
+						return nil, false, true
+					}
 				}
 			}
 		}
@@ -208,6 +207,8 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 				}
 			}
 		}
+
+		// Speed limit
 		if limit := determineRate(nodeLimit, userLimit); limit > 0 {
 			limiter := rate.NewLimiter(rate.Limit(limit), int(limit)) // Byte/s
 			if v, ok := inboundInfo.BucketHub.LoadOrStore(email, limiter); ok {
@@ -220,7 +221,7 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 			return nil, false, false
 		}
 	} else {
-		fmt.Printf("no such inbound in limiter: %s", tag)
+		newError("Get Inbound Limiter information failed").AtDebug().WriteToLog()
 		return nil, false, false
 	}
 }
