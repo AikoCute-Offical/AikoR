@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -166,31 +165,32 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 
 		// Redis Limit Check
 		if l.g.redislimit > 0 {
-			for _, ip := range strings.Split(ip, ",") {
-				if ip != "" {
-					redisKey := fmt.Sprintf("%s|%s|%s", tag, email, ip)
-					if _, err := l.r.Incr(context.Background(), redisKey).Result(); err != nil {
-						log.Printf("[%s] Redis incr failed: %s", tag, err)
-						return nil, false, true
-					}
-					if _, err := l.r.Expire(context.Background(), redisKey, time.Duration(l.g.redislimit)).Result(); err != nil {
-						log.Printf("[%s] Redis expire failed: %s", tag, err)
-						return nil, false, true
-					}
-					redisCount, err := l.r.Get(context.Background(), redisKey).Result()
-					if err != nil {
-						log.Printf("[%s] Redis get failed: %s", tag, err)
-						return nil, false, true
-					}
-					if count, err := strconv.Atoi(redisCount); err != nil {
-						log.Printf("[%s] Redis count convert failed: %s", tag, err)
-						return nil, false, true
-					} else if count > l.g.redislimit {
-						log.Printf("[%s] Redis limit exceeded: %s", tag, redisKey)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(l.g.redislimit))
+			defer cancel() // The cancel should be deferred so resources are cleaned up
+			/* _, err := l.r.Incr(ctx, fmt.Sprintf("user:%d", uid)).Result()
+			 if err != nil {
+			 	log.Printf("[%s] Redis incr failed: %s", tag, err)
+				return nil, false, true
+			} */
+			uidString := strconv.Itoa(uid)
+			// If any device is online
+			if exists, err := l.r.Exists(ctx, uidString).Result(); err != nil {
+				newError(fmt.Sprintf("Redis: %v", err)).AtWarning().WriteToLog()
+			} else if exists == 0 { // No user is online
+				l.r.SAdd(ctx, uidString, ip)
+				l.r.Expire(ctx, uidString, time.Second*time.Duration(l.g.expiry))
+			} else {
+				// If this ip is a new device
+				if online, err := l.r.SIsMember(ctx, uidString, ip).Result(); err != nil {
+					newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
+				} else if !online {
+					l.r.SAdd(ctx, uidString, ip)
+					if l.r.SCard(ctx, uidString).Val() > int64(l.g.redislimit) {
+						l.r.SRem(ctx, uidString, ip)
 						return nil, false, true
 					}
 				}
-			}
+			} // End of Redis Limit Check
 
 		}
 
