@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -146,36 +148,6 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 	return &onlineUser, nil
 }
 
-// check redis limit
-func (l *Limiter) checkRedisLimit(tag string, email string) bool {
-	if l.r != nil {
-		key := fmt.Sprintf("%s|%s", tag, email)
-		_, err := l.r.SetNX(context.Background(), key, 1, time.Duration(l.g.expiry)*time.Second).Result()
-		if err != nil {
-			log.Printf("[%s] Redis setnx failed: %s", tag, err)
-			return false
-		}
-		count, err := l.r.Incr(context.Background(), key).Result()
-		if err != nil {
-			log.Printf("[%s] Redis incr failed: %s", tag, err)
-			return false
-		}
-		if count > int64(l.g.redislimit) {
-			return false
-		}
-	}
-
-	return true
-}
-
-// updateRedisLimit
-func (l *Limiter) updateRedisLimit(tag string, email string) {
-	if l.r != nil {
-		key := fmt.Sprintf("%s|%s", tag, email)
-		l.r.Expire(context.Background(), key, time.Duration(l.g.expiry)*time.Second)
-	}
-}
-
 func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *rate.Limiter, SpeedLimit bool, Reject bool) {
 	if value, ok := l.InboundInfo.Load(tag); ok {
 		var (
@@ -192,12 +164,34 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 			deviceLimit = u.DeviceLimit
 		}
 
+		// Redis Limit Check
 		if l.g.redislimit > 0 {
-			if !l.checkRedisLimit(tag, email) {
-				return nil, false, true
-			} else {
-				l.updateRedisLimit(tag, email)
+			for _, ip := range strings.Split(ip, ",") {
+				if ip != "" {
+					redisKey := fmt.Sprintf("%s|%s|%s", tag, email, ip)
+					if _, err := l.r.Incr(context.Background(), redisKey).Result(); err != nil {
+						log.Printf("[%s] Redis incr failed: %s", tag, err)
+						return nil, false, true
+					}
+					if _, err := l.r.Expire(context.Background(), redisKey, time.Duration(l.g.redislimit)).Result(); err != nil {
+						log.Printf("[%s] Redis expire failed: %s", tag, err)
+						return nil, false, true
+					}
+					redisCount, err := l.r.Get(context.Background(), redisKey).Result()
+					if err != nil {
+						log.Printf("[%s] Redis get failed: %s", tag, err)
+						return nil, false, true
+					}
+					if count, err := strconv.Atoi(redisCount); err != nil {
+						log.Printf("[%s] Redis count convert failed: %s", tag, err)
+						return nil, false, true
+					} else if count > l.g.redislimit {
+						log.Printf("[%s] Redis limit exceeded: %s", tag, redisKey)
+						return nil, false, true
+					}
+				}
 			}
+
 		}
 
 		// Local device limit
