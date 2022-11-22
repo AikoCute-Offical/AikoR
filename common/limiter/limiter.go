@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -166,32 +166,26 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 		// Redis Limit Check
 		if l.g.redislimit > 0 {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(l.g.redislimit))
-			defer cancel() // The cancel should be deferred so resources are cleaned up
-			/* _, err := l.r.Incr(ctx, fmt.Sprintf("user:%d", uid)).Result()
-			 if err != nil {
-			 	log.Printf("[%s] Redis incr failed: %s", tag, err)
-				return nil, false, true
-			} */
-			uidString := strconv.Itoa(uid)
-			// If any device is online
-			if exists, err := l.r.Exists(ctx, uidString).Result(); err != nil {
-				newError(fmt.Sprintf("Redis: %v", err)).AtWarning().WriteToLog()
+			defer cancel()
+			// If any device is online, the user is online
+			trimEmail := email[strings.Index(email, "|")+1:]
+			if exists, err := l.r.Exists(ctx, trimEmail).Result(); err != nil {
+				newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
 			} else if exists == 0 { // No user is online
-				l.r.SAdd(ctx, uidString, ip)
-				l.r.Expire(ctx, uidString, time.Second*time.Duration(l.g.expiry))
+				l.r.SAdd(ctx, trimEmail, ip)
+				l.r.Expire(ctx, trimEmail, time.Second*time.Duration(l.g.expiry))
 			} else {
 				// If this ip is a new device
-				if online, err := l.r.SIsMember(ctx, uidString, ip).Result(); err != nil {
+				if online, err := l.r.SIsMember(ctx, trimEmail, ip).Result(); err != nil {
 					newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
 				} else if !online {
-					l.r.SAdd(ctx, uidString, ip)
-					if l.r.SCard(ctx, uidString).Val() > int64(l.g.redislimit) {
-						l.r.SRem(ctx, uidString, ip)
+					l.r.SAdd(ctx, trimEmail, ip)
+					if l.r.SCard(ctx, trimEmail).Val() > int64(l.g.redislimit) {
+						l.r.SRem(ctx, trimEmail, ip)
 						return nil, false, true
 					}
 				}
-			} // End of Redis Limit Check
-
+			}
 		}
 
 		// Local device limit
