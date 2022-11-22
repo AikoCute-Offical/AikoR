@@ -56,12 +56,12 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 		l.g.redislimit = Redis.RedisLimit
 		l.g.redistimeout = Redis.RedisTimeout
 		l.g.expiry = Redis.Expiry
-		pong, err := l.r.Ping(context.Background()).Result()
+		_, err := l.r.Ping(context.Background()).Result()
 		if err != nil {
 			return fmt.Errorf("redis ping failed: %s", err)
 		} else {
-			log.Printf("[%s] Redis ping: %s", tag, pong)
-			log.Printf("[%s] Redis limit: %d", tag, Redis.RedisLimit)
+			log.Printf("[%s] Redis-Server: %s", tag, "Connected")
+			log.Printf("[%s] RedisLimit: %d", tag, Redis.RedisLimit)
 		}
 	}
 
