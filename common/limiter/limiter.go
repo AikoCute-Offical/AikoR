@@ -45,6 +45,8 @@ func New() *Limiter {
 	}
 }
 
+// re
+
 func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList *[]api.UserInfo, Redis *RedisConfig) error {
 	// global limit
 	if Redis.RedisLimit > 0 {
@@ -57,13 +59,11 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 		l.g.redislimit = Redis.RedisLimit
 		l.g.redistimeout = Redis.RedisTimeout
 		l.g.expiry = Redis.Expiry
-		// Ping with Redis Server to check if it is alive
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(l.g.redistimeout)*time.Second)
-		defer cancel()
-		if err := l.r.Ping(ctx).Err(); err != nil {
+		pong, err := l.r.Ping(context.Background()).Result()
+		if err != nil {
 			return fmt.Errorf("redis ping failed: %s", err)
 		} else {
-			log.Printf("[%s] Redis ping success", tag)
+			log.Printf("[%s] Redis ping: %s", tag, pong)
 		}
 	}
 
