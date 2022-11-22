@@ -23,7 +23,7 @@ var (
 )
 
 var (
-	version  = "0.9.5"
+	version  = "0.9.6 - Beta"
 	codename = "AikoR"
 	intro    = "Backend AikoR For Aiko"
 )
@@ -67,6 +67,7 @@ func getConfig() *viper.Viper {
 func main() {
 	flag.Parse()
 	showVersion()
+
 	if *printVersion {
 		return
 	}
@@ -86,12 +87,12 @@ func main() {
 			runtime.GC()
 			config.Unmarshal(panelConfig)
 			p.Start()
+			// print Redis Info
 			lastTime = time.Now()
 		}
 	})
 	p.Start()
 	defer p.Close()
-
 	//Explicitly triggering GC to remove garbage from config loading.
 	runtime.GC()
 	// Running backend
