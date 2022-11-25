@@ -1,7 +1,7 @@
 package limiter
 
 type RedisConfig struct {
-	RedisLimit    int    `mapstructure:"RedisLimit"`
+	RedisEnable   bool   `mapstructure:"RedisEnable"`
 	RedisAddr     string `mapstructure:"RedisAddr"` // host:port
 	RedisPassword string `mapstructure:"RedisPassword"`
 	RedisDB       int    `mapstructure:"RedisDB"`

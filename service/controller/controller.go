@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"reflect"
+	"sync"
 	"time"
 
 	"github.com/AikoCute-Offical/AikoR/api"
@@ -11,6 +13,7 @@ import (
 	"github.com/AikoCute-Offical/AikoR/common/legocmd"
 	"github.com/AikoCute-Offical/AikoR/common/limiter"
 	"github.com/AikoCute-Offical/AikoR/common/serverstatus"
+	"github.com/go-redis/redis/v8"
 	"github.com/xtls/xray-core/common/protocol"
 	"github.com/xtls/xray-core/common/task"
 	"github.com/xtls/xray-core/core"
@@ -36,6 +39,7 @@ type Controller struct {
 	userList                *[]api.UserInfo
 	nodeInfoMonitorPeriodic *task.Periodic
 	userReportPeriodic      *task.Periodic
+	globalLimitPeriodic     *task.Periodic
 	limitedUsers            map[api.UserInfo]LimitInfo
 	warnedUsers             map[api.UserInfo]int
 	panelType               string
@@ -90,10 +94,10 @@ func (c *Controller) Start() error {
 	c.userList = userInfo
 
 	// Init global device limit
-	if c.config.RedisConfig == nil {
-		c.config.RedisConfig = &limiter.RedisConfig{RedisLimit: 0}
+	c.globalLimitPeriodic = &task.Periodic{
+		Interval: time.Duration(c.config.UpdatePeriodic) * time.Second,
+		Execute:  c.globalLimitFetch,
 	}
-
 	// Add Limiter
 	if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, userInfo, c.config.RedisConfig); err != nil {
 		log.Print(err)
@@ -137,6 +141,10 @@ func (c *Controller) Start() error {
 		time.Sleep(time.Duration(c.config.UpdatePeriodic) * time.Second)
 		_ = c.userReportPeriodic.Start()
 	}()
+
+	// Start global limit fetch
+	go c.globalLimitPeriodic.Start()
+
 	return nil
 }
 
@@ -567,4 +575,54 @@ func (c *Controller) userInfoMonitor() (err error) {
 
 func (c *Controller) buildNodeTag() string {
 	return fmt.Sprintf("%s_%s_%d", c.nodeInfo.NodeType, c.config.ListenIP, c.nodeInfo.Port)
+}
+
+func (c *Controller) logPrefix() string {
+	return fmt.Sprintf("[%s] %s(ID=%d)", c.clientInfo.APIHost, c.nodeInfo.NodeType, c.nodeInfo.NodeID)
+}
+
+// Fetch global limit periodically
+func (c *Controller) globalLimitFetch() (err error) {
+	if !c.config.RedisConfig.RedisEnable {
+		return err
+	}
+	log.Printf("%s Start fectch gobal limit", c.logPrefix())
+
+	if value, ok := c.dispatcher.Limiter.InboundInfo.Load(c.Tag); ok {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(c.config.RedisConfig.RedisTimeout))
+		defer cancel()
+		r := redis.NewClient(&redis.Options{
+			Addr:     c.config.RedisConfig.RedisAddr,
+			Password: c.config.RedisConfig.RedisPassword,
+			DB:       c.config.RedisConfig.RedisDB,
+		})
+
+		var (
+			cursor uint64
+			emails []string
+		)
+
+		inboundInfo := value.(*limiter.InboundInfo)
+		for {
+			if emails, cursor, err = r.Scan(ctx, cursor, "*", 1000).Result(); err != nil {
+				newError(err).AtError().WriteToLog()
+			}
+			for i := range emails {
+				email := emails[i]
+				ips := r.SMembers(ctx, email).Val()
+
+				for ii := range ips {
+					ip := ips[ii]
+					ipMap := new(sync.Map)
+					ipMap.Store(ip, 0)
+					inboundInfo.UserOnlineIP.LoadOrStore(email, ipMap)
+				}
+			}
+			if cursor == 0 {
+				break
+			}
+		}
+	}
+
+	return nil
 }
