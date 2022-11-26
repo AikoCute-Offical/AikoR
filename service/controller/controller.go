@@ -143,7 +143,14 @@ func (c *Controller) Start() error {
 	}()
 
 	// Start global limit fetch
-	go c.globalLimitPeriodic.Start()
+	if !c.config.RedisConfig.RedisEnable {
+		log.Printf("%s Start fectch Redis limit", c.logPrefix())
+		c.globalLimitPeriodic = &task.Periodic{
+			Interval: time.Duration(c.config.UpdatePeriodic) * time.Second,
+			Execute:  c.globalLimitFetch,
+		}
+		go c.globalLimitPeriodic.Start()
+	}
 
 	return nil
 }
@@ -163,6 +170,14 @@ func (c *Controller) Close() error {
 			log.Panicf("user report periodic close failed: %s", err)
 		}
 	}
+
+	if c.globalLimitPeriodic != nil {
+		err := c.globalLimitPeriodic.Close()
+		if err != nil {
+			log.Panicf("%s Redis limit periodic close failed: %s", c.logPrefix(), err)
+		}
+	}
+
 	return nil
 }
 
@@ -402,31 +417,30 @@ func (c *Controller) addNewUser(userInfo *[]api.UserInfo, nodeInfo *api.NodeInfo
 }
 
 func compareUserList(old, new *[]api.UserInfo) (deleted, added []api.UserInfo) {
-	msrc := make(map[api.UserInfo]byte) //按源数组建索引
-	mall := make(map[api.UserInfo]byte) //源+目所有元素建索引
+	msrc := make(map[api.UserInfo]byte)
+	mall := make(map[api.UserInfo]byte)
 
-	var set []api.UserInfo //交集
+	var set []api.UserInfo
 
-	//1.源数组建立map
 	for _, v := range *old {
 		msrc[v] = 0
 		mall[v] = 0
 	}
-	//2.目数组中，存不进去，即重复元素，所有存不进去的集合就是并集
+
 	for _, v := range *new {
 		l := len(mall)
 		mall[v] = 1
-		if l != len(mall) { //长度变化，即可以存
+		if l != len(mall) {
 			l = len(mall)
-		} else { //存不了，进并集
+		} else {
 			set = append(set, v)
 		}
 	}
-	//3.遍历交集，在并集中找，找到就从并集中删，删完后就是补集（即并-交=所有变化的元素）
+
 	for _, v := range set {
 		delete(mall, v)
 	}
-	//4.此时，mall是补集，所有元素去源中找，找到就是删除的，找不到的必定能在目数组中找到，即新加的
+
 	for v := range mall {
 		_, exist := msrc[v]
 		if exist {
