@@ -28,7 +28,6 @@ type InboundInfo struct {
 	BucketHub      *sync.Map // key: Email, value: *rate.Limiter
 	UserOnlineIP   *sync.Map // Key: Email Value: *sync.Map: Key: IP, Value: UID
 }
-
 type Limiter struct {
 	InboundInfo *sync.Map // Key: Tag, Value: *InboundInfo
 	r           *redis.Client
@@ -106,7 +105,7 @@ func (l *Limiter) UpdateInboundLimiter(tag string, updatedUserList *[]api.UserIn
 			}
 		}
 	} else {
-		return newError("no such inbound in limiter: %s", tag).AtError()
+		return fmt.Errorf("no such inbound in limiter: %s", tag)
 	}
 	return nil
 }
@@ -142,7 +141,7 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 			return true
 		})
 	} else {
-		return nil, newError("no such inbound in limiter: %s", tag).AtError()
+		return nil, fmt.Errorf("no such inbound in limiter: %s", tag)
 	}
 	return &onlineUser, nil
 }
@@ -150,8 +149,8 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *rate.Limiter, SpeedLimit bool, Reject bool) {
 	if value, ok := l.InboundInfo.Load(tag); ok {
 		var (
-			userLimit   uint64 = 0
-			deviceLimit int
+			userLimit        uint64 = 0
+			deviceLimit, uid int
 		)
 
 		inboundInfo := value.(*InboundInfo)
@@ -162,30 +161,33 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 			deviceLimit = u.DeviceLimit
 		}
 
-		// Global limit email
 		if l.g.enable {
 			email = email[strings.Index(email, "|")+1:]
+
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), time.Duration(l.g.redistimeout)*time.Second)
+				defer cancel()
+
+				if err := l.r.SAdd(ctx, email, ip).Err(); err != nil {
+					newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
+				}
+
+				if l.r.TTL(ctx, email).Val() == -1 {
+					if err := l.r.Expire(ctx, email, time.Duration(l.g.expiry)*time.Second).Err(); err != nil {
+						newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
+					}
+				}
+			}()
 		}
 
 		// Local device limit
 		ipMap := new(sync.Map)
-		ipMap.Store(ip, 0)
+		ipMap.Store(ip, uid)
 		// If any device is online
 		if v, ok := inboundInfo.UserOnlineIP.LoadOrStore(email, ipMap); ok {
 			ipMap := v.(*sync.Map)
 			// If this ip is a new device
-			if _, ok := ipMap.LoadOrStore(ip, 0); !ok {
-				// Global limit: add new IP to redis
-				if l.g.enable {
-					go func() {
-						ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(l.g.redistimeout))
-						defer cancel()
-
-						if err := l.r.SAdd(ctx, email, ip).Err(); err != nil {
-							newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
-						}
-					}()
-				}
+			if _, ok := ipMap.LoadOrStore(ip, uid); !ok {
 				counter := 0
 				ipMap.Range(func(key, value interface{}) bool {
 					counter++
@@ -196,31 +198,9 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 					return nil, false, true
 				}
 			}
-		} else if l.g.enable {
-			// Global limit: add new email to redis
-			go func() {
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(l.g.redistimeout))
-				defer cancel()
-
-				if err := l.r.SAdd(ctx, email, ip).Err(); err != nil {
-					newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
-				} else {
-					online, err := l.r.Exists(ctx, email).Result()
-					if err != nil {
-						newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
-					} else {
-						if online == 0 {
-							if err := l.r.Expire(ctx, email, time.Duration(l.g.expiry)*time.Minute).Err(); err != nil {
-								newError(fmt.Sprintf("Redis: %v", err)).AtError().WriteToLog()
-							}
-						}
-					}
-				}
-			}()
 		}
-
-		// Speed limit
-		if limit := determineRate(nodeLimit, userLimit); limit > 0 {
+		limit := determineRate(nodeLimit, userLimit) // If need the Speed limit
+		if limit > 0 {
 			limiter := rate.NewLimiter(rate.Limit(limit), int(limit)) // Byte/s
 			if v, ok := inboundInfo.BucketHub.LoadOrStore(email, limiter); ok {
 				bucket := v.(*rate.Limiter)
