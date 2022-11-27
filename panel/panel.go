@@ -6,7 +6,9 @@ import (
 	"os"
 	"sync"
 
+	"github.com/AikoCute-Offical/AikoR/api/aiko"
 	"github.com/AikoCute-Offical/AikoR/api/newV2board"
+	"github.com/AikoCute-Offical/AikoR/api/xflash"
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
 
 	"github.com/imdario/mergo"
@@ -174,6 +176,10 @@ func (p *Panel) Start() {
 			apiClient = v2board.New(nodeConfig.ApiConfig)
 		case "NewV2board":
 			apiClient = newV2board.New(nodeConfig.ApiConfig)
+		case "Xflash":
+			apiClient = xflash.New(nodeConfig.ApiConfig)
+		case "AikoVPN":
+			apiClient = aiko.New(nodeConfig.ApiConfig)
 		case "PMpanel":
 			apiClient = pmpanel.New(nodeConfig.ApiConfig)
 		case "Proxypanel":
