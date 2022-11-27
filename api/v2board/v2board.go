@@ -12,9 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/bitly/go-simplejson"
 	"github.com/go-resty/resty/v2"
+
+	"github.com/AikoCute-Offical/AikoR/api"
 )
 
 // APIClient create an api client to the panel.
@@ -81,7 +82,7 @@ func readLocalRuleList(path string) (LocalRuleList []api.DetectRule) {
 		// open the file
 		file, err := os.Open(path)
 
-		//handle errors while opening
+		// handle errors while opening
 		if err != nil {
 			log.Printf("Error when opening file: %s", err)
 			return LocalRuleList
@@ -99,7 +100,7 @@ func readLocalRuleList(path string) (LocalRuleList []api.DetectRule) {
 		// handle first encountered error while reading
 		if err := fileScanner.Err(); err != nil {
 			log.Fatalf("Error while reading file: %s", err)
-			return make([]api.DetectRule, 0)
+			return
 		}
 
 		file.Close()
@@ -133,7 +134,7 @@ func (c *APIClient) parseResponse(res *resty.Response, path string, err error) (
 	}
 	rtn, err := simplejson.NewJson(res.Body())
 	if err != nil {
-		return nil, fmt.Errorf("Ret %s invalid", res.String())
+		return nil, fmt.Errorf("ret %s invalid", res.String())
 	}
 	return rtn, nil
 }
@@ -371,7 +372,7 @@ func (c *APIClient) ParseV2rayNodeResponse(nodeInfoResponse *simplejson.Json) (*
 		marshalByte, _ := json.Marshal(tmpInboundInfo[0].(map[string]interface{}))
 		inboundInfo, _ = simplejson.NewJson(marshalByte)
 	} else {
-		return nil, fmt.Errorf("Unable to find inbound(s) in the nodeInfo.")
+		return nil, fmt.Errorf("unable to find inbound(s) in the nodeInfo")
 	}
 
 	port := uint32(inboundInfo.Get("port").MustUint64())

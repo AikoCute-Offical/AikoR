@@ -49,7 +49,7 @@ type TrojanNodeInfo struct {
 	TrojanPort  uint32 `json:"trojan_port"`
 }
 
-// Node status report
+// NodeStatus Node status report
 type NodeStatus struct {
 	CPU    string `json:"cpu"`
 	Mem    string `json:"mem"`
