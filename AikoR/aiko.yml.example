@@ -19,7 +19,7 @@ Nodes: #Default AikoR config
         LimitSpeed: 0 # The speedlimit of a limited user (unit: mbps)
         LimitDuration: 0 # How many minutes will the limiting last (unit: minute)
       RedisConfig:
-        RedisEnable: false # Enable Redis
+        RedisEnable: false # Enable the Redis limit of a user
         RedisAddr: 127.0.0.1:6379 # The redis server address format: (IP:Port)
         RedisPassword: PASSWORD # Redis password
         RedisDB: 0 # Redis DB (Redis database number, default 0, no need to change)
