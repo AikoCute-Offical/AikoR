@@ -45,7 +45,7 @@ func New() *Limiter {
 	}
 }
 
-func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList *[]api.UserInfo, globalDeviceLimit *GlobalDeviceLimitConfig) error {
+func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList *[]api.UserInfo, globalDeviceLimit *RedisConfig) error {
 	// global limit
 	if globalDeviceLimit.RedisEnable {
 		log.Printf("[%s] Global limit: enable", tag)
