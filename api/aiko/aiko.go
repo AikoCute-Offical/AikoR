@@ -235,7 +235,6 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 			UID:      traffic.UID,
 			Upload:   traffic.Upload,
 			Download: traffic.Download,
-			Count:    traffic.Count,
 		}
 	}
 
