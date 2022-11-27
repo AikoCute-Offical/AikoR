@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-// API config
+// Config API config
 type Config struct {
 	APIHost             string  `mapstructure:"ApiHost"`
 	NodeID              int     `mapstructure:"NodeID"`
@@ -20,7 +20,7 @@ type Config struct {
 	DisableCustomConfig bool    `mapstructure:"DisableCustomConfig"`
 }
 
-// Node status
+// NodeStatus Node status
 type NodeStatus struct {
 	CPU    float64
 	Mem    float64
@@ -42,6 +42,7 @@ type NodeInfo struct {
 	TLSType           string
 	EnableVless       bool
 	CypherMethod      string
+	ServerKey         string
 	ServiceName       string
 	Header            json.RawMessage
 }
@@ -60,7 +61,6 @@ type UserInfo struct {
 	ObfsParam     string
 	UUID          string
 	AlterID       uint16
-	Count         int64
 }
 
 type OnlineUser struct {
@@ -73,7 +73,6 @@ type UserTraffic struct {
 	Email    string
 	Upload   int64
 	Download int64
-	Count    int64
 }
 
 type ClientInfo struct {

@@ -2,23 +2,15 @@ package panel
 
 import (
 	"encoding/json"
-	io "io/ioutil"
 	"log"
+	"os"
 	"sync"
 
+	"github.com/AikoCute-Offical/AikoR/api/aiko"
+	"github.com/AikoCute-Offical/AikoR/api/newV2board"
+	"github.com/AikoCute-Offical/AikoR/api/xflash"
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
 
-	_ "github.com/AikoCute-Offical/AikoR/AikoR/distro/all"
-	"github.com/AikoCute-Offical/AikoR/api"
-	"github.com/AikoCute-Offical/AikoR/api/aiko"
-	"github.com/AikoCute-Offical/AikoR/api/pmpanel"
-	"github.com/AikoCute-Offical/AikoR/api/proxypanel"
-	"github.com/AikoCute-Offical/AikoR/api/sspanel"
-	"github.com/AikoCute-Offical/AikoR/api/v2board"
-	"github.com/AikoCute-Offical/AikoR/api/v2raysocks"
-	"github.com/AikoCute-Offical/AikoR/api/xflash"
-	"github.com/AikoCute-Offical/AikoR/service"
-	"github.com/AikoCute-Offical/AikoR/service/controller"
 	"github.com/imdario/mergo"
 	"github.com/r3labs/diff/v2"
 	"github.com/xtls/xray-core/app/proxyman"
@@ -26,6 +18,16 @@ import (
 	"github.com/xtls/xray-core/common/serial"
 	"github.com/xtls/xray-core/core"
 	"github.com/xtls/xray-core/infra/conf"
+
+	_ "github.com/AikoCute-Offical/AikoR/AikoR/distro/all"
+	"github.com/AikoCute-Offical/AikoR/api"
+	"github.com/AikoCute-Offical/AikoR/api/pmpanel"
+	"github.com/AikoCute-Offical/AikoR/api/proxypanel"
+	"github.com/AikoCute-Offical/AikoR/api/sspanel"
+	"github.com/AikoCute-Offical/AikoR/api/v2board"
+	"github.com/AikoCute-Offical/AikoR/api/v2raysocks"
+	"github.com/AikoCute-Offical/AikoR/service"
+	"github.com/AikoCute-Offical/AikoR/service/controller"
 )
 
 // Panel Structure
@@ -58,7 +60,7 @@ func (p *Panel) loadCore(panelConfig *Config) *core.Instance {
 	// DNS config
 	coreDnsConfig := &conf.DNSConfig{}
 	if panelConfig.DnsConfigPath != "" {
-		if data, err := io.ReadFile(panelConfig.DnsConfigPath); err != nil {
+		if data, err := os.ReadFile(panelConfig.DnsConfigPath); err != nil {
 			log.Panicf("Failed to read DNS config file at: %s", panelConfig.DnsConfigPath)
 		} else {
 			if err = json.Unmarshal(data, coreDnsConfig); err != nil {
@@ -73,7 +75,7 @@ func (p *Panel) loadCore(panelConfig *Config) *core.Instance {
 	// Routing config
 	coreRouterConfig := &conf.RouterConfig{}
 	if panelConfig.RouteConfigPath != "" {
-		if data, err := io.ReadFile(panelConfig.RouteConfigPath); err != nil {
+		if data, err := os.ReadFile(panelConfig.RouteConfigPath); err != nil {
 			log.Panicf("Failed to read Routing config file at: %s", panelConfig.RouteConfigPath)
 		} else {
 			if err = json.Unmarshal(data, coreRouterConfig); err != nil {
@@ -86,9 +88,9 @@ func (p *Panel) loadCore(panelConfig *Config) *core.Instance {
 		log.Panicf("Failed to understand Routing config  Please check: https://xtls.github.io/config/routing.html for help: %s", err)
 	}
 	// Custom Inbound config
-	coreCustomInboundConfig := []conf.InboundDetourConfig{}
+	var coreCustomInboundConfig []conf.InboundDetourConfig
 	if panelConfig.InboundConfigPath != "" {
-		if data, err := io.ReadFile(panelConfig.InboundConfigPath); err != nil {
+		if data, err := os.ReadFile(panelConfig.InboundConfigPath); err != nil {
 			log.Panicf("Failed to read Custom Inbound config file at: %s", panelConfig.OutboundConfigPath)
 		} else {
 			if err = json.Unmarshal(data, &coreCustomInboundConfig); err != nil {
@@ -96,7 +98,7 @@ func (p *Panel) loadCore(panelConfig *Config) *core.Instance {
 			}
 		}
 	}
-	inBoundConfig := []*core.InboundHandlerConfig{}
+	var inBoundConfig []*core.InboundHandlerConfig
 	for _, config := range coreCustomInboundConfig {
 		oc, err := config.Build()
 		if err != nil {
@@ -105,9 +107,9 @@ func (p *Panel) loadCore(panelConfig *Config) *core.Instance {
 		inBoundConfig = append(inBoundConfig, oc)
 	}
 	// Custom Outbound config
-	coreCustomOutboundConfig := []conf.OutboundDetourConfig{}
+	var coreCustomOutboundConfig []conf.OutboundDetourConfig
 	if panelConfig.OutboundConfigPath != "" {
-		if data, err := io.ReadFile(panelConfig.OutboundConfigPath); err != nil {
+		if data, err := os.ReadFile(panelConfig.OutboundConfigPath); err != nil {
 			log.Panicf("Failed to read Custom Outbound config file at: %s", panelConfig.OutboundConfigPath)
 		} else {
 			if err = json.Unmarshal(data, &coreCustomOutboundConfig); err != nil {
@@ -115,7 +117,7 @@ func (p *Panel) loadCore(panelConfig *Config) *core.Instance {
 			}
 		}
 	}
-	outBoundConfig := []*core.OutboundHandlerConfig{}
+	var outBoundConfig []*core.OutboundHandlerConfig
 	for _, config := range coreCustomOutboundConfig {
 		oc, err := config.Build()
 		if err != nil {
@@ -124,7 +126,7 @@ func (p *Panel) loadCore(panelConfig *Config) *core.Instance {
 		outBoundConfig = append(outBoundConfig, oc)
 	}
 	// Policy config
-	levelPolicyConfig := parseConnectionConfig(panelConfig.ConnetionConfig)
+	levelPolicyConfig := parseConnectionConfig(panelConfig.ConnectionConfig)
 	corePolicyConfig := &conf.PolicyConfig{}
 	corePolicyConfig.Levels = map[uint32]*conf.Policy{0: levelPolicyConfig}
 	policyConfig, _ := corePolicyConfig.Build()
@@ -169,8 +171,11 @@ func (p *Panel) Start() {
 		switch nodeConfig.PanelType {
 		case "SSpanel":
 			apiClient = sspanel.New(nodeConfig.ApiConfig)
+		// todo Deprecated after 2023.6.1
 		case "V2board":
 			apiClient = v2board.New(nodeConfig.ApiConfig)
+		case "NewV2board":
+			apiClient = newV2board.New(nodeConfig.ApiConfig)
 		case "Xflash":
 			apiClient = xflash.New(nodeConfig.ApiConfig)
 		case "AikoVPN":
@@ -179,7 +184,7 @@ func (p *Panel) Start() {
 			apiClient = pmpanel.New(nodeConfig.ApiConfig)
 		case "Proxypanel":
 			apiClient = proxypanel.New(nodeConfig.ApiConfig)
-		case "V2raysocks":
+		case "V2RaySocks":
 			apiClient = v2raysocks.New(nodeConfig.ApiConfig)
 		default:
 			log.Panicf("Unsupport panel type: %s", nodeConfig.PanelType)
@@ -224,11 +229,11 @@ func (p *Panel) Close() {
 	return
 }
 
-func parseConnectionConfig(c *ConnetionConfig) (policy *conf.Policy) {
-	connetionConfig := getDefaultConnetionConfig()
+func parseConnectionConfig(c *ConnectionConfig) (policy *conf.Policy) {
+	connetionConfig := getDefaultConnectionConfig()
 	if c != nil {
 		if _, err := diff.Merge(connetionConfig, c, connetionConfig); err != nil {
-			log.Panicf("Read ConnetionConfig failed: %s", err)
+			log.Panicf("Read ConnectionConfig failed: %s", err)
 		}
 	}
 	policy = &conf.Policy{
