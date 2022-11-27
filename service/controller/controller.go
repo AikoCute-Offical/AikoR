@@ -71,11 +71,11 @@ func New(server *core.Instance, api api.API, config *Config, panelType string) *
 	}
 
 	// Init global limit redis client
-	if config.GlobalDeviceLimitConfig.RedisEnable {
+	if config.RedisConfig.RedisEnable {
 		controller.r = redis.NewClient(&redis.Options{
-			Addr:     config.GlobalDeviceLimitConfig.RedisAddr,
-			Password: config.GlobalDeviceLimitConfig.RedisPassword,
-			DB:       config.GlobalDeviceLimitConfig.RedisDB,
+			Addr:     config.RedisConfig.RedisAddr,
+			Password: config.RedisConfig.RedisPassword,
+			DB:       config.RedisConfig.RedisDB,
 		})
 	}
 
@@ -112,7 +112,7 @@ func (c *Controller) Start() error {
 	c.userList = userInfo
 
 	// Add Limiter
-	if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, userInfo, c.config.GlobalDeviceLimitConfig); err != nil {
+	if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, userInfo, c.config.RedisConfig); err != nil {
 		log.Print(err)
 	}
 	// Add Rule Manager
@@ -158,7 +158,7 @@ func (c *Controller) Start() error {
 				Execute:  c.certMonitor,
 			}})
 	}
-	if c.config.GlobalDeviceLimitConfig.RedisEnable {
+	if c.config.RedisConfig.RedisEnable {
 		c.tasks = append(c.tasks,
 			periodicTask{
 				tag: "global limit",
@@ -268,7 +268,7 @@ func (c *Controller) nodeInfoMonitor() (err error) {
 			return nil
 		}
 		// Add Limiter
-		if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, newUserInfo, c.config.GlobalDeviceLimitConfig); err != nil {
+		if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, newUserInfo, c.config.RedisConfig); err != nil {
 			log.Print(err)
 			return nil
 		}
