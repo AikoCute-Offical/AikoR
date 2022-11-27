@@ -1,6 +1,6 @@
 package limiter
 
-type RedisConfig struct {
+type GlobalDeviceLimitConfig struct {
 	RedisEnable   bool   `mapstructure:"RedisEnable"`
 	RedisAddr     string `mapstructure:"RedisAddr"` // host:port
 	RedisPassword string `mapstructure:"RedisPassword"`
