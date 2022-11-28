@@ -171,26 +171,29 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 			email = email[strings.Index(email, "|")+1:]
 
 			go func() {
-				ctx, cancel := context.WithTimeout(context.Background(), time.Duration(l.g.timeout)*time.Second)
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(l.g.timeout))
 				defer cancel()
-				_, err := l.r.Incr(ctx, email).Result()
+
+				key := fmt.Sprintf("device_limit:%s", email)
+				_, err := l.r.Incr(ctx, key).Result()
 				if err != nil {
 					log.Printf("[%s] Redis incr error: %s", tag, err)
-				}
-				_, err = l.r.Expire(ctx, email, time.Duration(l.g.expiry)).Result()
-				if err != nil {
-					log.Printf("[%s] Redis expire error: %s", tag, err)
-				}
+					return
+				} else {
+					l.r.Expire(ctx, key, time.Second*time.Duration(l.g.expiry))
+				} // Set expire time
 
-				count, err := l.r.Get(ctx, email).Int64()
+				count, err := l.r.Get(ctx, key).Int64()
 				if err != nil {
 					log.Printf("[%s] Redis get error: %s", tag, err)
-				}
-
-				if count > int64(deviceLimit) {
-					log.Printf("[%s] Global device limit reached: %s", tag, email)
-					Reject = true
-				}
+					return
+				} else {
+					if count > int64(deviceLimit) {
+						Reject = true
+						log.Printf("[%s] Reject user %s, exceed global device limit", tag, email)
+						return
+					}
+				} // Check limit
 			}()
 		}
 
