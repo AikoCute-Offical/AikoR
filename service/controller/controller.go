@@ -140,13 +140,13 @@ func (c *Controller) Start() error {
 	// Add periodic tasks
 	c.tasks = append(c.tasks,
 		periodicTask{
-			tag: "node monitor",
+			tag: "node",
 			Periodic: &task.Periodic{
 				Interval: time.Duration(c.config.UpdatePeriodic) * time.Second,
 				Execute:  c.nodeInfoMonitor,
 			}},
 		periodicTask{
-			tag: "user monitor",
+			tag: "user",
 			Periodic: &task.Periodic{
 				Interval: time.Duration(c.config.UpdatePeriodic) * time.Second,
 				Execute:  c.userInfoMonitor,
@@ -156,7 +156,7 @@ func (c *Controller) Start() error {
 	// Check cert service in need
 	if c.nodeInfo.NodeType != "Shadowsocks" {
 		c.tasks = append(c.tasks, periodicTask{
-			tag: "cert monitor",
+			tag: "cert",
 			Periodic: &task.Periodic{
 				Interval: time.Duration(c.config.UpdatePeriodic) * time.Second * 60,
 				Execute:  c.certMonitor,
@@ -167,7 +167,7 @@ func (c *Controller) Start() error {
 	if c.config.RedisConfig.RedisEnable {
 		c.tasks = append(c.tasks,
 			periodicTask{
-				tag: "global limit",
+				tag: "Redis limit",
 				Periodic: &task.Periodic{
 					Interval: time.Duration(c.config.UpdatePeriodic) * time.Second,
 					Execute:  c.globalLimitFetch,
@@ -187,7 +187,7 @@ func (c *Controller) Start() error {
 
 	// Start periodic tasks
 	for i := range c.tasks {
-		log.Printf("%s Start %s periodic task", c.logPrefix(), c.tasks[i].tag)
+		log.Printf("%s Start %s [AikoR]", c.logPrefix(), c.tasks[i].tag)
 		go c.tasks[i].Start()
 	}
 
