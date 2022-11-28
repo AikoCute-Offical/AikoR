@@ -16,10 +16,8 @@ require (
 	github.com/shirou/gopsutil/v3 v3.22.10
 	github.com/spf13/viper v1.14.0
 	github.com/stretchr/testify v1.8.1
-	github.com/urfave/cli v1.22.10
-	github.com/xtls/xray-core v1.6.4
 	github.com/xtls/xray-core v1.6.1
-	golang.org/x/crypto v0.1.0
+	golang.org/x/crypto v0.2.0
 	golang.org/x/net v0.2.0
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858
 	google.golang.org/protobuf v1.28.1
@@ -161,11 +159,8 @@ require (
 	go.opencensus.io v0.23.0 // indirect
 	go.starlark.net v0.0.0-20221028183056-acb66ad56dd2 // indirect
 	go.uber.org/ratelimit v0.2.0 // indirect
-	golang.org/x/crypto v0.2.0 // indirect
 	golang.org/x/exp v0.0.0-20221111204811-129d8d6c17ab // indirect
 	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/exp v0.0.0-20221019170559-20944726eadf // indirect
-	golang.org/x/mod v0.6.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
 	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
