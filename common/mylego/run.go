@@ -21,10 +21,10 @@ backups of this folder is ideal.
 `
 
 func (l *LegoCMD) Run() error {
-	accountsStorage := NewAccountsStorage(l)
+	accountsStorage := l.newAccountsStorage()
 
-	account, client := setup(accountsStorage)
-	setupChallenges(l, client)
+	account, client := accountsStorage.setup()
+	l.setupChallenges(client)
 
 	if account.Registration == nil {
 		reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
@@ -60,9 +60,8 @@ func obtainCertificate(domains []string, client *lego.Client) (*certificate.Reso
 		// obtain a certificate, generating a new private key
 		request := certificate.ObtainRequest{
 			Domains: domains,
-			Bundle:  true,
 		}
 		return client.Certificate.Obtain(request)
 	}
-	return nil, fmt.Errorf("not a valid domain")
+	return nil, newError("not a valid domain").AtError()
 }

@@ -5,12 +5,9 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
-	"errors"
 	"log"
-	"net/url"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/go-acme/lego/v4/certcrypto"
 	"github.com/go-acme/lego/v4/lego"
@@ -65,27 +62,19 @@ type AccountsStorage struct {
 	accountFilePath string
 }
 
-// NewAccountsStorage Creates a new AccountsStorage.
-func NewAccountsStorage(l *LegoCMD) *AccountsStorage {
-	email := l.C.Email
+func (s *AccountsStorage) setup() (*Account, *lego.Client) {
+	privateKey := s.GetPrivateKey(certcrypto.EC256)
 
-	serverURL, err := url.Parse(acme.LetsEncryptURL)
-	if err != nil {
-		log.Panic(err)
+	var account *Account
+	if s.ExistsAccountFilePath() {
+		account = s.LoadAccount(privateKey)
+	} else {
+		account = &Account{Email: s.GetUserID(), key: privateKey}
 	}
 
-	rootPath := filepath.Join(l.path, baseAccountsRootFolderName)
-	serverPath := strings.NewReplacer(":", "_", "/", string(os.PathSeparator)).Replace(serverURL.Host)
-	accountsPath := filepath.Join(rootPath, serverPath)
-	rootUserPath := filepath.Join(accountsPath, email)
+	client := newClient(account, certcrypto.EC256)
 
-	return &AccountsStorage{
-		userID:          email,
-		rootPath:        rootPath,
-		rootUserPath:    rootUserPath,
-		keysPath:        filepath.Join(rootUserPath, baseKeysFolderName),
-		accountFilePath: filepath.Join(rootUserPath, accountFileName),
-	}
+	return account, client
 }
 
 func (s *AccountsStorage) ExistsAccountFilePath() bool {
@@ -153,7 +142,7 @@ func (s *AccountsStorage) GetPrivateKey(keyType certcrypto.KeyType) crypto.Priva
 	accKeyPath := filepath.Join(s.keysPath, s.userID+".key")
 
 	if _, err := os.Stat(accKeyPath); os.IsNotExist(err) {
-		log.Printf("No key found for account %s. Generating a %s key.", s.userID, keyType)
+		newError("No key found for account %s. Generating a %s key.", s.userID, keyType).WriteToLog()
 		s.createKeysFolder()
 
 		privateKey, err := generatePrivateKey(accKeyPath, keyType)
@@ -161,7 +150,7 @@ func (s *AccountsStorage) GetPrivateKey(keyType certcrypto.KeyType) crypto.Priva
 			log.Panicf("Could not generate RSA private account key for account %s: %v", s.userID, err)
 		}
 
-		log.Printf("Saved key to %s", accKeyPath)
+		newError("Saved key to %s", accKeyPath).WriteToLog()
 		return privateKey
 	}
 
@@ -215,7 +204,7 @@ func loadPrivateKey(file string) (crypto.PrivateKey, error) {
 		return x509.ParseECPrivateKey(keyBlock.Bytes)
 	}
 
-	return nil, errors.New("unknown private key type")
+	return nil, newError("unknown private key type").AtError()
 }
 
 func tryRecoverRegistration(privateKey crypto.PrivateKey) (*registration.Resource, error) {
