@@ -1,9 +1,9 @@
-package limiter
+package mylego
 
 import "github.com/xtls/xray-core/common/errors"
 
 type errPathObjHolder struct{}
 
 func newError(values ...interface{}) *errors.Error {
-	return errors.New(values...)
+	return errors.New(values...).WithPathObj(errPathObjHolder{})
 }

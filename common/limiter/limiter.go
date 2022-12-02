@@ -4,12 +4,10 @@ package limiter
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"golang.org/x/time/rate"
 
 	"github.com/AikoCute-Offical/AikoR/api"
@@ -27,16 +25,16 @@ type InboundInfo struct {
 	UserInfo       *sync.Map // Key: Email value: UserInfo
 	BucketHub      *sync.Map // key: Email, value: *rate.Limiter
 	UserOnlineIP   *sync.Map // Key: Email Value: *sync.Map: Key: IP, Value: UID
+	GlobalLimit    *GlobalLimit
 }
 
 type Limiter struct {
 	InboundInfo *sync.Map // Key: Tag, Value: *InboundInfo
-	r           *redis.Client
-	g           struct {
-		enable  bool
-		timeout int
-		expiry  int
-	}
+}
+
+type GlobalLimit struct {
+	*RedisConfig
+	OnlineIP *sync.Map // Key: Email Value: *sync.Map: Key: IP, Value: UID
 }
 
 func New() *Limiter {
@@ -45,33 +43,18 @@ func New() *Limiter {
 	}
 }
 
-func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList *[]api.UserInfo, globalDeviceLimit *RedisConfig) error {
-	// global limit
-	if globalDeviceLimit.RedisEnable {
-		l.r = redis.NewClient(&redis.Options{
-			Addr:     globalDeviceLimit.RedisAddr,
-			Password: globalDeviceLimit.RedisPassword,
-			DB:       globalDeviceLimit.RedisDB,
-		})
-		l.g.enable = globalDeviceLimit.RedisEnable
-		l.g.timeout = globalDeviceLimit.RedisTimeout
-		l.g.expiry = globalDeviceLimit.Expiry
-
-		_, err := l.r.Ping(context.Background()).Result()
-		if err != nil {
-			return fmt.Errorf("redis Connect error: %s", err)
-		} else {
-			log.Printf("[%s] Redis Connect success", tag)
-			log.Printf("[%s] Redis limit: enable", tag)
-		}
-	}
-
+func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList *[]api.UserInfo, globalLimit *RedisConfig) error {
 	inboundInfo := &InboundInfo{
 		Tag:            tag,
 		NodeSpeedLimit: nodeSpeedLimit,
 		BucketHub:      new(sync.Map),
 		UserOnlineIP:   new(sync.Map),
+		GlobalLimit: &GlobalLimit{
+			RedisConfig: globalLimit,
+			OnlineIP:    new(sync.Map),
+		},
 	}
+
 	userMap := new(sync.Map)
 	for _, u := range *userList {
 		userMap.Store(fmt.Sprintf("%s|%s|%d", tag, u.Email, u.UID), UserInfo{
@@ -86,7 +69,6 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 }
 
 func (l *Limiter) UpdateInboundLimiter(tag string, updatedUserList *[]api.UserInfo) error {
-
 	if value, ok := l.InboundInfo.Load(tag); ok {
 		inboundInfo := value.(*InboundInfo)
 		// Update User info
@@ -121,6 +103,7 @@ func (l *Limiter) DeleteInboundLimiter(tag string) error {
 
 func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 	var onlineUser []api.OnlineUser
+
 	if value, ok := l.InboundInfo.Load(tag); ok {
 		inboundInfo := value.(*InboundInfo)
 		// Clear Speed Limiter bucket for users who are not online
@@ -132,6 +115,7 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 			return true
 		})
 		inboundInfo.UserOnlineIP.Range(func(key, value interface{}) bool {
+			email := key.(string)
 			ipMap := value.(*sync.Map)
 			ipMap.Range(func(key, value interface{}) bool {
 				uid := value.(int)
@@ -139,7 +123,6 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 				onlineUser = append(onlineUser, api.OnlineUser{UID: uid, IP: ip})
 				return true
 			})
-			email := key.(string)
 			inboundInfo.UserOnlineIP.Delete(email) // Reset online device
 			return true
 		})
@@ -152,12 +135,13 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 
 func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *rate.Limiter, SpeedLimit bool, Reject bool) {
 	if value, ok := l.InboundInfo.Load(tag); ok {
-		inboundInfo := value.(*InboundInfo)
-		nodeLimit := inboundInfo.NodeSpeedLimit
 		var (
 			userLimit        uint64 = 0
 			deviceLimit, uid int
 		)
+
+		inboundInfo := value.(*InboundInfo)
+		nodeLimit := inboundInfo.NodeSpeedLimit
 
 		if v, ok := inboundInfo.UserInfo.Load(email); ok {
 			u := v.(UserInfo)
@@ -166,45 +150,14 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 			deviceLimit = u.DeviceLimit
 		}
 
-		// Global device limit
-		if l.g.enable {
-			email = email[strings.Index(email, "|")+1:]
-
-			go func() {
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(l.g.timeout))
-				defer cancel()
-
-				key := fmt.Sprintf("device_limit:%s", email)
-				_, err := l.r.Incr(ctx, key).Result()
-				if err != nil {
-					log.Printf("[%s] Redis incr error: %s", tag, err)
-					return
-				} else {
-					l.r.Expire(ctx, key, time.Second*time.Duration(l.g.expiry))
-				} // Set expire time
-
-				count, err := l.r.Get(ctx, key).Int64()
-				if err != nil {
-					log.Printf("[%s] Redis get error: %s", tag, err)
-					return
-				} else {
-					if count > int64(deviceLimit) {
-						Reject = true
-						log.Printf("[%s] Reject user %s, exceed global device limit", tag, email)
-						return
-					}
-				} // Check limit
-			}()
-		}
-
 		// Local device limit
 		ipMap := new(sync.Map)
 		ipMap.Store(ip, uid)
 		// If any device is online
 		if v, ok := inboundInfo.UserOnlineIP.LoadOrStore(email, ipMap); ok {
 			ipMap := v.(*sync.Map)
-			// If this ip is a new device
-			if _, ok := ipMap.LoadOrStore(ip, uid); !ok || l.g.enable {
+			// If this is a new ip
+			if _, ok := ipMap.LoadOrStore(ip, uid); !ok {
 				counter := 0
 				ipMap.Range(func(key, value interface{}) bool {
 					counter++
@@ -214,6 +167,30 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 					ipMap.Delete(ip)
 					return nil, false, true
 				}
+			}
+		}
+
+		// Global device limit
+		if inboundInfo.GlobalLimit.RedisEnable {
+			email := email[strings.Index(email, "|")+1:]
+
+			if v, ok := inboundInfo.GlobalLimit.OnlineIP.Load(email); ok {
+				ipMap := v.(*sync.Map)
+				// If this is a new ip
+				if _, ok := ipMap.LoadOrStore(ip, uid); !ok {
+					counter := 0
+					ipMap.Range(func(key, value interface{}) bool {
+						counter++
+						return true
+					})
+					if counter > deviceLimit && deviceLimit > 0 {
+						ipMap.Delete(ip)
+						return nil, false, true
+					}
+					go pushIP(email, ip, inboundInfo.GlobalLimit)
+				}
+			} else {
+				go pushIP(email, ip, inboundInfo.GlobalLimit)
 			}
 		}
 
@@ -233,6 +210,23 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 	} else {
 		newError("Get Inbound Limiter information failed").AtDebug().WriteToLog()
 		return nil, false, false
+	}
+}
+
+// Push new IP to redis
+func pushIP(email string, ip string, g *GlobalLimit) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(g.RedisTimeout))
+	defer cancel()
+
+	if err := g.R.HSet(ctx, email, map[string]any{ip: 0}).Err(); err != nil {
+		newError(fmt.Errorf("redis: %v", err)).AtError().WriteToLog()
+	}
+
+	// check ttl, if ttl == -1, then set expire time.
+	if g.R.TTL(ctx, email).Val() == -1 {
+		if err := g.R.Expire(ctx, email, time.Duration(g.Expiry)*time.Minute).Err(); err != nil {
+			newError(fmt.Errorf("redis: %v", err)).AtError().WriteToLog()
+		}
 	}
 }
 

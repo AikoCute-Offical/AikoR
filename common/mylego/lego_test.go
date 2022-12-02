@@ -84,4 +84,13 @@ func TestLegoRenewCert(t *testing.T) {
 	t.Log(certPath)
 	t.Log(keyPath)
 	t.Log(ok)
+
+	lego.C.CertMode = "tls"
+	certPath, keyPath, ok, err = lego.RenewCert()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(certPath)
+	t.Log(keyPath)
+	t.Log(ok)
 }
