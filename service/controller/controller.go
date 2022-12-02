@@ -318,6 +318,16 @@ func (c *Controller) initGlobal() *limiter.RedisConfig {
 			Password: globalConfig.RedisPassword,
 			DB:       globalConfig.RedisDB,
 		})
+		// check Connect Redis
+		_, err := globalConfig.R.Ping(context.Background()).Result()
+		if err != nil {
+			log.Printf("[%s] Global limit: connect redis failed: %s", c.Tag, err)
+			globalConfig.RedisEnable = false
+		} else {
+			log.Printf("[%s] Global limit: connect redis success", c.Tag)
+		}
+	} else {
+		log.Printf("[%s] Global limit: disable", c.Tag)
 	}
 	return globalConfig
 }
