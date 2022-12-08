@@ -1,4 +1,4 @@
-// Package api contains all the api used by AikoR
+// Package api contains all the api used by XrayR
 // To implement an api , one needs to implement the interface below.
 
 package api

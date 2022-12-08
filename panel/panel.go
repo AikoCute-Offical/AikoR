@@ -2,24 +2,20 @@ package panel
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"sync"
-	"time"
 
 	"github.com/AikoCute-Offical/AikoR/api/aiko"
 	"github.com/AikoCute-Offical/AikoR/api/newV2board"
 	"github.com/AikoCute-Offical/AikoR/api/xflash"
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
-	"github.com/AikoCute-Offical/AikoR/common/mylego"
 
 	"github.com/imdario/mergo"
 	"github.com/r3labs/diff/v2"
 	"github.com/xtls/xray-core/app/proxyman"
 	"github.com/xtls/xray-core/app/stats"
 	"github.com/xtls/xray-core/common/serial"
-	"github.com/xtls/xray-core/common/task"
 	"github.com/xtls/xray-core/core"
 	"github.com/xtls/xray-core/infra/conf"
 
@@ -36,12 +32,11 @@ import (
 
 // Panel Structure
 type Panel struct {
-	access            sync.Mutex
-	panelConfig       *Config
-	Server            *core.Instance
-	Service           []service.Service
-	Running           bool
-	renewCertPeriodic *task.Periodic
+	access      sync.Mutex
+	panelConfig *Config
+	Server      *core.Instance
+	Service     []service.Service
+	Running     bool
 }
 
 func New(panelConfig *Config) *Panel {
@@ -159,7 +154,7 @@ func (p *Panel) loadCore(panelConfig *Config) *core.Instance {
 	return server
 }
 
-// Start Start the panel
+// Start the panel
 func (p *Panel) Start() {
 	p.access.Lock()
 	defer p.access.Unlock()
@@ -170,6 +165,7 @@ func (p *Panel) Start() {
 		log.Panicf("Failed to start instance: %s", err)
 	}
 	p.Server = server
+
 	// Load Nodes config
 	for _, nodeConfig := range p.panelConfig.NodesConfig {
 		var apiClient api.API
@@ -181,10 +177,10 @@ func (p *Panel) Start() {
 			apiClient = v2board.New(nodeConfig.ApiConfig)
 		case "NewV2board":
 			apiClient = newV2board.New(nodeConfig.ApiConfig)
-		case "Xflash":
-			apiClient = xflash.New(nodeConfig.ApiConfig)
 		case "AikoVPN":
 			apiClient = aiko.New(nodeConfig.ApiConfig)
+		case "Xflash":
+			apiClient = xflash.New(nodeConfig.ApiConfig)
 		case "PMpanel":
 			apiClient = pmpanel.New(nodeConfig.ApiConfig)
 		case "Proxypanel":
@@ -215,19 +211,10 @@ func (p *Panel) Start() {
 		}
 	}
 	p.Running = true
-
-	// CertMonitor
-	p.renewCertPeriodic = &task.Periodic{
-		Interval: time.Minute * 60,
-		Execute:  p.certMonitor,
-	}
-	newError("Start monitor cert status").WriteToLog()
-	go p.renewCertPeriodic.Start()
-
 	return
 }
 
-// Close Close the panel
+// Close the panel
 func (p *Panel) Close() {
 	p.access.Lock()
 	defer p.access.Unlock()
@@ -240,60 +227,25 @@ func (p *Panel) Close() {
 	p.Service = nil
 	p.Server.Close()
 	p.Running = false
-
-	if p.renewCertPeriodic != nil {
-		err := p.renewCertPeriodic.Close()
-		if err != nil {
-			panic(fmt.Sprintf("renew cert periodic close failed: %s", err))
-		}
-	}
-
 	return
 }
 
 func parseConnectionConfig(c *ConnectionConfig) (policy *conf.Policy) {
-	connetionConfig := getDefaultConnectionConfig()
+	connectionConfig := getDefaultConnectionConfig()
 	if c != nil {
-		if _, err := diff.Merge(connetionConfig, c, connetionConfig); err != nil {
+		if _, err := diff.Merge(connectionConfig, c, connectionConfig); err != nil {
 			log.Panicf("Read ConnectionConfig failed: %s", err)
 		}
 	}
 	policy = &conf.Policy{
 		StatsUserUplink:   true,
 		StatsUserDownlink: true,
-		Handshake:         &connetionConfig.Handshake,
-		ConnectionIdle:    &connetionConfig.ConnIdle,
-		UplinkOnly:        &connetionConfig.UplinkOnly,
-		DownlinkOnly:      &connetionConfig.DownlinkOnly,
-		BufferSize:        &connetionConfig.BufferSize,
+		Handshake:         &connectionConfig.Handshake,
+		ConnectionIdle:    &connectionConfig.ConnIdle,
+		UplinkOnly:        &connectionConfig.UplinkOnly,
+		DownlinkOnly:      &connectionConfig.DownlinkOnly,
+		BufferSize:        &connectionConfig.BufferSize,
 	}
 
 	return
-}
-
-func (p *Panel) certMonitor() error {
-	nodesConfig := p.panelConfig.NodesConfig
-	for i := range nodesConfig {
-		certConfig := nodesConfig[i].ControllerConfig.CertConfig
-		// Check Cert
-		if certConfig.CertMode == "dns" || certConfig.CertMode == "http" || certConfig.CertMode == "tls" {
-			lego, err := mylego.New(certConfig)
-			if err != nil {
-				newError(err).AtError().WriteToLog()
-				return nil
-			}
-			_, _, ok, err := lego.RenewCert()
-			if err != nil {
-				newError(err).AtError().WriteToLog()
-				return nil
-			}
-			if ok {
-				newError("Renew certs success, Reload panel").AtWarning().WriteToLog()
-				p.Close()
-				p.Start()
-			}
-		}
-	}
-
-	return nil
 }

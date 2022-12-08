@@ -17,6 +17,22 @@ import (
 
 const filePerm os.FileMode = 0o600
 
+func setup(accountsStorage *AccountsStorage) (*Account, *lego.Client) {
+	keyType := certcrypto.EC256
+	privateKey := accountsStorage.GetPrivateKey(keyType)
+
+	var account *Account
+	if accountsStorage.ExistsAccountFilePath() {
+		account = accountsStorage.LoadAccount(privateKey)
+	} else {
+		account = &Account{Email: accountsStorage.GetUserID(), key: privateKey}
+	}
+
+	client := newClient(account, keyType)
+
+	return account, client
+}
+
 func newClient(acc registration.User, keyType certcrypto.KeyType) *lego.Client {
 	config := lego.NewConfig(acc)
 	config.CADirURL = acme.LetsEncryptURL
@@ -35,7 +51,16 @@ func newClient(acc registration.User, keyType certcrypto.KeyType) *lego.Client {
 	return client
 }
 
-func (l *LegoCMD) setupChallenges(client *lego.Client) {
+func createNonExistingFolder(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return os.MkdirAll(path, 0o700)
+	} else if err != nil {
+		return err
+	}
+	return nil
+}
+
+func setupChallenges(l *LegoCMD, client *lego.Client) {
 	switch l.C.CertMode {
 	case "http":
 		err := client.Challenge.SetHTTP01Provider(http01.NewProviderServer("", ""))
@@ -48,14 +73,14 @@ func (l *LegoCMD) setupChallenges(client *lego.Client) {
 			log.Panic(err)
 		}
 	case "dns":
-		l.setupDNS(client)
+		setupDNS(l.C.Provider, client)
 	default:
 		log.Panic("No challenge selected. You must specify at least one challenge: `http`, `tls`, `dns`.")
 	}
 }
 
-func (l *LegoCMD) setupDNS(client *lego.Client) {
-	provider, err := dns.NewDNSChallengeProviderByName(l.C.Provider)
+func setupDNS(p string, client *lego.Client) {
+	provider, err := dns.NewDNSChallengeProviderByName(p)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -67,13 +92,4 @@ func (l *LegoCMD) setupDNS(client *lego.Client) {
 	if err != nil {
 		log.Panic(err)
 	}
-}
-
-func createNonExistingFolder(path string) error {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return os.MkdirAll(path, 0o700)
-	} else if err != nil {
-		return err
-	}
-	return nil
 }
