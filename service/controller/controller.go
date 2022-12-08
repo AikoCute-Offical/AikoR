@@ -98,7 +98,7 @@ func (c *Controller) Start() error {
 	}
 
 	// Add Limiter
-	if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, userInfo, c.config.GlobalDeviceLimitConfig); err != nil {
+	if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, userInfo, c.config.RedisConfig); err != nil {
 		log.Print(err)
 	}
 
@@ -248,7 +248,7 @@ func (c *Controller) nodeInfoMonitor() (err error) {
 		}
 
 		// Add Limiter
-		if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, newUserInfo, c.config.GlobalDeviceLimitConfig); err != nil {
+		if err := c.AddInboundLimiter(c.Tag, newNodeInfo.SpeedLimit, newUserInfo, c.config.RedisConfig); err != nil {
 			log.Print(err)
 			return nil
 		}
