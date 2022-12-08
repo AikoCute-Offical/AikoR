@@ -1,4 +1,4 @@
-// Package service contains all the services used by XrayR
+// Package service contains all the services used by AikoR
 // To implement a service, one needs to implement the interface below.
 package service
 
