@@ -64,7 +64,7 @@ This project is for my personal learning, development and maintenance only, I do
 
 ## Software installation - release
 ```
-wget --no-check-certificate -O AikoR.sh https://raw.githubusercontent.com/github.com/AikoCute-Offical/AikoR-Install/master/AikoR.sh && bash AikoR.sh
+wget --no-check-certificate -O AikoR.sh https://raw.githubusercontent.com/AikoCute-Offical/AikoR-Install/master/AikoR.sh && bash AikoR.sh
 ```
 ### One main installation - docker
 ```
@@ -78,4 +78,4 @@ Comming Soon
 
 ## Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/github.com/AikoCute-Offical/AikoR.svg)](https://starchart.cc/github.com/AikoCute-Offical/AikoR)
+[![Stargazers over time](https://starchart.cc/github.com/AikoCute-Offical/AikoR.svg)](https://starchart.cc/AikoCute-Offical/AikoR)

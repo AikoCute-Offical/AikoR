@@ -67,24 +67,20 @@ This project is for my personal learning, development and maintenance only, I do
 
 ## Software installation - release
 ```
-wget --no-check-certificate -O AikoR.sh https://raw.githubusercontent.com/github.com/AikoCute-Offical/AikoR-Install/master/AikoR.sh && bash AikoR.sh
+wget --no-check-certificate -O AikoR.sh https://raw.githubusercontent.com/AikoCute-Offical/AikoR-Install/master/AikoR.sh && bash AikoR.sh
 ```
-### One main installation - docker-hub
+### One main installation - docker
 ```
-docker pull aikocute/aikor:latest && docker run --restart=always --name aikor -d -v ${PATCH_TO_CONFIG}/aiko.yml:/etc/AikoR/aiko.yml --network=host aikocute/aikor:latest
+docker pull aikocute/aikor:latest && docker run --restart=always --name aikor -d -v ${PATCH_TO_CONFIG}/aiko.json:/etc/AikoR/aiko.json --network=host aikocute/aikor:latest
 ```
-
-### One main installation - docker-package
-```
-docker pull ghcr.io/github.com/AikoCute-Offical/AikoR:latest && docker run --restart=always --name aikor -d -v ${PATCH_TO_CONFIG}/aiko.yml:/etc/AikoR/aiko.yml --network=host ghcr.io/github.com/AikoCute-Offical/AikoR:latest
-```
-
 ### Configuration file and detailed instructions
 Comming Soon
 ## Telgram
 
 Comming Soon
 
+
 ## Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/github.com/AikoCute-Offical/AikoR.svg)](https://starchart.cc/github.com/AikoCute-Offical/AikoR)
+[![Stargazers over time](https://starchart.cc/AikoCute-Offical/AikoR.svg)](https://starchart.cc/AikoCute-Offical/AikoR)
+
