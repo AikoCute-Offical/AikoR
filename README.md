@@ -5,9 +5,9 @@
 # AikoR
 AikoR Projects
 
-[![](https://img.shields.io/badge/Telegram-group-green?style=flat-square)](https://t.me/AikoAikoR)
+[![](https://img.shields.io/badge/Telegram-group-green?style=flat-square)](https://t.me/AikoXrayR)
 [![](https://img.shields.io/badge/Telegram-channel-blue?style=flat-square)](https://t.me/AikoCute_Support)
-[![](https://img.shields.io/github/downloads/github.com/AikoCute-Offical/AikoR/total.svg?style=flat-square)](https://github.com/AikoCute-Offical/AikoR/releases)
+[![](https://img.shields.io/github/downloads/AikoCute-Offical/AikoR/total.svg?style=flat-square)](https://github.com/AikoCute-Offical/AikoR/releases)
 [![](https://img.shields.io/github/v/release/AikoCute-Offical/AikoR?style=flat-square)](https://github.com/AikoCute-Offical/AikoR/releases)
 [![docker](https://img.shields.io/docker/v/aikocute/aikor?label=Docker%20image&sort=semver)](https://hub.docker.com/r/aikocute/aikor)
 [![Go-Report](https://goreportcard.com/badge/github.com/AikoCute-Offical/AikoR?style=flat-square)](https://goreportcard.com/report/github.com/AikoCute-Offical/AikoR)
@@ -69,18 +69,22 @@ This project is for my personal learning, development and maintenance only, I do
 ```
 wget --no-check-certificate -O AikoR.sh https://raw.githubusercontent.com/AikoCute-Offical/AikoR-Install/master/AikoR.sh && bash AikoR.sh
 ```
-### One main installation - docker
+### One main installation - docker-hub
 ```
-docker pull aikocute/aikor:latest && docker run --restart=always --name aikor -d -v ${PATCH_TO_CONFIG}/aiko.json:/etc/AikoR/aiko.json --network=host aikocute/aikor:latest
+docker pull aikocute/aikor:latest && docker run --restart=always --name aikor -d -v ${PATCH_TO_CONFIG}/aiko.yml:/etc/AikoR/aiko.yml --network=host aikocute/aikor:latest
 ```
+
+### One main installation - docker-package
+```
+docker pull ghcr.io/aikocute-offical/aikor:latest && docker run --restart=always --name aikor -d -v ${PATCH_TO_CONFIG}/aiko.yml:/etc/AikoR/aiko.yml --network=host ghcr.io/aikocute-offical/aikor:latest
+```
+
 ### Configuration file and detailed instructions
 Comming Soon
 ## Telgram
 
 Comming Soon
 
-
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/AikoCute-Offical/AikoR.svg)](https://starchart.cc/AikoCute-Offical/AikoR)
-
