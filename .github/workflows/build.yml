@@ -96,7 +96,7 @@ jobs:
           mv build_assets AikoR-$ASSET_NAME
           
       - name: Upload files to Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: AikoR-${{ steps.get_filename.outputs.ASSET_NAME }}
           path: |
