@@ -57,7 +57,7 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 		UserOnlineIP:   new(sync.Map),
 	}
 
-	if globalLimit != nil && globalLimit.RedisEnable {
+	if globalLimit != nil && globalLimit.Enable {
 		inboundInfo.GlobalLimit.config = globalLimit
 
 		// init local store
@@ -196,7 +196,7 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 		}
 
 		// GlobalLimit
-		if inboundInfo.GlobalLimit.config != nil && inboundInfo.GlobalLimit.config.RedisEnable {
+		if inboundInfo.GlobalLimit.config != nil && inboundInfo.GlobalLimit.config.Enable {
 			if reject := globalLimit(inboundInfo, email, uid, ip, deviceLimit); reject {
 				return nil, false, true
 			}
@@ -224,7 +224,7 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 // Global device limit
 func globalLimit(inboundInfo *InboundInfo, email string, uid int, ip string, deviceLimit int) bool {
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(inboundInfo.GlobalLimit.config.RedisTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(inboundInfo.GlobalLimit.config.Timeout)*time.Second)
 	defer cancel()
 
 	// reformat email for unique key
@@ -258,7 +258,7 @@ func globalLimit(inboundInfo *InboundInfo, email string, uid int, ip string, dev
 
 // push the ip to cache
 func pushIP(inboundInfo *InboundInfo, uniqueKey string, ipMap *map[string]int) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(inboundInfo.GlobalLimit.config.RedisTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(inboundInfo.GlobalLimit.config.Timeout)*time.Second)
 	defer cancel()
 
 	if err := inboundInfo.GlobalLimit.globalOnlineIP.Set(ctx, uniqueKey, ipMap); err != nil {

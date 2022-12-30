@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"github.com/xtls/xray-core/infra/conf"
+
 	"github.com/AikoCute-Offical/AikoR/common/limiter"
 	"github.com/AikoCute-Offical/AikoR/common/mylego"
 )
@@ -21,6 +23,7 @@ type Config struct {
 	AutoSpeedLimitConfig *AutoSpeedLimitConfig `mapstructure:"AutoSpeedLimitConfig"`
 	RedisConfig          *limiter.RedisConfig  `mapstructure:"RedisConfig"`
 	FallBackConfigs      []*FallBackConfig     `mapstructure:"FallBackConfigs"`
+	DNSConfig            *conf.DNSConfig
 }
 
 type AutoSpeedLimitConfig struct {
