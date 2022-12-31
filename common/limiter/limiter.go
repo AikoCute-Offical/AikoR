@@ -49,16 +49,6 @@ func New() *Limiter {
 	}
 }
 
-func checkRedisConnection(client *redis.Client) error {
-	// Call the Ping function to Redis to check the connection.
-	ctx := context.Background()
-	_, err := client.Ping(ctx).Result()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList *[]api.UserInfo, globalLimit *RedisConfig) error {
 	inboundInfo := &InboundInfo{
 		Tag:            tag,
@@ -82,8 +72,9 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 			})
 
 		// check redis connection
-		if err := checkRedisConnection(client); err != nil {
-			return err
+		_, err := client.Ping(context.Background()).Result()
+		if err != nil {
+			return fmt.Errorf("redis connection error: %s", err)
 		}
 
 		// init redis store
