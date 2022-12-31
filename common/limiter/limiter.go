@@ -63,22 +63,14 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 		// init local store
 		gs := goCacheStore.NewGoCache(goCache.New(time.Duration(globalLimit.Expiry)*time.Second, 1*time.Minute))
 
-		// init redis client
-		client := redis.NewClient(
+		// init redis store
+		rs := redisStore.NewRedis(redis.NewClient(
 			&redis.Options{
 				Addr:     globalLimit.RedisAddr,
 				Password: globalLimit.RedisPassword,
 				DB:       globalLimit.RedisDB,
-			})
-
-		// check redis connection
-		_, err := client.Ping(context.Background()).Result()
-		if err != nil {
-			return fmt.Errorf("redis connection error: %s", err)
-		}
-
-		// init redis store
-		rs := redisStore.NewRedis(client, store.WithExpiration(time.Duration(globalLimit.Expiry)*time.Second))
+			}),
+			store.WithExpiration(time.Duration(globalLimit.Expiry)*time.Second))
 
 		// init chained cache. First use local go-cache, if go-cache is nil, then use redis cache
 		cacheManager := cache.NewChain[any](
