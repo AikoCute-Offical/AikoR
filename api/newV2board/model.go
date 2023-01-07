@@ -42,10 +42,9 @@ type trojan struct {
 }
 
 type route struct {
-	Id          int      `json:"id"`
-	Match       []string `json:"match"`
-	Action      string   `json:"action"`
-	ActionValue string   `json:"action_value"`
+	Id     int         `json:"id"`
+	Match  interface{} `json:"match"`
+	Action string      `json:"action"`
 	// ActionValue interface{} `json:"action_value"`
 }
 
