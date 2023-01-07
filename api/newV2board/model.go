@@ -46,6 +46,7 @@ type route struct {
 	Match       []string `json:"match"`
 	Action      string   `json:"action"`
 	ActionValue string   `json:"action_value"`
+	// ActionValue interface{} `json:"action_value"`
 }
 
 type user struct {

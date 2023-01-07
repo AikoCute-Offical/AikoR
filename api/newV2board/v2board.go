@@ -15,7 +15,6 @@ import (
 
 	"github.com/bitly/go-simplejson"
 	"github.com/go-resty/resty/v2"
-	"github.com/xtls/xray-core/common/net"
 	"github.com/xtls/xray-core/infra/conf"
 
 	"github.com/AikoCute-Offical/AikoR/api"
@@ -270,10 +269,18 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
 
 	for i := range routes {
 		if routes[i].Action == "block" {
-			ruleList = append(ruleList, api.DetectRule{
-				ID:      i,
-				Pattern: regexp.MustCompile(strings.Join(routes[i].Match, "|")),
-			})
+			var matchs []string
+			if _, ok := routes[i].Match.(string); ok {
+				matchs = strings.Split(routes[i].Match.(string), ",")
+			} else {
+				matchs = routes[i].Match.([]string)
+			}
+			for _, v := range matchs {
+				ruleList = append(ruleList, api.DetectRule{
+					ID:      routes[i].Id,
+					Pattern: regexp.MustCompile(v),
+				})
+			}
 		}
 	}
 
@@ -400,10 +407,17 @@ func (c *APIClient) parseDNSConfig() (nameServerList []*conf.NameServerConfig) {
 
 	for i := range routes {
 		if routes[i].Action == "dns" {
-			nameServerList = append(nameServerList, &conf.NameServerConfig{
-				Address: &conf.Address{Address: net.ParseAddress(routes[i].ActionValue)},
-				Domains: routes[i].Match,
-			})
+			var matchs []string
+			if _, ok := routes[i].Match.(string); ok {
+				matchs = strings.Split(routes[i].Match.(string), ",")
+			} else {
+				matchs = routes[i].Match.([]string)
+			}
+			for _, v := range matchs {
+				nameServerList = append(nameServerList, &conf.NameServerConfig{
+					Domains: []string{v},
+				})
+			}
 		}
 	}
 
