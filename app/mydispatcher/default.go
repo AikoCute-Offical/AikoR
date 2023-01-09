@@ -567,3 +567,7 @@ func (d *DefaultDispatcher) routedDispatch(ctx context.Context, link *transport.
 
 	handler.Dispatch(ctx, link)
 }
+
+func (d *DefaultDispatcher) UpdateDNSClient(dc *dns.Client) {
+	d.dns = *dc
+}

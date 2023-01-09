@@ -8,7 +8,6 @@ import (
 
 	"github.com/AikoCute-Offical/AikoR/api/aiko"
 	"github.com/AikoCute-Offical/AikoR/api/newV2board"
-	"github.com/AikoCute-Offical/AikoR/api/xflash"
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
 
 	"github.com/imdario/mergo"
@@ -70,8 +69,13 @@ func (p *Panel) loadCore(panelConfig *Config) *core.Instance {
 	}
 
 	// init controller's DNS config
-	for _, config := range p.panelConfig.NodesConfig {
-		config.ControllerConfig.DNSConfig = coreDnsConfig
+	// for _, config := range p.panelConfig.NodesConfig {
+	// 	config.ControllerConfig.DNSConfig = coreDnsConfig
+	// }
+
+	dnsConfig, err := coreDnsConfig.Build()
+	if err != nil {
+		log.Panicf("Failed to understand DNS config, Please check: https://xtls.github.io/config/dns.html for help: %s", err)
 	}
 
 	// Routing config
@@ -141,6 +145,7 @@ func (p *Panel) loadCore(panelConfig *Config) *core.Instance {
 			serial.ToTypedMessage(&proxyman.InboundConfig{}),
 			serial.ToTypedMessage(&proxyman.OutboundConfig{}),
 			serial.ToTypedMessage(policyConfig),
+			serial.ToTypedMessage(dnsConfig),
 			serial.ToTypedMessage(routeConfig),
 		},
 		Inbound:  inBoundConfig,
@@ -174,14 +179,12 @@ func (p *Panel) Start() {
 		case "SSpanel":
 			apiClient = sspanel.New(nodeConfig.ApiConfig)
 		// todo Deprecated after 2023.6.1
+		case "AikoVPN":
+			apiClient = aiko.New(nodeConfig.ApiConfig)
 		case "V2board":
 			apiClient = v2board.New(nodeConfig.ApiConfig)
 		case "NewV2board":
 			apiClient = newV2board.New(nodeConfig.ApiConfig)
-		case "AikoVPN":
-			apiClient = aiko.New(nodeConfig.ApiConfig)
-		case "Xflash":
-			apiClient = xflash.New(nodeConfig.ApiConfig)
 		case "PMpanel":
 			apiClient = pmpanel.New(nodeConfig.ApiConfig)
 		case "Proxypanel":

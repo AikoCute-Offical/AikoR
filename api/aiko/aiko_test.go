@@ -9,7 +9,7 @@ import (
 
 func CreateClient() api.API {
 	apiConfig := &api.Config{
-		APIHost:  "http://127.0.0.1:668",
+		APIHost:  "http://localhost:9897",
 		Key:      "qwertyuiopasdfghjkl",
 		NodeID:   1,
 		NodeType: "V2ray",

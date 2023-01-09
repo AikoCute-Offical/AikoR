@@ -3,8 +3,6 @@ package api
 import (
 	"encoding/json"
 	"regexp"
-
-	"github.com/xtls/xray-core/infra/conf"
 )
 
 // Config API config
@@ -47,7 +45,6 @@ type NodeInfo struct {
 	ServerKey         string
 	ServiceName       string
 	Header            json.RawMessage
-	NameServerConfig  []*conf.NameServerConfig
 }
 
 type UserInfo struct {
