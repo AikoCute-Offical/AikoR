@@ -1,33 +1,55 @@
 package aiko
 
 import (
-	"sync"
-
-	"github.com/bitly/go-simplejson"
-	"github.com/go-resty/resty/v2"
-
-	"github.com/AikoCute-Offical/AikoR/api"
+	"encoding/json"
 )
 
-// APIClient create an api client to the panel.
-type APIClient struct {
-	client        *resty.Client
-	APIHost       string
-	NodeID        int
-	Key           string
-	NodeType      string
-	EnableVless   bool
-	EnableXTLS    bool
-	SpeedLimit    float64
-	DeviceLimit   int
-	LocalRuleList []api.DetectRule
-	ConfigResp    *simplejson.Json
-	access        sync.Mutex
+type serverConfig struct {
+	shadowsocks
+	v2ray
+	trojan
+
+	ServerPort int `json:"server_port"`
+	BaseConfig struct {
+		PushInterval int `json:"push_interval"`
+		PullInterval int `json:"pull_interval"`
+	} `json:"base_config"`
 }
 
-type UserTraffic struct {
-	UID      int   `json:"user_id"`
-	Upload   int64 `json:"u"`
-	Download int64 `json:"d"`
-	Count    int64 `json:"count"`
+type shadowsocks struct {
+	Cipher       string `json:"cipher"`
+	Obfs         string `json:"obfs"`
+	ObfsSettings struct {
+		Path string `json:"path"`
+		Host string `json:"host"`
+	} `json:"obfs_settings"`
+	ServerKey string `json:"server_key"`
+}
+
+type v2ray struct {
+	Network         string `json:"network"`
+	NetworkSettings struct {
+		Path        string           `json:"path"`
+		Headers     *json.RawMessage `json:"headers"`
+		ServiceName string           `json:"serviceName"`
+	} `json:"networkSettings"`
+	Tls int `json:"tls"`
+}
+
+type trojan struct {
+	Host       string `json:"host"`
+	ServerName string `json:"server_name"`
+}
+
+type route struct {
+	Id     int         `json:"id"`
+	Match  interface{} `json:"match"`
+	Action string      `json:"action"`
+	// ActionValue interface{} `json:"action_value"`
+}
+
+type user struct {
+	Id         int    `json:"id"`
+	Uuid       string `json:"uuid"`
+	SpeedLimit int    `json:"speed_limit"`
 }
