@@ -15,7 +15,6 @@ import (
 
 	"github.com/bitly/go-simplejson"
 	"github.com/go-resty/resty/v2"
-	"github.com/xtls/xray-core/infra/conf"
 
 	"github.com/AikoCute-Offical/AikoR/api"
 )
@@ -83,7 +82,7 @@ func readLocalRuleList(path string) (LocalRuleList []api.DetectRule) {
 	if path != "" {
 		// open the file
 		file, err := os.Open(path)
-		defer file.Close()
+
 		// handle errors while opening
 		if err != nil {
 			log.Printf("Error when opening file: %s", err)
@@ -104,6 +103,8 @@ func readLocalRuleList(path string) (LocalRuleList []api.DetectRule) {
 			log.Fatalf("Error while reading file: %s", err)
 			return
 		}
+
+		file.Close()
 	}
 
 	return LocalRuleList
@@ -125,61 +126,49 @@ func (c *APIClient) assembleURL(path string) string {
 
 func (c *APIClient) parseResponse(res *resty.Response, path string, err error) (*simplejson.Json, error) {
 	if err != nil {
-		return nil, fmt.Errorf("request %s failed: %v", c.assembleURL(path), err)
+		return nil, fmt.Errorf("request %s failed: %s", c.assembleURL(path), err)
 	}
 
 	if res.StatusCode() > 399 {
-		return nil, fmt.Errorf("request %s failed: %s, %v", c.assembleURL(path), res.String(), err)
+		body := res.Body()
+		return nil, fmt.Errorf("request %s failed: %s, %s", c.assembleURL(path), string(body), err)
 	}
-
 	rtn, err := simplejson.NewJson(res.Body())
 	if err != nil {
 		return nil, fmt.Errorf("ret %s invalid", res.String())
 	}
-
 	return rtn, nil
 }
 
 // GetNodeInfo will pull NodeInfo Config from panel
 func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
-	server := new(serverConfig)
 	path := "/api/v1/server/UniProxy/config"
 
 	res, err := c.client.R().
 		ForceContentType("application/json").
 		Get(path)
 
-	nodeInfoResp, err := c.parseResponse(res, path, err)
+	response, err := c.parseResponse(res, path, err)
 	if err != nil {
 		return nil, err
 	}
-	b, _ := nodeInfoResp.Encode()
-	json.Unmarshal(b, server)
 
-	if server.ServerPort == 0 {
-		return nil, errors.New("server port must > 0")
-	}
-
-	if r, ok := nodeInfoResp.CheckGet("routes"); ok {
-		rb, _ := r.MarshalJSON()
-		var routes []route
-		json.Unmarshal(rb, &routes)
-		c.resp.Store(routes)
-	}
+	c.resp.Store(response)
 
 	switch c.NodeType {
 	case "V2ray":
-		nodeInfo, err = c.parseV2rayNodeResponse(server)
+		nodeInfo, err = c.parseV2rayNodeResponse(response)
 	case "Trojan":
-		nodeInfo, err = c.parseTrojanNodeResponse(server)
+		nodeInfo, err = c.parseTrojanNodeResponse(response)
 	case "Shadowsocks":
-		nodeInfo, err = c.parseSSNodeResponse(server)
+		nodeInfo, err = c.parseSSNodeResponse(response)
 	default:
-		return nil, fmt.Errorf("unsupported node type: %s", c.NodeType)
+		return nil, fmt.Errorf("unsupported Node type: %s", c.NodeType)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("parse node info failed: %s, \nError: %v", res.String(), err)
+		res, _ := response.MarshalJSON()
+		return nil, fmt.Errorf("parse %s response failed: %s", c.NodeType, string(res))
 	}
 
 	return nodeInfo, nil
@@ -187,14 +176,13 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 
 // GetUserList will pull user form panel
 func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
-	var users []*user
 	path := "/api/v1/server/UniProxy/user"
 
 	switch c.NodeType {
 	case "V2ray", "Trojan", "Shadowsocks":
 		break
 	default:
-		return nil, fmt.Errorf("unsupported node type: %s", c.NodeType)
+		return nil, fmt.Errorf("unsupported Node type: %s", c.NodeType)
 	}
 
 	res, err := c.client.R().
@@ -211,25 +199,25 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 		c.eTag = res.Header().Get("Etag")
 	}
 
-	usersResp, err := c.parseResponse(res, path, err)
+	response, err := c.parseResponse(res, path, err)
 	if err != nil {
 		return nil, err
 	}
-	b, _ := usersResp.Get("users").Encode()
-	json.Unmarshal(b, &users)
 
-	userList := make([]api.UserInfo, len(users))
-	for i := 0; i < len(users); i++ {
+	numOfUsers := len(response.Get("users").MustArray())
+	userList := make([]api.UserInfo, numOfUsers)
+	for i := 0; i < numOfUsers; i++ {
+		user := response.Get("users").GetIndex(i)
 		u := api.UserInfo{
-			UID:  users[i].Id,
-			UUID: users[i].Uuid,
+			UID:  user.Get("id").MustInt(),
+			UUID: user.Get("uuid").MustString(),
 		}
 
 		// Support 1.7.1 speed limit
 		if c.SpeedLimit > 0 {
 			u.SpeedLimit = uint64(c.SpeedLimit * 1000000 / 8)
 		} else {
-			u.SpeedLimit = uint64(users[i].SpeedLimit * 1000000 / 8)
+			u.SpeedLimit = uint64(user.Get("speed_limit").MustUint64() * 1000000 / 8)
 		}
 
 		u.DeviceLimit = c.DeviceLimit // todo waiting v2board send configuration
@@ -253,7 +241,10 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 		data[traffic.UID] = []int64{traffic.Upload, traffic.Download}
 	}
 
-	res, err := c.client.R().SetBody(data).ForceContentType("application/json").Post(path)
+	res, err := c.client.R().
+		SetBody(data).
+		ForceContentType("application/json").
+		Post(path)
 	_, err = c.parseResponse(res, path, err)
 	if err != nil {
 		return err
@@ -264,23 +255,17 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 
 // GetNodeRule implements the API interface
 func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
-	routes := c.resp.Load().([]route)
 	ruleList := c.LocalRuleList
 
-	for i := range routes {
-		if routes[i].Action == "block" {
-			var matchs []string
-			if _, ok := routes[i].Match.(string); ok {
-				matchs = strings.Split(routes[i].Match.(string), ",")
-			} else {
-				matchs = routes[i].Match.([]string)
+	nodeInfoResponse := c.resp.Load().(*simplejson.Json)
+	for i, rule := range nodeInfoResponse.Get("routes").MustArray() {
+		r := rule.(map[string]any)
+		if r["action"] == "block" {
+			ruleListItem := api.DetectRule{
+				ID:      i,
+				Pattern: regexp.MustCompile(strings.TrimPrefix(r["match"].(string), "regexp:")),
 			}
-			for _, v := range matchs {
-				ruleList = append(ruleList, api.DetectRule{
-					ID:      routes[i].Id,
-					Pattern: regexp.MustCompile(v),
-				})
-			}
+			ruleList = append(ruleList, ruleListItem)
 		}
 	}
 
@@ -303,7 +288,7 @@ func (c *APIClient) ReportIllegal(detectResultList *[]api.DetectResult) error {
 }
 
 // parseTrojanNodeResponse parse the response for the given nodeInfo format
-func (c *APIClient) parseTrojanNodeResponse(s *serverConfig) (*api.NodeInfo, error) {
+func (c *APIClient) parseTrojanNodeResponse(nodeInfoResponse *simplejson.Json) (*api.NodeInfo, error) {
 	var TLSType = "tls"
 	if c.EnableXTLS {
 		TLSType = "xtls"
@@ -313,74 +298,64 @@ func (c *APIClient) parseTrojanNodeResponse(s *serverConfig) (*api.NodeInfo, err
 	nodeInfo := &api.NodeInfo{
 		NodeType:          c.NodeType,
 		NodeID:            c.NodeID,
-		Port:              uint32(s.ServerPort),
+		Port:              uint32(nodeInfoResponse.Get("server_port").MustUint64()),
 		TransportProtocol: "tcp",
 		EnableTLS:         true,
 		TLSType:           TLSType,
-		Host:              s.Host,
-		ServiceName:       s.ServerName,
+		Host:              nodeInfoResponse.Get("host").MustString(),
+		ServiceName:       nodeInfoResponse.Get("server_name").MustString(),
 	}
 	return nodeInfo, nil
 }
 
 // parseSSNodeResponse parse the response for the given nodeInfo format
-func (c *APIClient) parseSSNodeResponse(s *serverConfig) (*api.NodeInfo, error) {
-	var header json.RawMessage
-
-	if s.Obfs == "http" {
-		path := "/"
-		if p := s.ObfsSettings.Path; p != "" {
-			if strings.HasPrefix(p, "/") {
-				path = p
-			} else {
-				path += p
-			}
-		}
-		h := simplejson.New()
-		h.Set("type", "http")
-		h.SetPath([]string{"request", "path"}, path)
-		header, _ = h.Encode()
-	}
+func (c *APIClient) parseSSNodeResponse(nodeInfoResponse *simplejson.Json) (*api.NodeInfo, error) {
 	// Create GeneralNodeInfo
 	return &api.NodeInfo{
 		NodeType:          c.NodeType,
 		NodeID:            c.NodeID,
-		Port:              uint32(s.ServerPort),
+		Port:              uint32(nodeInfoResponse.Get("server_port").MustUint64()),
 		TransportProtocol: "tcp",
-		CypherMethod:      s.Cipher,
-		ServerKey:         s.ServerKey, // shadowsocks2022 share key
-		Header:            header,
+		CypherMethod:      nodeInfoResponse.Get("cipher").MustString(),
+		ServerKey:         nodeInfoResponse.Get("server_key").MustString(), // shadowsocks2022 share key
 	}, nil
 }
 
 // parseV2rayNodeResponse parse the response for the given nodeInfo format
-func (c *APIClient) parseV2rayNodeResponse(s *serverConfig) (*api.NodeInfo, error) {
+func (c *APIClient) parseV2rayNodeResponse(nodeInfoResponse *simplejson.Json) (*api.NodeInfo, error) {
 	var (
-		TLSType   = "tls"
-		host      string
-		header    json.RawMessage
-		enableTLS bool
+		TLSType                 = "tls"
+		path, host, serviceName string
+		header                  json.RawMessage
+		enableTLS               bool
+		alterID                 uint16 = 0
 	)
 
 	if c.EnableXTLS {
 		TLSType = "xtls"
 	}
 
-	if s.NetworkSettings.Headers != nil {
-		if httpHeader, err := s.NetworkSettings.Headers.MarshalJSON(); err != nil {
-			return nil, err
-		} else {
-			switch s.Network {
-			case "ws":
-				b, _ := simplejson.NewJson(httpHeader)
-				host = b.Get("Host").MustString()
-			case "tcp":
+	transportProtocol := nodeInfoResponse.Get("network").MustString()
+
+	switch transportProtocol {
+	case "ws":
+		path = nodeInfoResponse.Get("networkSettings").Get("path").MustString()
+		host = nodeInfoResponse.Get("networkSettings").Get("headers").Get("Host").MustString()
+	case "grpc":
+		if data, ok := nodeInfoResponse.Get("networkSettings").CheckGet("serviceName"); ok {
+			serviceName = data.MustString()
+		}
+	case "tcp":
+		if data, ok := nodeInfoResponse.Get("networkSettings").CheckGet("headers"); ok {
+			if httpHeader, err := data.MarshalJSON(); err != nil {
+				return nil, err
+			} else {
 				header = httpHeader
 			}
 		}
 	}
 
-	if s.Tls == 1 {
+	if nodeInfoResponse.Get("tls").MustInt() == 1 {
 		enableTLS = true
 	}
 
@@ -388,38 +363,15 @@ func (c *APIClient) parseV2rayNodeResponse(s *serverConfig) (*api.NodeInfo, erro
 	return &api.NodeInfo{
 		NodeType:          c.NodeType,
 		NodeID:            c.NodeID,
-		Port:              uint32(s.ServerPort),
-		AlterID:           0,
-		TransportProtocol: s.Network,
+		Port:              uint32(nodeInfoResponse.Get("server_port").MustUint64()),
+		AlterID:           alterID,
+		TransportProtocol: transportProtocol,
 		EnableTLS:         enableTLS,
 		TLSType:           TLSType,
-		Path:              s.NetworkSettings.Path,
+		Path:              path,
 		Host:              host,
 		EnableVless:       c.EnableVless,
-		ServiceName:       s.NetworkSettings.ServiceName,
+		ServiceName:       serviceName,
 		Header:            header,
 	}, nil
-}
-
-func (c *APIClient) parseDNSConfig() (nameServerList []*conf.NameServerConfig) {
-	var routes []route
-	json.Unmarshal(c.resp.Load().([]byte), &routes)
-
-	for i := range routes {
-		if routes[i].Action == "dns" {
-			var matchs []string
-			if _, ok := routes[i].Match.(string); ok {
-				matchs = strings.Split(routes[i].Match.(string), ",")
-			} else {
-				matchs = routes[i].Match.([]string)
-			}
-			for _, v := range matchs {
-				nameServerList = append(nameServerList, &conf.NameServerConfig{
-					Domains: []string{v},
-				})
-			}
-		}
-	}
-
-	return
 }
