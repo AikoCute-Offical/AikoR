@@ -10,11 +10,11 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync/atomic"
 	"time"
 
 	"github.com/bitly/go-simplejson"
 	"github.com/go-resty/resty/v2"
+	"github.com/xtls/xray-core/common/net"
 	"github.com/xtls/xray-core/infra/conf"
 
 	"github.com/AikoCute-Offical/AikoR/api"
@@ -32,7 +32,7 @@ type APIClient struct {
 	SpeedLimit    float64
 	DeviceLimit   int
 	LocalRuleList []api.DetectRule
-	resp          atomic.Value
+	routes        []route
 	eTag          string
 }
 
@@ -162,9 +162,7 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 
 	if r, ok := nodeInfoResp.CheckGet("routes"); ok {
 		rb, _ := r.MarshalJSON()
-		var routes []route
-		json.Unmarshal(rb, &routes)
-		c.resp.Store(routes)
+		json.Unmarshal(rb, &c.routes)
 	}
 
 	switch c.NodeType {
@@ -181,6 +179,8 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("parse node info failed: %s, \nError: %v", res.String(), err)
 	}
+
+	nodeInfo.NameServerConfig = c.parseDNSConfig()
 
 	return nodeInfo, nil
 }
@@ -264,23 +264,14 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 
 // GetNodeRule implements the API interface
 func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
-	routes := c.resp.Load().([]route)
 	ruleList := c.LocalRuleList
 
-	for i := range routes {
-		if routes[i].Action == "block" {
-			var matchs []string
-			if _, ok := routes[i].Match.(string); ok {
-				matchs = strings.Split(routes[i].Match.(string), ",")
-			} else {
-				matchs = routes[i].Match.([]string)
-			}
-			for _, v := range matchs {
-				ruleList = append(ruleList, api.DetectRule{
-					ID:      routes[i].Id,
-					Pattern: regexp.MustCompile(v),
-				})
-			}
+	for i := range c.routes {
+		if c.routes[i].Action == "block" {
+			ruleList = append(ruleList, api.DetectRule{
+				ID:      i,
+				Pattern: regexp.MustCompile(strings.Join(c.routes[i].Match, "|")),
+			})
 		}
 	}
 
@@ -304,9 +295,9 @@ func (c *APIClient) ReportIllegal(detectResultList *[]api.DetectResult) error {
 
 // parseTrojanNodeResponse parse the response for the given nodeInfo format
 func (c *APIClient) parseTrojanNodeResponse(s *serverConfig) (*api.NodeInfo, error) {
-	var TLSType = "tls"
+	var tlsType = "tls"
 	if c.EnableXTLS {
-		TLSType = "xtls"
+		tlsType = "xtls"
 	}
 
 	// Create GeneralNodeInfo
@@ -316,7 +307,7 @@ func (c *APIClient) parseTrojanNodeResponse(s *serverConfig) (*api.NodeInfo, err
 		Port:              uint32(s.ServerPort),
 		TransportProtocol: "tcp",
 		EnableTLS:         true,
-		TLSType:           TLSType,
+		TLSType:           tlsType,
 		Host:              s.Host,
 		ServiceName:       s.ServerName,
 	}
@@ -356,14 +347,14 @@ func (c *APIClient) parseSSNodeResponse(s *serverConfig) (*api.NodeInfo, error) 
 // parseV2rayNodeResponse parse the response for the given nodeInfo format
 func (c *APIClient) parseV2rayNodeResponse(s *serverConfig) (*api.NodeInfo, error) {
 	var (
-		TLSType   = "tls"
+		tlsType   = "tls"
 		host      string
 		header    json.RawMessage
 		enableTLS bool
 	)
 
 	if c.EnableXTLS {
-		TLSType = "xtls"
+		tlsType = "xtls"
 	}
 
 	if s.NetworkSettings.Headers != nil {
@@ -392,7 +383,7 @@ func (c *APIClient) parseV2rayNodeResponse(s *serverConfig) (*api.NodeInfo, erro
 		AlterID:           0,
 		TransportProtocol: s.Network,
 		EnableTLS:         enableTLS,
-		TLSType:           TLSType,
+		TLSType:           tlsType,
 		Path:              s.NetworkSettings.Path,
 		Host:              host,
 		EnableVless:       c.EnableVless,
@@ -402,22 +393,12 @@ func (c *APIClient) parseV2rayNodeResponse(s *serverConfig) (*api.NodeInfo, erro
 }
 
 func (c *APIClient) parseDNSConfig() (nameServerList []*conf.NameServerConfig) {
-	var routes []route
-	json.Unmarshal(c.resp.Load().([]byte), &routes)
-
-	for i := range routes {
-		if routes[i].Action == "dns" {
-			var matchs []string
-			if _, ok := routes[i].Match.(string); ok {
-				matchs = strings.Split(routes[i].Match.(string), ",")
-			} else {
-				matchs = routes[i].Match.([]string)
-			}
-			for _, v := range matchs {
-				nameServerList = append(nameServerList, &conf.NameServerConfig{
-					Domains: []string{v},
-				})
-			}
+	for i := range c.routes {
+		if c.routes[i].Action == "dns" {
+			nameServerList = append(nameServerList, &conf.NameServerConfig{
+				Address: &conf.Address{Address: net.ParseAddress(c.routes[i].ActionValue)},
+				Domains: c.routes[i].Match,
+			})
 		}
 	}
 
