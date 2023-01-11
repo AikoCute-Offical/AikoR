@@ -168,7 +168,7 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 
 	if err != nil {
 		res, _ := response.MarshalJSON()
-		return nil, fmt.Errorf("parse %s response failed: %s", c.NodeType, string(res))
+		return nil, fmt.Errorf("Parse node info failed: %s, \nError: %s", string(res), err)
 	}
 
 	return nodeInfo, nil

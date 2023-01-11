@@ -14,6 +14,7 @@ type serverConfig struct {
 		PushInterval int `json:"push_interval"`
 		PullInterval int `json:"pull_interval"`
 	} `json:"base_config"`
+	Routes []route `json:"routes"`
 }
 
 type shadowsocks struct {
@@ -32,6 +33,7 @@ type v2ray struct {
 		Path        string           `json:"path"`
 		Headers     *json.RawMessage `json:"headers"`
 		ServiceName string           `json:"serviceName"`
+		Header      *json.RawMessage `json:"header"`
 	} `json:"networkSettings"`
 	Tls int `json:"tls"`
 }

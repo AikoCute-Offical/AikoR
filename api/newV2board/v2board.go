@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/bitly/go-simplejson"
@@ -32,7 +33,7 @@ type APIClient struct {
 	SpeedLimit    float64
 	DeviceLimit   int
 	LocalRuleList []api.DetectRule
-	routes        []route
+	resp          atomic.Value
 	eTag          string
 }
 
@@ -160,10 +161,7 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 		return nil, errors.New("server port must > 0")
 	}
 
-	if r, ok := nodeInfoResp.CheckGet("routes"); ok {
-		rb, _ := r.MarshalJSON()
-		json.Unmarshal(rb, &c.routes)
-	}
+	c.resp.Store(server)
 
 	switch c.NodeType {
 	case "V2ray":
@@ -179,8 +177,6 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("parse node info failed: %s, \nError: %v", res.String(), err)
 	}
-
-	nodeInfo.NameServerConfig = c.parseDNSConfig()
 
 	return nodeInfo, nil
 }
@@ -264,13 +260,15 @@ func (c *APIClient) ReportUserTraffic(userTraffic *[]api.UserTraffic) error {
 
 // GetNodeRule implements the API interface
 func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
+	routes := c.resp.Load().(*serverConfig).Routes
+
 	ruleList := c.LocalRuleList
 
-	for i := range c.routes {
-		if c.routes[i].Action == "block" {
+	for i := range routes {
+		if routes[i].Action == "block" {
 			ruleList = append(ruleList, api.DetectRule{
 				ID:      i,
-				Pattern: regexp.MustCompile(strings.Join(c.routes[i].Match, "|")),
+				Pattern: regexp.MustCompile(strings.Join(routes[i].Match, "|")),
 			})
 		}
 	}
@@ -295,9 +293,9 @@ func (c *APIClient) ReportIllegal(detectResultList *[]api.DetectResult) error {
 
 // parseTrojanNodeResponse parse the response for the given nodeInfo format
 func (c *APIClient) parseTrojanNodeResponse(s *serverConfig) (*api.NodeInfo, error) {
-	var tlsType = "tls"
+	var TLSType = "tls"
 	if c.EnableXTLS {
-		tlsType = "xtls"
+		TLSType = "xtls"
 	}
 
 	// Create GeneralNodeInfo
@@ -307,9 +305,10 @@ func (c *APIClient) parseTrojanNodeResponse(s *serverConfig) (*api.NodeInfo, err
 		Port:              uint32(s.ServerPort),
 		TransportProtocol: "tcp",
 		EnableTLS:         true,
-		TLSType:           tlsType,
+		TLSType:           TLSType,
 		Host:              s.Host,
 		ServiceName:       s.ServerName,
+		NameServerConfig:  s.parseDNSConfig(),
 	}
 	return nodeInfo, nil
 }
@@ -340,6 +339,7 @@ func (c *APIClient) parseSSNodeResponse(s *serverConfig) (*api.NodeInfo, error) 
 		TransportProtocol: "tcp",
 		CypherMethod:      s.Cipher,
 		ServerKey:         s.ServerKey, // shadowsocks2022 share key
+		NameServerConfig:  s.parseDNSConfig(),
 		Header:            header,
 	}, nil
 }
@@ -347,25 +347,31 @@ func (c *APIClient) parseSSNodeResponse(s *serverConfig) (*api.NodeInfo, error) 
 // parseV2rayNodeResponse parse the response for the given nodeInfo format
 func (c *APIClient) parseV2rayNodeResponse(s *serverConfig) (*api.NodeInfo, error) {
 	var (
-		tlsType   = "tls"
+		TLSType   = "tls"
 		host      string
 		header    json.RawMessage
 		enableTLS bool
 	)
 
 	if c.EnableXTLS {
-		tlsType = "xtls"
+		TLSType = "xtls"
 	}
 
-	if s.NetworkSettings.Headers != nil {
-		if httpHeader, err := s.NetworkSettings.Headers.MarshalJSON(); err != nil {
-			return nil, err
-		} else {
-			switch s.Network {
-			case "ws":
+	switch s.Network {
+	case "ws":
+		if s.NetworkSettings.Headers != nil {
+			if httpHeader, err := s.NetworkSettings.Headers.MarshalJSON(); err != nil {
+				return nil, err
+			} else {
 				b, _ := simplejson.NewJson(httpHeader)
 				host = b.Get("Host").MustString()
-			case "tcp":
+			}
+		}
+	case "tcp":
+		if s.NetworkSettings.Header != nil {
+			if httpHeader, err := s.NetworkSettings.Header.MarshalJSON(); err != nil {
+				return nil, err
+			} else {
 				header = httpHeader
 			}
 		}
@@ -383,21 +389,22 @@ func (c *APIClient) parseV2rayNodeResponse(s *serverConfig) (*api.NodeInfo, erro
 		AlterID:           0,
 		TransportProtocol: s.Network,
 		EnableTLS:         enableTLS,
-		TLSType:           tlsType,
+		TLSType:           TLSType,
 		Path:              s.NetworkSettings.Path,
 		Host:              host,
 		EnableVless:       c.EnableVless,
 		ServiceName:       s.NetworkSettings.ServiceName,
 		Header:            header,
+		NameServerConfig:  s.parseDNSConfig(),
 	}, nil
 }
 
-func (c *APIClient) parseDNSConfig() (nameServerList []*conf.NameServerConfig) {
-	for i := range c.routes {
-		if c.routes[i].Action == "dns" {
+func (s *serverConfig) parseDNSConfig() (nameServerList []*conf.NameServerConfig) {
+	for i := range s.Routes {
+		if s.Routes[i].Action == "dns" {
 			nameServerList = append(nameServerList, &conf.NameServerConfig{
-				Address: &conf.Address{Address: net.ParseAddress(c.routes[i].ActionValue)},
-				Domains: c.routes[i].Match,
+				Address: &conf.Address{Address: net.ParseAddress(s.Routes[i].ActionValue)},
+				Domains: s.Routes[i].Match,
 			})
 		}
 	}
