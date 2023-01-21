@@ -11,8 +11,8 @@ import (
 	"github.com/xtls/xray-core/features/stats"
 	"github.com/xtls/xray-core/proxy"
 
-	"github.com/AikoCute-Offical/AikoR/api"
-	"github.com/AikoCute-Offical/AikoR/common/limiter"
+	"github.com/AikoR-Project/AikoR/api"
+	"github.com/AikoR-Project/AikoR/common/limiter"
 )
 
 func (c *Controller) removeInbound(tag string) error {

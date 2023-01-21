@@ -3,9 +3,9 @@ package controller_test
 import (
 	"testing"
 
-	"github.com/AikoCute-Offical/AikoR/api"
-	"github.com/AikoCute-Offical/AikoR/common/mylego"
-	. "github.com/AikoCute-Offical/AikoR/service/controller"
+	"github.com/AikoR-Project/AikoR/api"
+	"github.com/AikoR-Project/AikoR/common/mylego"
+	. "github.com/AikoR-Project/AikoR/service/controller"
 )
 
 func TestBuildV2ray(t *testing.T) {
