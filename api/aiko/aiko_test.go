@@ -3,8 +3,8 @@ package aiko_test
 import (
 	"testing"
 
-	"github.com/AikoR-Project/AikoR/api"
-	"github.com/AikoR-Project/AikoR/api/aiko"
+	"github.com/AikoCute-Offical/AikoR/api"
+	"github.com/AikoCute-Offical/AikoR/api/aiko"
 )
 
 func CreateClient() api.API {

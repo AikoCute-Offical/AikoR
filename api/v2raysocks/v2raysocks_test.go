@@ -3,8 +3,8 @@ package v2raysocks_test
 import (
 	"testing"
 
-	"github.com/AikoR-Project/AikoR/api"
-	"github.com/AikoR-Project/AikoR/api/v2raysocks"
+	"github.com/AikoCute-Offical/AikoR/api"
+	"github.com/AikoCute-Offical/AikoR/api/v2raysocks"
 )
 
 func CreateClient() api.API {

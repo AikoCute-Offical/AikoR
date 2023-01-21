@@ -5,7 +5,7 @@ import (
 
 	// Required features. Can't remove unless there is replacements.
 	// _ "github.com/xtls/xray-core/app/dispatcher"
-	_ "github.com/AikoR-Project/AikoR/app/mydispatcher"
+	_ "github.com/AikoCute-Offical/AikoR/app/mydispatcher"
 	_ "github.com/xtls/xray-core/app/proxyman/inbound"
 	_ "github.com/xtls/xray-core/app/proxyman/outbound"
 

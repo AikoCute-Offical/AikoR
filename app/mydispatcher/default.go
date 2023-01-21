@@ -25,8 +25,8 @@ import (
 	"github.com/xtls/xray-core/transport"
 	"github.com/xtls/xray-core/transport/pipe"
 
-	"github.com/AikoR-Project/AikoR/common/limiter"
-	"github.com/AikoR-Project/AikoR/common/rule"
+	"github.com/AikoCute-Offical/AikoR/common/limiter"
+	"github.com/AikoCute-Offical/AikoR/common/rule"
 )
 
 var errSniffingTimeout = newError("timeout on sniffing")
