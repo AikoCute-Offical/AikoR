@@ -18,7 +18,7 @@ import (
 	goCache "github.com/patrickmn/go-cache"
 	"golang.org/x/time/rate"
 
-	"github.com/AikoCute-Offical/AikoR/api"
+	"github.com/AikoR-Project/AikoR/api"
 )
 
 type UserInfo struct {
