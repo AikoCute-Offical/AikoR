@@ -1,8 +1,8 @@
 package panel
 
 import (
-	"github.com/AikoR-Project/AikoR/api"
-	"github.com/AikoR-Project/AikoR/service/controller"
+	"github.com/AikoCute-Offical/AikoR/api"
+	"github.com/AikoCute-Offical/AikoR/service/controller"
 )
 
 type Config struct {

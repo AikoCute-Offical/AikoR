@@ -3,7 +3,7 @@ package mylego_test
 import (
 	"testing"
 
-	"github.com/AikoR-Project/AikoR/common/mylego"
+	"github.com/AikoCute-Offical/AikoR/common/mylego"
 )
 
 func TestLegoClient(t *testing.T) {

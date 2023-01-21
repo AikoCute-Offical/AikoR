@@ -18,7 +18,7 @@ import (
 	"github.com/xtls/xray-core/common/net"
 	"github.com/xtls/xray-core/infra/conf"
 
-	"github.com/AikoR-Project/AikoR/api"
+	"github.com/AikoCute-Offical/AikoR/api"
 )
 
 // APIClient create an api client to the panel.
