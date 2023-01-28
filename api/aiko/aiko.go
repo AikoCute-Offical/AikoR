@@ -220,7 +220,12 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 			u.SpeedLimit = uint64(user.Get("speed_limit").MustUint64() * 1000000 / 8)
 		}
 
-		u.DeviceLimit = user.Get("capacity_limit").MustInt() // 0 means no limit
+		// Support 1.7.2 device limit
+		if u.DeviceLimit > 0 {
+			u.DeviceLimit = c.DeviceLimit
+		} else {
+			u.DeviceLimit = user.Get("capacity_limit").MustInt()
+		}
 
 		u.Email = u.UUID + "@v2board.user"
 		if c.NodeType == "Shadowsocks" {
