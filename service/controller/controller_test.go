@@ -13,7 +13,7 @@ import (
 
 	_ "github.com/AikoCute-Offical/AikoR/AikoR/distro/all"
 	"github.com/AikoCute-Offical/AikoR/api"
-	"github.com/AikoCute-Offical/AikoR/api/sspanel"
+	"github.com/AikoCute-Offical/AikoR/api/aiko"
 	"github.com/AikoCute-Offical/AikoR/common/mylego"
 	. "github.com/AikoCute-Offical/AikoR/service/controller"
 )
@@ -63,7 +63,7 @@ func TestController(t *testing.T) {
 		NodeID:   41,
 		NodeType: "V2ray",
 	}
-	apiClient := sspanel.New(apiConfig)
+	apiClient := aiko.New(apiConfig)
 	c := New(server, apiClient, controlerConfig, "SSpanel")
 	fmt.Println("Sleep 1s")
 	err = c.Start()
