@@ -14,7 +14,7 @@ ConnectionConfig:
   BufferSize: 64 # The internal cache size of each connection, kB 
 Nodes: #Default AikoR config
   -
-    PanelType: "Xflash" # Panel type: SSpanel, V2board, NewV2board, PMpanel, Proxypanel, V2RaySocks, Xflash
+    PanelType: "AikoPanel" # Panel type: AikoPanel, V2board, NewV2board
     ApiConfig:
       ApiHost: "http://127.0.0.1:667"
       ApiKey: "123"
