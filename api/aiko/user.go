@@ -6,8 +6,6 @@ import (
 	"fmt"
 
 	"github.com/AikoCute-Offical/AikoR/api"
-	"github.com/bitly/go-simplejson"
-	"github.com/go-resty/resty/v2"
 )
 
 // GetUserList will pull user form panel
@@ -72,21 +70,4 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 	}
 
 	return &userList, nil
-}
-
-func (c *APIClient) parseResponse(res *resty.Response, path string, err error) (*simplejson.Json, error) {
-	if err != nil {
-		return nil, fmt.Errorf("request %s failed: %v", c.assembleURL(path), err)
-	}
-
-	if res.StatusCode() > 399 {
-		return nil, fmt.Errorf("request %s failed: %s, %v", c.assembleURL(path), res.String(), err)
-	}
-
-	rtn, err := simplejson.NewJson(res.Body())
-	if err != nil {
-		return nil, fmt.Errorf("ret %s invalid", res.String())
-	}
-
-	return rtn, nil
 }
