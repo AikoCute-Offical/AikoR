@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/AikoCute-Offical/AikoR/api/aiko"
-	"github.com/AikoCute-Offical/AikoR/api/dev"
 	"github.com/AikoCute-Offical/AikoR/api/newV2board"
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
 
@@ -175,8 +174,6 @@ func (p *Panel) Start() {
 		switch nodeConfig.PanelType {
 		case "AikoPanel":
 			apiClient = aiko.New(nodeConfig.ApiConfig)
-		case "AikoPanelDEV":
-			apiClient = dev.New(nodeConfig.ApiConfig)
 		case "V2board":
 			apiClient = v2board.New(nodeConfig.ApiConfig)
 		// todo Deprecated after 1-6-2023

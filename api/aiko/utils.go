@@ -1,16 +1,60 @@
-package dev
+package aiko
 
 import (
 	"encoding/json"
+	"fmt"
+	"log"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/bitly/go-simplejson"
+	"github.com/go-resty/resty/v2"
 	"github.com/xtls/xray-core/common/net"
 	"github.com/xtls/xray-core/infra/conf"
 
 	"github.com/AikoCute-Offical/AikoR/api"
 )
+
+func New(apiConfig *api.Config) *APIClient {
+	client := resty.New()
+	client.SetRetryCount(3)
+	if apiConfig.Timeout > 0 {
+		client.SetTimeout(time.Duration(apiConfig.Timeout) * time.Second)
+	} else {
+		client.SetTimeout(5 * time.Second)
+	}
+	client.OnError(func(req *resty.Request, err error) {
+		if v, ok := err.(*resty.ResponseError); ok {
+			// v.Response contains the last response from the server
+			// v.Err contains the original error
+			log.Print(v.Err)
+		}
+	})
+	client.SetBaseURL(apiConfig.APIHost)
+	// Create Key for each requests
+	client.SetQueryParams(map[string]string{
+		"node_id":   strconv.Itoa(apiConfig.NodeID),
+		"node_type": strings.ToLower(apiConfig.NodeType),
+		"token":     apiConfig.Key,
+	})
+	// Read local rule list
+	localRuleList := readLocalRuleList(apiConfig.RuleListPath)
+	apiClient := &APIClient{
+		client:        client,
+		NodeID:        apiConfig.NodeID,
+		Key:           apiConfig.Key,
+		APIHost:       apiConfig.APIHost,
+		NodeType:      apiConfig.NodeType,
+		EnableVless:   apiConfig.EnableVless,
+		EnableXTLS:    apiConfig.EnableXTLS,
+		SpeedLimit:    apiConfig.SpeedLimit,
+		DeviceLimit:   apiConfig.DeviceLimit,
+		LocalRuleList: localRuleList,
+	}
+	return apiClient
+}
 
 // GetNodeRule implements the API interface
 func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
@@ -30,19 +74,21 @@ func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
 	return &ruleList, nil
 }
 
-// ReportNodeStatus implements the API interface
-func (c *APIClient) ReportNodeStatus(nodeStatus *api.NodeStatus) (err error) {
-	return nil
-}
+func (c *APIClient) parseResponse(res *resty.Response, path string, err error) (*simplejson.Json, error) {
+	if err != nil {
+		return nil, fmt.Errorf("request %s failed: %v", c.assembleURL(path), err)
+	}
 
-// ReportNodeOnlineUsers implements the API interface
-func (c *APIClient) ReportNodeOnlineUsers(onlineUserList *[]api.OnlineUser) error {
-	return nil
-}
+	if res.StatusCode() > 399 {
+		return nil, fmt.Errorf("request %s failed: %s, %v", c.assembleURL(path), res.String(), err)
+	}
 
-// ReportIllegal implements the API interface
-func (c *APIClient) ReportIllegal(detectResultList *[]api.DetectResult) error {
-	return nil
+	rtn, err := simplejson.NewJson(res.Body())
+	if err != nil {
+		return nil, fmt.Errorf("ret %s invalid", res.String())
+	}
+
+	return rtn, nil
 }
 
 // parseTrojanNodeResponse parse the response for the given nodeInfo format
@@ -164,4 +210,29 @@ func (s *serverConfig) parseDNSConfig() (nameServerList []*conf.NameServerConfig
 	}
 
 	return
+}
+
+// ReportNodeStatus implements the API interface
+func (c *APIClient) ReportNodeStatus(nodeStatus *api.NodeStatus) (err error) {
+	return nil
+}
+
+// ReportNodeOnlineUsers implements the API interface
+func (c *APIClient) ReportNodeOnlineUsers(onlineUserList *[]api.OnlineUser) error {
+	return nil
+}
+
+// ReportIllegal implements the API interface
+func (c *APIClient) ReportIllegal(detectResultList *[]api.DetectResult) error {
+	return nil
+}
+
+// Describe return a description of the client
+func (c *APIClient) Describe() api.ClientInfo {
+	return api.ClientInfo{APIHost: c.APIHost, NodeID: c.NodeID, Key: c.Key, NodeType: c.NodeType}
+}
+
+// Debug set the client debug for client
+func (c *APIClient) Debug() {
+	c.client.SetDebug(true)
 }

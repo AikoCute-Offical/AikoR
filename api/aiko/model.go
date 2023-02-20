@@ -1,7 +1,12 @@
 package aiko
 
 import (
+	"sync/atomic"
+
 	"encoding/json"
+
+	"github.com/AikoCute-Offical/AikoR/api"
+	"github.com/go-resty/resty/v2"
 )
 
 type serverConfig struct {
@@ -55,4 +60,23 @@ type user struct {
 	Uuid        string `json:"uuid"`
 	SpeedLimit  int    `json:"speed_limit"`
 	DeviceLimit int    `json:"capacity_limit"`
+}
+
+type APIClient struct {
+	client        *resty.Client
+	APIHost       string
+	NodeID        int
+	Key           string
+	NodeType      string
+	EnableVless   bool
+	EnableXTLS    bool
+	SpeedLimit    float64
+	DeviceLimit   int
+	LocalRuleList []api.DetectRule
+	resp          atomic.Value
+	eTag          string
+}
+
+func (c *APIClient) assembleURL(path string) string {
+	return c.APIHost + path
 }
