@@ -83,7 +83,7 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 		if err := redisClient.Ping(context.Background()).Err(); err != nil {
 			fmt.Printf("Redis connection failed: %v", err)
 		} else {
-			fmt.Printf("Redis connection success")
+			fmt.Printf("Redis connection with IP : %s success", globalLimit.RedisAddr)
 		}
 	}
 
