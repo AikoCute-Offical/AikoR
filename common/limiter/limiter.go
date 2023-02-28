@@ -4,6 +4,7 @@ package limiter
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -81,9 +82,9 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 
 		// report redis connection status
 		if err := redisClient.Ping(context.Background()).Err(); err != nil {
-			fmt.Printf("Redis connection failed: %v", err)
+			log.Printf("Redis connection failed: %v", err)
 		} else {
-			fmt.Printf("Redis connection with IP : %s success", globalLimit.RedisAddr)
+			log.Printf("Redis connection with IP : %s success", globalLimit.RedisAddr)
 		}
 	}
 
