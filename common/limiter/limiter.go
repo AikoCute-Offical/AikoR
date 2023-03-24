@@ -4,7 +4,6 @@ package limiter
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -64,26 +63,14 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 		// init local store
 		gs := goCacheStore.NewGoCache(goCache.New(time.Duration(globalLimit.Expiry)*time.Second, 1*time.Minute))
 
-		redisClient := redis.NewClient(
+		// init redis store
+		rs := redisStore.NewRedis(redis.NewClient(
 			&redis.Options{
 				Addr:     globalLimit.RedisAddr,
 				Password: globalLimit.RedisPassword,
 				DB:       globalLimit.RedisDB,
-			})
-
-		// Check Redis connection status
-		defer func() {
-			if r := recover(); r != nil {
-				log.Printf("Redis connection failed: %v", r)
-			}
-		}()
-		if err := redisClient.Ping(context.Background()).Err(); err != nil {
-			panic(err)
-		} else {
-			log.Printf("Redis connection with IP : %s success", globalLimit.RedisAddr)
-		}
-
-		rs := redisStore.NewRedis(redisClient, store.WithExpiration(time.Duration(globalLimit.Expiry)*time.Second))
+			}),
+			store.WithExpiration(time.Duration(globalLimit.Expiry)*time.Second))
 
 		// init chained cache. First use local go-cache, if go-cache is nil, then use redis cache
 		cacheManager := cache.NewChain[any](
@@ -91,13 +78,6 @@ func (l *Limiter) AddInboundLimiter(tag string, nodeSpeedLimit uint64, userList 
 			cache.New[any](rs),
 		)
 		inboundInfo.GlobalLimit.globalOnlineIP = marshaler.New(cacheManager)
-
-		// report redis connection status
-		if err := redisClient.Ping(context.Background()).Err(); err != nil {
-			log.Printf("Redis connection failed: %v", err)
-		} else {
-			log.Printf("Redis connection with IP : %s success", globalLimit.RedisAddr)
-		}
 	}
 
 	userMap := new(sync.Map)
