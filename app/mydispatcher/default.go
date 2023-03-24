@@ -144,7 +144,7 @@ func (*DefaultDispatcher) Close() error {
 	return nil
 }
 
-func (d *DefaultDispatcher) getLink(ctx context.Context, network net.Network, sniffing session.SniffingRequest) (*transport.Link, *transport.Link, error) {
+func (d *DefaultDispatcher) getLink(ctx context.Context, network net.Network, sniffing session.SniffingRequest) (*transport.Link, *transport.Link) {
 	downOpt := pipe.OptionsFromContext(ctx)
 	upOpt := downOpt
 
@@ -175,7 +175,7 @@ func (d *DefaultDispatcher) getLink(ctx context.Context, network net.Network, sn
 						newError("[fakedns client] create a new map").WriteToLog(session.ExportIDToError(ctx))
 					}
 					domain := addr.Domain()
-					ips, err := d.dns.LookupIP(domain, dns.IPOption{IPv4Enable: true, IPv6Enable: true})
+					ips, err := d.dns.LookupIP(domain, dns.IPOption{IPv4Enable: true, IPv6Enable: true, FakeEnable: false})
 					if err == nil {
 						for _, ip := range ips {
 							ip2domain.Store(ip.String(), domain)
@@ -241,7 +241,7 @@ func (d *DefaultDispatcher) getLink(ctx context.Context, network net.Network, sn
 			common.Close(inboundLink.Writer)
 			common.Interrupt(outboundLink.Reader)
 			common.Interrupt(inboundLink.Reader)
-			return nil, nil, newError("Devices reach the limit: ", user.Email)
+			return nil, nil
 		}
 		if ok {
 			inboundLink.Writer = d.Limiter.RateWriter(inboundLink.Writer, bucket)
@@ -268,7 +268,7 @@ func (d *DefaultDispatcher) getLink(ctx context.Context, network net.Network, sn
 		}
 	}
 
-	return inboundLink, outboundLink, nil
+	return inboundLink, outboundLink
 }
 
 func (d *DefaultDispatcher) shouldOverride(ctx context.Context, result SniffResult, request session.SniffingRequest, destination net.Destination) bool {
@@ -317,10 +317,7 @@ func (d *DefaultDispatcher) Dispatch(ctx context.Context, destination net.Destin
 	}
 
 	sniffingRequest := content.SniffingRequest
-	inbound, outbound, err := d.getLink(ctx, destination.Network, sniffingRequest)
-	if err != nil {
-		return nil, err
-	}
+	inbound, outbound := d.getLink(ctx, destination.Network, sniffingRequest)
 	if !sniffingRequest.Enabled {
 		go d.routedDispatch(ctx, outbound, destination)
 	} else {

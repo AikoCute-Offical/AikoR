@@ -48,7 +48,6 @@ func New(apiConfig *api.Config) *APIClient {
 		APIHost:       apiConfig.APIHost,
 		NodeType:      apiConfig.NodeType,
 		EnableVless:   apiConfig.EnableVless,
-		EnableXTLS:    apiConfig.EnableXTLS,
 		SpeedLimit:    apiConfig.SpeedLimit,
 		DeviceLimit:   apiConfig.DeviceLimit,
 		LocalRuleList: localRuleList,
@@ -93,11 +92,6 @@ func (c *APIClient) parseResponse(res *resty.Response, path string, err error) (
 
 // parseTrojanNodeResponse parse the response for the given nodeInfo format
 func (c *APIClient) parseTrojanNodeResponse(s *serverConfig) (*api.NodeInfo, error) {
-	var TLSType = "tls"
-	if c.EnableXTLS {
-		TLSType = "xtls"
-	}
-
 	// Create GeneralNodeInfo
 	nodeInfo := &api.NodeInfo{
 		NodeType:          c.NodeType,
@@ -105,7 +99,6 @@ func (c *APIClient) parseTrojanNodeResponse(s *serverConfig) (*api.NodeInfo, err
 		Port:              uint32(s.ServerPort),
 		TransportProtocol: "tcp",
 		EnableTLS:         true,
-		TLSType:           TLSType,
 		Host:              s.Host,
 		ServiceName:       s.ServerName,
 		NameServerConfig:  s.parseDNSConfig(),
@@ -147,15 +140,10 @@ func (c *APIClient) parseSSNodeResponse(s *serverConfig) (*api.NodeInfo, error) 
 // parseV2rayNodeResponse parse the response for the given nodeInfo format
 func (c *APIClient) parseV2rayNodeResponse(s *serverConfig) (*api.NodeInfo, error) {
 	var (
-		TLSType   = "tls"
 		host      string
 		header    json.RawMessage
 		enableTLS bool
 	)
-
-	if c.EnableXTLS {
-		TLSType = "xtls"
-	}
 
 	switch s.Network {
 	case "ws":
@@ -189,7 +177,6 @@ func (c *APIClient) parseV2rayNodeResponse(s *serverConfig) (*api.NodeInfo, erro
 		AlterID:           0,
 		TransportProtocol: s.Network,
 		EnableTLS:         enableTLS,
-		TLSType:           TLSType,
 		Path:              s.NetworkSettings.Path,
 		Host:              host,
 		EnableVless:       c.EnableVless,
