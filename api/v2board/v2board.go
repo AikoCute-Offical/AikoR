@@ -27,6 +27,7 @@ type APIClient struct {
 	Key           string
 	NodeType      string
 	EnableVless   bool
+	EnableXTLS    bool
 	SpeedLimit    float64
 	DeviceLimit   int
 	LocalRuleList []api.DetectRule
@@ -66,6 +67,7 @@ func New(apiConfig *api.Config) *APIClient {
 		APIHost:       apiConfig.APIHost,
 		NodeType:      apiConfig.NodeType,
 		EnableVless:   apiConfig.EnableVless,
+		EnableXTLS:    apiConfig.EnableXTLS,
 		SpeedLimit:    apiConfig.SpeedLimit,
 		DeviceLimit:   apiConfig.DeviceLimit,
 		LocalRuleList: localRuleList,
@@ -306,6 +308,10 @@ func (c *APIClient) ReportIllegal(detectResultList *[]api.DetectResult) error {
 
 // ParseTrojanNodeResponse parse the response for the given nodeinfor format
 func (c *APIClient) ParseTrojanNodeResponse(nodeInfoResponse *simplejson.Json) (*api.NodeInfo, error) {
+	var TLSType = "tls"
+	if c.EnableXTLS {
+		TLSType = "xtls"
+	}
 	port := uint32(nodeInfoResponse.Get("local_port").MustUint64())
 	host := nodeInfoResponse.Get("ssl").Get("sni").MustString()
 
@@ -316,6 +322,7 @@ func (c *APIClient) ParseTrojanNodeResponse(nodeInfoResponse *simplejson.Json) (
 		Port:              port,
 		TransportProtocol: "tcp",
 		EnableTLS:         true,
+		TLSType:           TLSType,
 		Host:              host,
 	}
 	return nodeinfo, nil
@@ -350,10 +357,14 @@ func (c *APIClient) ParseSSNodeResponse() (*api.NodeInfo, error) {
 
 // ParseV2rayNodeResponse parse the response for the given nodeinfor format
 func (c *APIClient) ParseV2rayNodeResponse(nodeInfoResponse *simplejson.Json) (*api.NodeInfo, error) {
+	var TLSType string = "tls"
 	var path, host, serviceName string
 	var header json.RawMessage
 	var enableTLS bool
 	var alterID uint16 = 0
+	if c.EnableXTLS {
+		TLSType = "xtls"
+	}
 
 	inboundInfo := simplejson.New()
 	if tmpInboundInfo, ok := nodeInfoResponse.CheckGet("inbound"); ok {
@@ -403,6 +414,7 @@ func (c *APIClient) ParseV2rayNodeResponse(nodeInfoResponse *simplejson.Json) (*
 		AlterID:           alterID,
 		TransportProtocol: transportProtocol,
 		EnableTLS:         enableTLS,
+		TLSType:           TLSType,
 		Path:              path,
 		Host:              host,
 		EnableVless:       c.EnableVless,

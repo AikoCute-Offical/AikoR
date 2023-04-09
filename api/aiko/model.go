@@ -69,6 +69,7 @@ type APIClient struct {
 	Key           string
 	NodeType      string
 	EnableVless   bool
+	EnableXTLS    bool
 	SpeedLimit    float64
 	DeviceLimit   int
 	LocalRuleList []api.DetectRule
