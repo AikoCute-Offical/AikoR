@@ -5,9 +5,9 @@ go 1.20
 require (
 	github.com/bitly/go-simplejson v0.5.0
 	github.com/deckarep/golang-set v1.8.0
-	github.com/eko/gocache/lib/v4 v4.1.2
+	github.com/eko/gocache/lib/v4 v4.1.3
 	github.com/eko/gocache/store/go_cache/v4 v4.1.2
-	github.com/eko/gocache/store/redis/v4 v4.1.2
+	github.com/eko/gocache/store/redis/v4 v4.2.0
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-acme/lego/v4 v4.10.0
 	github.com/go-redis/redis/v8 v8.11.5
@@ -137,6 +137,7 @@ require (
 	github.com/quic-go/qtls-go1-19 v0.2.0 // indirect
 	github.com/quic-go/qtls-go1-20 v0.1.0 // indirect
 	github.com/quic-go/quic-go v0.32.0 // indirect
+	github.com/redis/go-redis/v9 v9.0.2 // indirect
 	github.com/refraction-networking/utls v1.2.2-0.20230207151345-a75a4b484849 // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
 	github.com/sacloud/api-client-go v0.2.1 // indirect
@@ -174,7 +175,7 @@ require (
 	go.starlark.net v0.0.0-20230128213706-3f75dec8e403 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/ratelimit v0.2.0 // indirect
-	golang.org/x/exp v0.0.0-20230206171751-46f607a40771 // indirect
+	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0 // indirect
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/oauth2 v0.4.0 // indirect
 	golang.org/x/sys v0.7.0 // indirect
