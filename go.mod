@@ -15,14 +15,14 @@ require (
 	github.com/imdario/mergo v0.3.13
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/r3labs/diff/v2 v2.15.1
-	github.com/sagernet/sing v0.1.7
-	github.com/sagernet/sing-shadowsocks v0.1.1
+	github.com/sagernet/sing v0.2.5
+	github.com/sagernet/sing-shadowsocks v0.2.2
 	github.com/shirou/gopsutil/v3 v3.23.1
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.1
 	github.com/xtls/xray-core v1.7.5
-	golang.org/x/crypto v0.8.0
-	golang.org/x/net v0.9.0
+	golang.org/x/crypto v0.10.0
+	golang.org/x/net v0.10.0
 	golang.org/x/time v0.3.0
 	google.golang.org/protobuf v1.30.0
 )
@@ -177,8 +177,8 @@ require (
 	golang.org/x/exp v0.0.0-20230206171751-46f607a40771 // indirect
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/oauth2 v0.4.0 // indirect
-	golang.org/x/sys v0.7.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
+	golang.org/x/text v0.10.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/api v0.107.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
@@ -189,5 +189,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gvisor.dev/gvisor v0.0.0-20220901235040-6ca97ef2ce1c // indirect
-	lukechampine.com/blake3 v1.1.7 // indirect
+	lukechampine.com/blake3 v1.2.1 // indirect
 )
