@@ -624,5 +624,5 @@ func (c *Controller) buildNodeTag() string {
 }
 
 func (c *Controller) logPrefix() string {
-	return fmt.Sprintf("[%s] %s(ID=%d)", c.clientInfo.APIHost, c.nodeInfo.NodeType, c.nodeInfo.NodeID)
+	return fmt.Sprintf("[%s: %d]", c.nodeInfo.NodeType, c.nodeInfo.NodeID)
 }
