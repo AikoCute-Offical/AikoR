@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -17,6 +16,7 @@ import (
 	"github.com/AikoCute-Offical/AikoR/api"
 )
 
+// New create an api instance
 func New(apiConfig *api.Config) *APIClient {
 	client := resty.New()
 	client.SetRetryCount(3)
@@ -48,30 +48,27 @@ func New(apiConfig *api.Config) *APIClient {
 		APIHost:       apiConfig.APIHost,
 		NodeType:      apiConfig.NodeType,
 		EnableVless:   apiConfig.EnableVless,
-		EnableXTLS:    apiConfig.EnableXTLS,
+		VlessFlow:     apiConfig.VlessFlow,
 		SpeedLimit:    apiConfig.SpeedLimit,
 		DeviceLimit:   apiConfig.DeviceLimit,
 		LocalRuleList: localRuleList,
+		eTags:         make(map[string]string),
 	}
 	return apiClient
 }
 
-// GetNodeRule implements the API interface
-func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
-	routes := c.resp.Load().(*serverConfig).Routes
+// Describe return a description of the client
+func (c *APIClient) Describe() api.ClientInfo {
+	return api.ClientInfo{APIHost: c.APIHost, NodeID: c.NodeID, Key: c.Key, NodeType: c.NodeType}
+}
 
-	ruleList := c.LocalRuleList
+// Debug set the client debug for client
+func (c *APIClient) Debug() {
+	c.client.SetDebug(true)
+}
 
-	for i := range routes {
-		if routes[i].Action == "block" {
-			ruleList = append(ruleList, api.DetectRule{
-				ID:      i,
-				Pattern: regexp.MustCompile(strings.Join(routes[i].Match, "|")),
-			})
-		}
-	}
-
-	return &ruleList, nil
+func (c *APIClient) assembleURL(path string) string {
+	return c.APIHost + path
 }
 
 func (c *APIClient) parseResponse(res *resty.Response, path string, err error) (*simplejson.Json, error) {
@@ -91,13 +88,18 @@ func (c *APIClient) parseResponse(res *resty.Response, path string, err error) (
 	return rtn, nil
 }
 
+// ReportNodeOnlineUsers implements the API interface
+func (c *APIClient) ReportNodeOnlineUsers(onlineUserList *[]api.OnlineUser) error {
+	return nil
+}
+
+// ReportIllegal implements the API interface
+func (c *APIClient) ReportIllegal(detectResultList *[]api.DetectResult) error {
+	return nil
+}
+
 // parseTrojanNodeResponse parse the response for the given nodeInfo format
 func (c *APIClient) parseTrojanNodeResponse(s *serverConfig) (*api.NodeInfo, error) {
-	var TLSType = "tls"
-	if c.EnableXTLS {
-		TLSType = "xtls"
-	}
-
 	// Create GeneralNodeInfo
 	nodeInfo := &api.NodeInfo{
 		NodeType:          c.NodeType,
@@ -105,7 +107,6 @@ func (c *APIClient) parseTrojanNodeResponse(s *serverConfig) (*api.NodeInfo, err
 		Port:              uint32(s.ServerPort),
 		TransportProtocol: "tcp",
 		EnableTLS:         true,
-		TLSType:           TLSType,
 		Host:              s.Host,
 		ServiceName:       s.ServerName,
 		NameServerConfig:  s.parseDNSConfig(),
@@ -147,15 +148,10 @@ func (c *APIClient) parseSSNodeResponse(s *serverConfig) (*api.NodeInfo, error) 
 // parseV2rayNodeResponse parse the response for the given nodeInfo format
 func (c *APIClient) parseV2rayNodeResponse(s *serverConfig) (*api.NodeInfo, error) {
 	var (
-		TLSType   = "tls"
 		host      string
 		header    json.RawMessage
 		enableTLS bool
 	)
-
-	if c.EnableXTLS {
-		TLSType = "xtls"
-	}
 
 	switch s.Network {
 	case "ws":
@@ -189,10 +185,10 @@ func (c *APIClient) parseV2rayNodeResponse(s *serverConfig) (*api.NodeInfo, erro
 		AlterID:           0,
 		TransportProtocol: s.Network,
 		EnableTLS:         enableTLS,
-		TLSType:           TLSType,
 		Path:              s.NetworkSettings.Path,
 		Host:              host,
 		EnableVless:       c.EnableVless,
+		VlessFlow:         c.VlessFlow,
 		ServiceName:       s.NetworkSettings.ServiceName,
 		Header:            header,
 		NameServerConfig:  s.parseDNSConfig(),
@@ -210,29 +206,4 @@ func (s *serverConfig) parseDNSConfig() (nameServerList []*conf.NameServerConfig
 	}
 
 	return
-}
-
-// ReportNodeStatus implements the API interface
-func (c *APIClient) ReportNodeStatus(nodeStatus *api.NodeStatus) (err error) {
-	return nil
-}
-
-// ReportNodeOnlineUsers implements the API interface
-func (c *APIClient) ReportNodeOnlineUsers(onlineUserList *[]api.OnlineUser) error {
-	return nil
-}
-
-// ReportIllegal implements the API interface
-func (c *APIClient) ReportIllegal(detectResultList *[]api.DetectResult) error {
-	return nil
-}
-
-// Describe return a description of the client
-func (c *APIClient) Describe() api.ClientInfo {
-	return api.ClientInfo{APIHost: c.APIHost, NodeID: c.NodeID, Key: c.Key, NodeType: c.NodeType}
-}
-
-// Debug set the client debug for client
-func (c *APIClient) Debug() {
-	c.client.SetDebug(true)
 }

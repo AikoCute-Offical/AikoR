@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/AikoCute-Offical/AikoR/api"
 )
@@ -14,8 +16,18 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 	path := "/api/v1/server/Aiko/config"
 
 	res, err := c.client.R().
+		SetHeader("If-None-Match", c.eTags["node"]).
 		ForceContentType("application/json").
 		Get(path)
+
+	// Etag identifier for a specific version of a resource. StatusCode = 304 means no changed
+	if res.StatusCode() == 304 {
+		return nil, errors.New(api.NodeNotModified)
+	}
+	// update etag
+	if res.Header().Get("Etag") != "" && res.Header().Get("Etag") != c.eTags["node"] {
+		c.eTags["node"] = res.Header().Get("Etag")
+	}
 
 	nodeInfoResp, err := c.parseResponse(res, path, err)
 	if err != nil {
@@ -46,4 +58,27 @@ func (c *APIClient) GetNodeInfo() (nodeInfo *api.NodeInfo, err error) {
 	}
 
 	return nodeInfo, nil
+}
+
+// GetNodeRule implements the API interface
+func (c *APIClient) GetNodeRule() (*[]api.DetectRule, error) {
+	routes := c.resp.Load().(*serverConfig).Routes
+
+	ruleList := c.LocalRuleList
+
+	for i := range routes {
+		if routes[i].Action == "block" {
+			ruleList = append(ruleList, api.DetectRule{
+				ID:      i,
+				Pattern: regexp.MustCompile(strings.Join(routes[i].Match, "|")),
+			})
+		}
+	}
+
+	return &ruleList, nil
+}
+
+// ReportNodeStatus implements the API interface
+func (c *APIClient) ReportNodeStatus(nodeStatus *api.NodeStatus) (err error) {
+	return nil
 }

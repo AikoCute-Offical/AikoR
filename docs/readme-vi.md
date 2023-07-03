@@ -7,10 +7,10 @@ AikoR Projects
 
 [![](https://img.shields.io/badge/Telegram-group-green?style=flat-square)](https://t.me/AikoAikoR)
 [![](https://img.shields.io/badge/Telegram-channel-blue?style=flat-square)](https://t.me/AikoCute_Support)
-[![](https://img.shields.io/github/downloads/github.com/AikoCute-Offical/AikoR/total.svg?style=flat-square)](https://github.com/AikoCute-Offical/AikoR/releases)
-[![](https://img.shields.io/github/v/release/github.com/AikoCute-Offical/AikoR?style=flat-square)](https://github.com/AikoCute-Offical/AikoR/releases)
+[![](https://img.shields.io/github/downloads/github.com/github.com/AikoCute-Offical/AikoR/total.svg?style=flat-square)](https://github.com/github.com/AikoCute-Offical/AikoR/releases)
+[![](https://img.shields.io/github/v/release/github.com/github.com/AikoCute-Offical/AikoR?style=flat-square)](https://github.com/github.com/AikoCute-Offical/AikoR/releases)
 [![docker](https://img.shields.io/docker/v/aikocute/aikor?label=Docker%20image&sort=semver)](https://hub.docker.com/r/aikocute/aikor)
-[![Go-Report](https://goreportcard.com/badge/github.com/AikoCute-Offical/AikoR?style=flat-square)](https://goreportcard.com/report/github.com/AikoCute-Offical/AikoR)
+[![Go-Report](https://goreportcard.com/badge/github.com/github.com/AikoCute-Offical/AikoR?style=flat-square)](https://goreportcard.com/report/github.com/github.com/AikoCute-Offical/AikoR)
 </div>
 
 # Mô tả của AikoR
@@ -63,7 +63,7 @@ Dự án này chỉ dành cho việc học tập, phát triển và bảo trì c
 
 ## Cài đặt phần mềm - phát hành
 ``
-wget --no-check-certificate -O AikoR.sh https://raw.githubusercontent.com/github.com/AikoCute-Offical/AikoR-Install/master/AikoR.sh && bash AikoR.sh
+wget --no-check-certificate -O AikoR.sh https://raw.githubusercontent.com/github.com/github.com/AikoCute-Offical/AikoR-Install/master/AikoR.sh && bash AikoR.sh
 ``
 ### Một bản cài đặt chính - docker
 ``

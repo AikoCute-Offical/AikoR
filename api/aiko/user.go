@@ -21,17 +21,17 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 	}
 
 	res, err := c.client.R().
-		SetHeader("If-None-Match", c.eTag).
+		SetHeader("If-None-Match", c.eTags["users"]).
 		ForceContentType("application/json").
 		Get(path)
 
 	// Etag identifier for a specific version of a resource. StatusCode = 304 means no changed
 	if res.StatusCode() == 304 {
-		return nil, errors.New("users no change")
+		return nil, errors.New(api.UserNotModified)
 	}
 	// update etag
-	if res.Header().Get("Etag") != "" && res.Header().Get("Etag") != c.eTag {
-		c.eTag = res.Header().Get("Etag")
+	if res.Header().Get("Etag") != "" && res.Header().Get("Etag") != c.eTags["users"] {
+		c.eTags["users"] = res.Header().Get("Etag")
 	}
 
 	usersResp, err := c.parseResponse(res, path, err)
@@ -40,6 +40,9 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 	}
 	b, _ := usersResp.Get("users").Encode()
 	json.Unmarshal(b, &users)
+	if len(users) == 0 {
+		return nil, errors.New("users is null")
+	}
 
 	userList := make([]api.UserInfo, len(users))
 	for i := 0; i < len(users); i++ {
@@ -55,13 +58,7 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 			u.SpeedLimit = uint64(users[i].SpeedLimit * 1000000 / 8)
 		}
 
-		// Support 1.7.1 device limit
-		if c.DeviceLimit > 0 {
-			u.DeviceLimit = c.DeviceLimit
-		} else {
-			u.DeviceLimit = users[i].DeviceLimit
-		}
-
+		u.DeviceLimit = c.DeviceLimit // todo waiting v2board send configuration
 		u.Email = u.UUID + "@v2board.user"
 		if c.NodeType == "Shadowsocks" {
 			u.Passwd = u.UUID
