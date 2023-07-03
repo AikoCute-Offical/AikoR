@@ -12,9 +12,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/AikoCute-Offical/AikoR/panel"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
+
+	"github.com/AikoCute-Offical/AikoR/panel"
 )
 
 var (
@@ -23,7 +24,7 @@ var (
 )
 
 var (
-	version  = "1.2.8"
+	version  = "1.3.0"
 	codename = "AikoR"
 	intro    = "Backend AikoR For Aiko"
 )
@@ -56,7 +57,7 @@ func getConfig() *viper.Viper {
 	}
 
 	if err := config.ReadInConfig(); err != nil {
-		log.Panicf("Fatal error config file: %s \n", err)
+		log.Panicf("Config file error: %s \n", err)
 	}
 
 	config.WatchConfig() // Watch the config
@@ -67,14 +68,15 @@ func getConfig() *viper.Viper {
 func main() {
 	flag.Parse()
 	showVersion()
-
 	if *printVersion {
 		return
 	}
 
 	config := getConfig()
 	panelConfig := &panel.Config{}
-	config.Unmarshal(panelConfig)
+	if err := config.Unmarshal(panelConfig); err != nil {
+		log.Panicf("Parse config file %v failed: %s \n", configFile, err)
+	}
 	p := panel.New(panelConfig)
 	lastTime := time.Now()
 	config.OnConfigChange(func(e fsnotify.Event) {
@@ -85,15 +87,17 @@ func main() {
 			p.Close()
 			// Delete old instance and trigger GC
 			runtime.GC()
-			config.Unmarshal(panelConfig)
+			if err := config.Unmarshal(panelConfig); err != nil {
+				log.Panicf("Parse config file %v failed: %s \n", configFile, err)
+			}
 			p.Start()
-			// print Redis Info
 			lastTime = time.Now()
 		}
 	})
 	p.Start()
 	defer p.Close()
-	//Explicitly triggering GC to remove garbage from config loading.
+
+	// Explicitly triggering GC to remove garbage from config loading.
 	runtime.GC()
 	// Running backend
 	{

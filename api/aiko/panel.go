@@ -9,6 +9,7 @@ import (
 	"github.com/AikoCute-Offical/AikoR/api"
 )
 
+// readLocalRuleList reads the local rule list file
 func readLocalRuleList(path string) (LocalRuleList []api.DetectRule) {
 	LocalRuleList = make([]api.DetectRule, 0)
 

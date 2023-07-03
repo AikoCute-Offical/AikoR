@@ -1,9 +1,8 @@
 package aiko
 
 import (
-	"sync/atomic"
-
 	"encoding/json"
+	"sync/atomic"
 
 	"github.com/AikoCute-Offical/AikoR/api"
 	"github.com/go-resty/resty/v2"
@@ -56,12 +55,12 @@ type route struct {
 }
 
 type user struct {
-	Id          int    `json:"id"`
-	Uuid        string `json:"uuid"`
-	SpeedLimit  int    `json:"speed_limit"`
-	DeviceLimit int    `json:"capacity_limit"`
+	Id         int    `json:"id"`
+	Uuid       string `json:"uuid"`
+	SpeedLimit int    `json:"speed_limit"`
 }
 
+// APIClient create an api client to the panel.
 type APIClient struct {
 	client        *resty.Client
 	APIHost       string
@@ -69,14 +68,10 @@ type APIClient struct {
 	Key           string
 	NodeType      string
 	EnableVless   bool
-	EnableXTLS    bool
+	VlessFlow     string
 	SpeedLimit    float64
 	DeviceLimit   int
 	LocalRuleList []api.DetectRule
 	resp          atomic.Value
-	eTag          string
-}
-
-func (c *APIClient) assembleURL(path string) string {
-	return c.APIHost + path
+	eTags         map[string]string
 }

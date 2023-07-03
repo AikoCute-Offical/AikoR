@@ -6,8 +6,6 @@ import (
 	"os"
 	"sync"
 
-	"github.com/AikoCute-Offical/AikoR/api/aiko"
-	"github.com/AikoCute-Offical/AikoR/api/newV2board"
 	"github.com/AikoCute-Offical/AikoR/app/mydispatcher"
 
 	"github.com/imdario/mergo"
@@ -20,7 +18,12 @@ import (
 
 	_ "github.com/AikoCute-Offical/AikoR/AikoR/distro/all"
 	"github.com/AikoCute-Offical/AikoR/api"
+	"github.com/AikoCute-Offical/AikoR/api/aiko"
+	"github.com/AikoCute-Offical/AikoR/api/pmpanel"
+	"github.com/AikoCute-Offical/AikoR/api/proxypanel"
+	"github.com/AikoCute-Offical/AikoR/api/sspanel"
 	"github.com/AikoCute-Offical/AikoR/api/v2board"
+	"github.com/AikoCute-Offical/AikoR/api/v2raysocks"
 	"github.com/AikoCute-Offical/AikoR/service"
 	"github.com/AikoCute-Offical/AikoR/service/controller"
 )
@@ -174,11 +177,16 @@ func (p *Panel) Start() {
 		switch nodeConfig.PanelType {
 		case "AikoPanel":
 			apiClient = aiko.New(nodeConfig.ApiConfig)
+		case "SSpanel":
+			apiClient = sspanel.New(nodeConfig.ApiConfig)
 		case "V2board":
 			apiClient = v2board.New(nodeConfig.ApiConfig)
-		// todo Deprecated after 1-6-2023
-		case "NewV2board":
-			apiClient = newV2board.New(nodeConfig.ApiConfig)
+		case "PMpanel":
+			apiClient = pmpanel.New(nodeConfig.ApiConfig)
+		case "Proxypanel":
+			apiClient = proxypanel.New(nodeConfig.ApiConfig)
+		case "V2RaySocks":
+			apiClient = v2raysocks.New(nodeConfig.ApiConfig)
 		default:
 			log.Panicf("Unsupport panel type: %s", nodeConfig.PanelType)
 		}
