@@ -6,26 +6,26 @@ import (
 )
 
 type Config struct {
-	ListenIP             string                `mapstructure:"ListenIP"`
-	SendIP               string                `mapstructure:"SendIP"`
-	UpdatePeriodic       int                   `mapstructure:"UpdatePeriodic"`
-	CertConfig           *mylego.CertConfig    `mapstructure:"CertConfig"`
-	EnableDNS            bool                  `mapstructure:"EnableDNS"`
-	DNSType              string                `mapstructure:"DNSType"`
-	DisableUploadTraffic bool                  `mapstructure:"DisableUploadTraffic"`
-	DisableGetRule       bool                  `mapstructure:"DisableGetRule"`
-	EnableProxyProtocol  bool                  `mapstructure:"EnableProxyProtocol"`
-	EnableFallback       bool                  `mapstructure:"EnableFallback"`
-	DisableIVCheck       bool                  `mapstructure:"DisableIVCheck"`
-	DisableSniffing      bool                  `mapstructure:"DisableSniffing"`
-	AutoSpeedLimitConfig *AutoSpeedLimitConfig `mapstructure:"AutoSpeedLimitConfig"`
-	RedisConfig          *limiter.RedisConfig  `mapstructure:"RedisConfig"`
-	FallBackConfigs      []*FallBackConfig     `mapstructure:"FallBackConfigs"`
-	EnableREALITY        bool                  `mapstructure:"EnableREALITY"`
-	REALITYConfigs       *REALITYConfig        `mapstructure:"REALITYConfigs"`
+	ListenIP             string               `mapstructure:"ListenIP"`
+	SendIP               string               `mapstructure:"SendIP"`
+	UpdatePeriodic       int                  `mapstructure:"UpdatePeriodic"`
+	CertConfig           *mylego.CertConfig   `mapstructure:"CertConfig"`
+	EnableDNS            bool                 `mapstructure:"EnableDNS"`
+	DNSType              string               `mapstructure:"DNSType"`
+	DisableUploadTraffic bool                 `mapstructure:"DisableUploadTraffic"`
+	DisableGetRule       bool                 `mapstructure:"DisableGetRule"`
+	EnableProxyProtocol  bool                 `mapstructure:"EnableProxyProtocol"`
+	EnableFallback       bool                 `mapstructure:"EnableFallback"`
+	DisableIVCheck       bool                 `mapstructure:"DisableIVCheck"`
+	DisableSniffing      bool                 `mapstructure:"DisableSniffing"`
+	DynamicSpeedConfig   *DynamicSpeedConfig  `mapstructure:"DynamicSpeedConfig"`
+	RedisConfig          *limiter.RedisConfig `mapstructure:"RedisConfig"`
+	FallBackConfigs      []*FallBackConfig    `mapstructure:"FallBackConfigs"`
+	EnableREALITY        bool                 `mapstructure:"EnableREALITY"`
+	REALITYConfigs       *REALITYConfig       `mapstructure:"REALITYConfigs"`
 }
 
-type AutoSpeedLimitConfig struct {
+type DynamicSpeedConfig struct {
 	Limit         int `mapstructure:"Limit"` // mbps
 	WarnTimes     int `mapstructure:"WarnTimes"`
 	LimitSpeed    int `mapstructure:"LimitSpeed"`    // mbps
