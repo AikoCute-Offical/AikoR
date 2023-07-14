@@ -59,7 +59,7 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 		}
 
 		u.DeviceLimit = c.DeviceLimit // todo waiting v2board send configuration
-		u.Email = u.UUID + "@v2board.user"
+		u.Email = u.UUID + "@aikopanel.user"
 		if c.NodeType == "Shadowsocks" {
 			u.Passwd = u.UUID
 		}
