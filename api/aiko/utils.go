@@ -33,15 +33,10 @@ func New(apiConfig *api.Config) *APIClient {
 		}
 	})
 	client.SetBaseURL(apiConfig.APIHost)
-	// Create Key for each requests
-	nodeType := strings.ToLower(apiConfig.NodeType) 
-	if apiConfig.EnableVless {
-		nodeType = "vless"
-	}
 
 	client.SetQueryParams(map[string]string{
 		"node_id":   strconv.Itoa(apiConfig.NodeID),
-		"node_type": nodeType,
+		"node_type": strings.ToLower(apiConfig.NodeType),
 		"token":     apiConfig.Key,
 	})
 	// Read local rule list
@@ -192,7 +187,7 @@ func (c *APIClient) parseV2rayNodeResponse(s *serverConfig) (*api.NodeInfo, erro
 		EnableTLS:         enableTLS,
 		Path:              s.NetworkSettings.Path,
 		Host:              host,
-		EnableVless:       c.EnableVless,
+		EnableVless:       c.EnableVless || s.Vless,
 		VlessFlow:         c.VlessFlow,
 		ServiceName:       s.NetworkSettings.ServiceName,
 		Header:            header,
