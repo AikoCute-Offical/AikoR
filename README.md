@@ -15,7 +15,7 @@ AikoR Projects
 
 
 # Description of AikoR
-AikoR Supports Various Panels (Xflash, V2board, ProxyPanel, sspanel, Pmpanel...)
+AikoR Supports Various Panels (V2board, ProxyPanel, sspanel, Pmpanel...)
 
 An Xray-based back-end framework, supporting V2ay, Trojan, Shadowsocks protocols, extremely easily extensible and supporting multi-panel connection。
 
