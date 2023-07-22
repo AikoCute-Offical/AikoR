@@ -3,7 +3,7 @@ module github.com/AikoCute-Offical/AikoR
 go 1.20
 
 require (
-	github.com/beevik/ntp v1.0.0
+	github.com/beevik/ntp v1.2.0
 	github.com/bitly/go-simplejson v0.5.1
 	github.com/deckarep/golang-set v1.8.0
 	github.com/eko/gocache/lib/v4 v4.1.3
