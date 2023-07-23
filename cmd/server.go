@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"path"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -17,55 +19,78 @@ import (
 )
 
 var (
-	cfgFile string
-
-	serverCommand = &cobra.Command{
-		Use:   "server",
-		Short: "Backend AikoR For Aiko",
-		Run:   serverHandle,
-		Args:  cobra.NoArgs,
-	}
+	configFile string
+	version    = "1.3.4 Beta 2"
+	codename   = "AikoR"
+	intro      = "Backend AikoR For Aiko"
 )
+
+var serverCommand = &cobra.Command{
+	Use:     "server",
+	Short:   "Backend AikoR For Aiko",
+	Long:    `AikoR is a backend service for Aiko.`,
+	Version: fmt.Sprintf("%s %s (%s)", codename, version, intro),
+	Run: func(cmd *cobra.Command, args []string) {
+		config := getConfig()
+		panelConfig := &panel.Config{}
+		if err := config.Unmarshal(panelConfig); err != nil {
+			log.Panicf("Parse config file %v failed: %s \n", configFile, err)
+		}
+		p := panel.New(panelConfig)
+		lastTime := time.Now()
+		config.OnConfigChange(func(e fsnotify.Event) {
+			if time.Now().After(lastTime.Add(3 * time.Second)) {
+				fmt.Println("Config file changed:", e.Name)
+				p.Close()
+				runtime.GC()
+				if err := config.Unmarshal(panelConfig); err != nil {
+					log.Panicf("Parse config file %v failed: %s \n", configFile, err)
+				}
+				p.Start()
+				lastTime = time.Now()
+			}
+		})
+		p.Start()
+		defer p.Close()
+
+		runtime.GC()
+
+		osSignals := make(chan os.Signal, 1)
+		signal.Notify(osSignals, os.Interrupt, os.Kill, syscall.SIGTERM)
+		<-osSignals
+	},
+}
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	serverCommand.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./aiko.yml)")
+	serverCommand.PersistentFlags().StringVarP(&configFile, "config", "c", "", "config file for AikoR")
+	serverCommand.PersistentFlags().Bool("watch", true, "watch file path change")
 }
 
-func serverHandle(cmd *cobra.Command, args []string) {
-	config := getConfig()
-	panelConfig := &panel.Config{}
-	if err := config.Unmarshal(panelConfig); err != nil {
-		log.Panicf("Parse config file %v failed: %s \n", cfgFile, err)
+func initConfig() {
+	if configFile != "" {
+		viper.SetConfigFile(configFile)
+	} else {
+		viper.SetConfigName("aiko")
+		viper.SetConfigType("yml")
+		viper.AddConfigPath(".")
 	}
-	p := panel.New(panelConfig)
-	lastTime := time.Now()
-	config.OnConfigChange(func(e fsnotify.Event) {
-		if time.Now().After(lastTime.Add(3 * time.Second)) {
-			fmt.Println("Config file changed:", e.Name)
-			p.Close()
-			runtime.GC()
-			if err := config.Unmarshal(panelConfig); err != nil {
-				log.Panicf("Parse config file %v failed: %s \n", cfgFile, err)
-			}
-			p.Start()
-			lastTime = time.Now()
-		}
-	})
-	p.Start()
-	defer p.Close()
-	runtime.GC()
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Panicf("Config file error: %s \n", err)
+	}
+
+	viper.WatchConfig()
 }
 
 func getConfig() *viper.Viper {
 	config := viper.New()
 
-	if cfgFile != "" {
-		configName := path.Base(cfgFile)
-		configFileExt := path.Ext(cfgFile)
+	if configFile != "" {
+		configName := path.Base(configFile)
+		configFileExt := path.Ext(configFile)
 		configNameOnly := strings.TrimSuffix(configName, configFileExt)
-		configPath := path.Dir(cfgFile)
+		configPath := path.Dir(configFile)
 		config.SetConfigName(configNameOnly)
 		config.SetConfigType(strings.TrimPrefix(configFileExt, "."))
 		config.AddConfigPath(configPath)
@@ -84,23 +109,4 @@ func getConfig() *viper.Viper {
 	config.WatchConfig()
 
 	return config
-}
-
-func initConfig() {
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
-	} else {
-		viper.AddConfigPath(".")
-		viper.SetConfigName("aiko")
-		viper.SetConfigType("yml")
-	}
-
-	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	} else {
-		fmt.Println("Cannot use config file:", viper.ConfigFileUsed())
-		os.Exit(1)
-	}
 }

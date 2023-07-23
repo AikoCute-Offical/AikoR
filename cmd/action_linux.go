@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/AikoCute-Offical/AikoR/common/exec"
 	"github.com/spf13/cobra"
 	"time"
 )
@@ -24,9 +25,9 @@ var (
 	}
 	logCommand = cobra.Command{
 		Use:   "log",
-		Short: "Hiển thị log của AikoR",
+		Short: "Xuất log AikoR",
 		Run: func(_ *cobra.Command, _ []string) {
-			execCommandStd("journalctl", "-u", "AikoR.service", "-e", "--no-pager", "-f")
+			exec.RunCommandStd("journalctl", "-u", "AikoR.service", "-e", "--no-pager", "-f")
 		},
 	}
 )
@@ -41,68 +42,68 @@ func init() {
 func startHandle(_ *cobra.Command, _ []string) {
 	r, err := checkRunning()
 	if err != nil {
-		fmt.Println(Err("Lỗi khi kiểm tra trạng thái: ", err))
-		fmt.Println(Err("Không thể bắt đầu dịch vụ AikoR"))
+		fmt.Println(Err("Lỗi kiểm tra trạng thái: ", err))
+		fmt.Println(Err("Không thể khởi động AikoR"))
 		return
 	}
 	if r {
-		fmt.Println(Ok("AikoR đã chạy, không cần bắt đầu lại, nếu bạn muốn khởi động lại, vui lòng chọn restart"))
+		fmt.Println(Ok("AikoR đã được khởi chạy, không cần khởi động lại. Để khởi động lại, hãy chọn restart"))
 	}
-	_, err = execCommand("systemctl start AikoR.service")
+	_, err = exec.RunCommandByShell("systemctl start AikoR.service")
 	if err != nil {
-		fmt.Println(Err("Lỗi khi thực thi lệnh khởi động: ", err))
-		fmt.Println(Err("Không thể bắt đầu dịch vụ AikoR"))
+		fmt.Println(Err("Lỗi thực thi lệnh khởi động: ", err))
+		fmt.Println(Err("Không thể khởi động AikoR"))
 		return
 	}
 	time.Sleep(time.Second * 3)
 	r, err = checkRunning()
 	if err != nil {
-		fmt.Println(Err("Lỗi khi kiểm tra trạng thái: ", err))
-		fmt.Println(Err("Không thể bắt đầu dịch vụ AikoR"))
+		fmt.Println(Err("Lỗi kiểm tra trạng thái: ", err))
+		fmt.Println(Err("Không thể khởi động AikoR"))
 	}
 	if !r {
-		fmt.Println(Err("Có thể AikoR đã không khởi động thành công, vui lòng sử dụng lệnh AikoR log để xem thông tin log"))
+		fmt.Println(Err("Không thể khởi động AikoR, hãy sử dụng lệnh AikoR log để xem thông tin log sau"))
 		return
 	}
-	fmt.Println(Ok("Khởi động AikoR thành công, vui lòng sử dụng lệnh AikoR log để xem log"))
+	fmt.Println(Ok("Khởi động AikoR thành công, hãy sử dụng lệnh AikoR log để xem log chạy"))
 }
 
 func stopHandle(_ *cobra.Command, _ []string) {
-	_, err := execCommand("systemctl stop AikoR.service")
+	_, err := exec.RunCommandByShell("systemctl stop AikoR.service")
 	if err != nil {
-		fmt.Println(Err("Lỗi khi thực thi lệnh dừng: ", err))
-		fmt.Println(Err("Không thể dừng dịch vụ AikoR"))
+		fmt.Println(Err("Lỗi thực thi lệnh dừng: ", err))
+		fmt.Println(Err("Không thể dừng AikoR"))
 		return
 	}
 	time.Sleep(2 * time.Second)
 	r, err := checkRunning()
 	if err != nil {
-		fmt.Println(Err("Lỗi khi kiểm tra trạng thái: ", err))
-		fmt.Println(Err("Không thể dừng dịch vụ AikoR"))
+		fmt.Println(Err("Lỗi kiểm tra trạng thái:", err))
+		fmt.Println(Err("Không thể dừng AikoR"))
 		return
 	}
 	if r {
-		fmt.Println(Err("Dừng dịch vụ AikoR thất bại, có thể do thời gian dừng quá 2 giây, vui lòng kiểm tra lại thông tin log"))
+		fmt.Println(Err("Không thể dừng AikoR, có thể vì quá thời gian dừng quá 2 giây. Hãy kiểm tra thông tin log sau"))
 		return
 	}
-	fmt.Println(Ok("Dừng dịch vụ AikoR thành công"))
+	fmt.Println(Ok("Dừng AikoR thành công"))
 }
 
 func restartHandle(_ *cobra.Command, _ []string) {
-	_, err := execCommand("systemctl restart AikoR.service")
+	_, err := exec.RunCommandByShell("systemctl restart AikoR.service")
 	if err != nil {
-		fmt.Println(Err("Lỗi khi thực thi lệnh khởi động lại: ", err))
-		fmt.Println(Err("Không thể khởi động lại dịch vụ AikoR"))
+		fmt.Println(Err("Lỗi thực thi lệnh khởi động lại: ", err))
+		fmt.Println(Err("Không thể khởi động lại AikoR"))
 		return
 	}
 	r, err := checkRunning()
 	if err != nil {
-		fmt.Println(Err("Lỗi khi kiểm tra trạng thái: ", err))
-		fmt.Println(Err("Không thể khởi động lại dịch vụ AikoR"))
+		fmt.Println(Err("Lỗi kiểm tra trạng thái: ", err))
+		fmt.Println(Err("Không thể khởi động lại AikoR"))
 		return
 	}
 	if !r {
-		fmt.Println(Err("Có thể AikoR đã không khởi động thành công, vui lòng sử dụng lệnh AikoR log để xem thông tin log"))
+		fmt.Println(Err("Không thể khởi động AikoR, hãy sử dụng lệnh AikoR log để xem thông tin log sau"))
 		return
 	}
 	fmt.Println(Ok("Khởi động lại AikoR thành công"))

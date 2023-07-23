@@ -1,8 +1,8 @@
-
 package cmd
 
 import (
 	"fmt"
+	"github.com/AikoCute-Offical/AikoR/common/exec"
 	"strings"
 )
 
@@ -14,7 +14,7 @@ const (
 )
 
 func checkRunning() (bool, error) {
-	o, err := execCommand("systemctl status AikoR | grep Active")
+	o, err := exec.RunCommandByShell("systemctl status V2bX | grep Active")
 	if err != nil {
 		return false, err
 	}
