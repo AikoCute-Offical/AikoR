@@ -25,7 +25,7 @@ var (
 	intro      = "Backend AikoR For Aiko"
 )
 
-var serverCommand = &cobra.Command{
+var serverCommand = cobra.Command{
 	Use:     "server",
 	Short:   "Backend AikoR For Aiko",
 	Long:    `AikoR is a backend service for Aiko.`,
