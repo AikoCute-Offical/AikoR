@@ -35,6 +35,7 @@ func init() {
 }
 
 func serverHandle(cmd *cobra.Command, args []string) {
+	showVersion()
 	config := getConfig()
 	panelConfig := &panel.Config{}
 	if err := config.Unmarshal(panelConfig); err != nil {
