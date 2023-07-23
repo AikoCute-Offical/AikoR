@@ -19,7 +19,7 @@ import (
 var (
 	cfgFile string
 
-	serverCommand = &cobra.Command{
+	serverCommand = cobra.Command{
 		Use:   "server",
 		Short: "Backend AikoR For Aiko",
 		Run:   serverHandle,
@@ -31,10 +31,10 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	serverCommand.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./aiko.yml)")
-	command.AddCommand(serverCommand)
+	command.AddCommand(&serverCommand)
 }
 
-func serverHandle(cmd *cobra.Command, args []string) {
+func serverHandle(_ *cobra.Command, _ []string) {
 	showVersion()
 	config := getConfig()
 	panelConfig := &panel.Config{}
