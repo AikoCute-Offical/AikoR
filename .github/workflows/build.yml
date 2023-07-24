@@ -1,4 +1,4 @@
-name: build test
+name: Build and test AikoR
 on:
   workflow_dispatch:
   push:
