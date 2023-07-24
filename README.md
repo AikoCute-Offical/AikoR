@@ -15,7 +15,7 @@ AikoR Projects
 
 
 # Description of AikoR
-AikoR Supports Various Panels (V2board, ProxyPanel, sspanel, Pmpanel...)
+AikoR Supports Various Panels (AikoPanel, V2board, ProxyPanel, sspanel, Pmpanel...)
 
 An Xray-based back-end framework, supporting V2ay, Trojan, Shadowsocks protocols, extremely easily extensible and supporting multi-panel connection。
 
@@ -59,27 +59,26 @@ This project is for my personal learning, development and maintenance only, I do
 | ------------------------------------------------------ | ----- | ------ | ------------------------------------------- |
 |  AikoPanel                                             | √     | √      | √                                           |
 | [v2board](https://github.com/v2board/v2board)          | √     | √      | √                                           |
+| [sspanel](https://github.com/Anankke/SSPanel-Uim)      | √     | √      | √                                           |
+| [ProxyPanel](https://github.com/ProxyPanel/ProxyPanel) | √     | √      | √                                           |
+| [pmpanel](https://github.com/Project-PMPanel/PMPanel)  | √     | √      | √                                           |
 
 ## Software installation - release
 ```
 wget --no-check-certificate -O AikoR.sh https://raw.githubusercontent.com/AikoCute-Offical/AikoR-Install/master/AikoR.sh && bash AikoR.sh
 ```
-### One main installation - docker-hub
-```
-docker pull aikocute/aikor:latest && docker run --restart=always --name aikor -d -v ${PATCH_TO_CONFIG}/aiko.yml:/etc/AikoR/aiko.yml --network=host aikocute/aikor:latest
-```
 
-### One main installation - docker-package
+## Docker
+
+### Docker installation
 ```
 docker pull ghcr.io/AikoCute-Offical/aikor:latest && docker run --restart=always --name aikor -d -v ${PATCH_TO_CONFIG}/aiko.yml:/etc/AikoR/aiko.yml --network=host ghcr.io/AikoCute-Offical/aikor:latest
 ```
 
-### Configuration file and detailed instructions
-Comming Soon
-## Telgram
-
-Comming Soon
-
+## Docker-compose installation
+```
+wget https://raw.githubusercontent.com/AikoCute-Offical/AikoR-Install/master/docker-compose.yml && docker-compose up -d
+```
 
 ## Stargazers over time
 
