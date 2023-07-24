@@ -32,7 +32,6 @@ type shadowsocks struct {
 }
 
 type v2ray struct {
-	Vless   bool   `json:"enable_vless"`
 	Network         string `json:"network"`
 	NetworkSettings struct {
 		Path        string           `json:"path"`
