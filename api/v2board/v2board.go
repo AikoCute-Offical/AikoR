@@ -54,10 +54,16 @@ func New(apiConfig *api.Config) *APIClient {
 		}
 	})
 	client.SetBaseURL(apiConfig.APIHost)
+	var Check_NodeType string
+	if apiConfig.EnableVless {
+		Check_NodeType = "vless"
+	} else {
+		Check_NodeType = apiConfig.NodeType
+	}
 	// Create Key for each requests
 	client.SetQueryParams(map[string]string{
 		"node_id":   strconv.Itoa(apiConfig.NodeID),
-		"node_type": strings.ToLower(apiConfig.NodeType),
+		"node_type": strings.ToLower(Check_NodeType),
 		"token":     apiConfig.Key,
 	})
 	// Read local rule list
