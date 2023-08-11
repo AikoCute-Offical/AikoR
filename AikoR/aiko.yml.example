@@ -48,7 +48,9 @@ Nodes:
         ReportLimitConfig:
           EnableReporting: false # Enable Report Limit to Telegram
           BotToken: "YOUR_BOT_TOKEN" # Telegram Bot Token
-          ChatID: "YOUR_CHAT_ID" # Telegram Chat ID
+          ChatIDs: # Chat IDs to send the report to
+            - 123456789
+            - 987654321
       EnableFallback: false # Only support for Trojan and Vless
       FallBackConfigs:  # Support multiple fallbacks
         - SNI: # TLS SNI(Server Name Indication), Empty for any

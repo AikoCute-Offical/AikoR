@@ -4,7 +4,6 @@ package limiter
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,6 +19,7 @@ import (
 	"golang.org/x/time/rate"
 
 	"github.com/AikoCute-Offical/AikoR/api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 type UserInfo struct {
@@ -159,7 +159,7 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 	return &onlineUser, nil
 }
 
-func (l *Limiter) GetUserBucket(tag string, email string, ip string, reportConfig *ReportLimit) (limiter *rate.Limiter, SpeedLimit bool, Reject bool) {
+func (l *Limiter) GetUserBucket(tag string, email string, ip string, ReportLimitConfig *ReportLimit) (limiter *rate.Limiter, SpeedLimit bool, Reject bool) {
 	if value, ok := l.InboundInfo.Load(tag); ok {
 		var (
 			userLimit        uint64 = 0
@@ -191,12 +191,15 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string, reportConfi
 				})
 				if counter > deviceLimit && deviceLimit > 0 { // Reject device reach limit directly
 					// Report to Telegram
-					if reportConfig != nil && reportConfig.EnableReporting {
-						if reportConfig.BotToken == "" || reportConfig.ChatID == "" {
+					if ReportLimitConfig != nil && ReportLimitConfig.EnableReporting {
+						if ReportLimitConfig.BotToken == "" || len(ReportLimitConfig.ChatIDs) == 0 {
 							newError("Telegram bot token or chat id is empty").AtError().WriteToLog()
 						} else {
 							message := fmt.Sprintf("Warning: ID: %d - UUID `%s` from IP %s exceeded limit!", uid, email, ip)
-							_ = sendTelegramMessage(reportConfig.BotToken, reportConfig.ChatID, message)
+							err := sendTelegramMessage(ReportLimitConfig.BotToken, ReportLimitConfig.ChatIDs, message)
+							if err != nil {
+								newError("Failed to send Telegram message").Base(err).AtError().WriteToLog()
+							}
 						}
 						return nil, false, true
 					}
@@ -296,16 +299,28 @@ func determineRate(nodeLimit, userLimit uint64) (limit uint64) {
 	}
 }
 
-func sendTelegramMessage(botToken string, chatID string, message string) error {
-	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s", botToken, chatID, message)
-	resp, err := http.Get(apiURL)
+func sendTelegramMessage(botToken string, chatIDs []string, message string) error {
+	bot, err := tgbotapi.NewBotAPI(botToken)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("failed to send message to Telegram, status code: %d", resp.StatusCode)
+	var lastError error // Biến này dùng để lưu trữ lỗi cuối cùng gặp phải
+
+	for _, chatID := range chatIDs {
+		userID, err := strconv.ParseInt(chatID, 10, 64)
+		if err != nil {
+			lastError = err
+			continue // Bỏ qua và tiếp tục với chatID tiếp theo
+		}
+
+		msg := tgbotapi.NewMessage(userID, message)
+		_, err = bot.Send(msg)
+		if err != nil {
+			lastError = err
+			continue // Bỏ qua và tiếp tục với chatID tiếp theo
+		}
 	}
-	return nil
+
+	return lastError // Trả về lỗi cuối cùng (nếu có)
 }
