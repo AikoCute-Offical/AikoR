@@ -4,6 +4,7 @@ package limiter
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -158,7 +159,7 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 	return &onlineUser, nil
 }
 
-func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *rate.Limiter, SpeedLimit bool, Reject bool) {
+func (l *Limiter) GetUserBucket(tag string, email string, ip string, reportConfig *ReportLimit) (limiter *rate.Limiter, SpeedLimit bool, Reject bool) {
 	if value, ok := l.InboundInfo.Load(tag); ok {
 		var (
 			userLimit        uint64 = 0
@@ -188,9 +189,17 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *r
 					counter++
 					return true
 				})
-				if counter > deviceLimit && deviceLimit > 0 {
-					ipMap.Delete(ip)
-					return nil, false, true
+				if counter > deviceLimit && deviceLimit > 0 { // Reject device reach limit directly
+					// Report to Telegram
+					if reportConfig != nil && reportConfig.EnableReporting {
+						if reportConfig.BotToken == "" || reportConfig.ChatID == "" {
+							newError("Telegram bot token or chat id is empty").AtError().WriteToLog()
+						} else {
+							message := fmt.Sprintf("Warning: ID: %d - UUID `%s` from IP %s exceeded limit!", uid, email, ip)
+							_ = sendTelegramMessage(reportConfig.BotToken, reportConfig.ChatID, message)
+						}
+						return nil, false, true
+					}
 				}
 			}
 		}
@@ -285,4 +294,18 @@ func determineRate(nodeLimit, userLimit uint64) (limit uint64) {
 			return nodeLimit
 		}
 	}
+}
+
+func sendTelegramMessage(botToken string, chatID string, message string) error {
+	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s", botToken, chatID, message)
+	resp, err := http.Get(apiURL)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("failed to send message to Telegram, status code: %d", resp.StatusCode)
+	}
+	return nil
 }
