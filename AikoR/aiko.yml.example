@@ -45,7 +45,7 @@ Nodes:
         RedisDB: 0 # Redis DB (Redis database number, default 0, no need to change)
         Timeout: 5 # Timeout for Redis request
         Expiry: 60 # Expiry time ( Cache time of online IP, unit: second )
-        ReportLimit:
+        ReportLimitConfig:
           EnableReporting: false # Enable Report Limit to Telegram
           BotToken: "YOUR_BOT_TOKEN" # Telegram Bot Token
           ChatID: "YOUR_CHAT_ID" # Telegram Chat ID
