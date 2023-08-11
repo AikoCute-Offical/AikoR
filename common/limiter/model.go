@@ -11,7 +11,7 @@ type RedisConfig struct {
 }
 
 type ReportLimit struct {
-	EnableReporting bool   `mapstructure:"EnableReporting"`
-	BotToken        string `mapstructure:"BotToken"`
-	ChatID          string `mapstructure:"ChatID"`
+	EnableReporting bool     `mapstructure:"EnableReporting"`
+	BotToken        string   `mapstructure:"BotToken"`
+	ChatIDs         []string `mapstructure:"ChatIDs"`
 }
