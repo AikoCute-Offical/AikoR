@@ -19,7 +19,6 @@ import (
 	"golang.org/x/time/rate"
 
 	"github.com/AikoCute-Offical/AikoR/api"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 type UserInfo struct {
@@ -159,7 +158,7 @@ func (l *Limiter) GetOnlineDevice(tag string) (*[]api.OnlineUser, error) {
 	return &onlineUser, nil
 }
 
-func (l *Limiter) GetUserBucket(tag string, email string, ip string, ReportLimitConfig *ReportLimit) (limiter *rate.Limiter, SpeedLimit bool, Reject bool) {
+func (l *Limiter) GetUserBucket(tag string, email string, ip string) (limiter *rate.Limiter, SpeedLimit bool, Reject bool) {
 	if value, ok := l.InboundInfo.Load(tag); ok {
 		var (
 			userLimit        uint64 = 0
@@ -189,20 +188,9 @@ func (l *Limiter) GetUserBucket(tag string, email string, ip string, ReportLimit
 					counter++
 					return true
 				})
-				if counter > deviceLimit && deviceLimit > 0 { // Reject device reach limit directly
-					// Report to Telegram
-					if ReportLimitConfig != nil && ReportLimitConfig.EnableReporting {
-						if ReportLimitConfig.BotToken == "" || len(ReportLimitConfig.ChatIDs) == 0 {
-							newError("Telegram bot token or chat id is empty").AtError().WriteToLog()
-						} else {
-							message := fmt.Sprintf("Warning: ID: %d - UUID `%s` from IP %s exceeded limit!", uid, email, ip)
-							err := sendTelegramMessage(ReportLimitConfig.BotToken, ReportLimitConfig.ChatIDs, message)
-							if err != nil {
-								newError("Failed to send Telegram message").Base(err).AtError().WriteToLog()
-							}
-						}
-						return nil, false, true
-					}
+				if counter > deviceLimit && deviceLimit > 0 {
+					ipMap.Delete(ip)
+					return nil, false, true
 				}
 			}
 		}
@@ -297,30 +285,4 @@ func determineRate(nodeLimit, userLimit uint64) (limit uint64) {
 			return nodeLimit
 		}
 	}
-}
-
-func sendTelegramMessage(botToken string, chatIDs []string, message string) error {
-	bot, err := tgbotapi.NewBotAPI(botToken)
-	if err != nil {
-		return err
-	}
-
-	var lastError error // Biến này dùng để lưu trữ lỗi cuối cùng gặp phải
-
-	for _, chatID := range chatIDs {
-		userID, err := strconv.ParseInt(chatID, 10, 64)
-		if err != nil {
-			lastError = err
-			continue // Bỏ qua và tiếp tục với chatID tiếp theo
-		}
-
-		msg := tgbotapi.NewMessage(userID, message)
-		_, err = bot.Send(msg)
-		if err != nil {
-			lastError = err
-			continue // Bỏ qua và tiếp tục với chatID tiếp theo
-		}
-	}
-
-	return lastError // Trả về lỗi cuối cùng (nếu có)
 }
