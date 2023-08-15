@@ -51,14 +51,18 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 			UUID: users[i].Uuid,
 		}
 
-		// Support 1.7.1 speed limit
 		if c.SpeedLimit > 0 {
 			u.SpeedLimit = uint64(c.SpeedLimit * 1000000 / 8)
 		} else {
 			u.SpeedLimit = uint64(users[i].SpeedLimit * 1000000 / 8)
 		}
 
-		u.DeviceLimit = c.DeviceLimit // todo waiting v2board send configuration
+		if c.DeviceLimit > 0 {
+			u.DeviceLimit = c.DeviceLimit
+		} else {
+			u.DeviceLimit = users[i].DeviceLimit
+		}
+
 		u.Email = u.UUID + "@aikopanel.user"
 		if c.NodeType == "Shadowsocks" {
 			u.Passwd = u.UUID
