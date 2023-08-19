@@ -57,10 +57,10 @@ func (c *APIClient) GetUserList() (UserList *[]api.UserInfo, err error) {
 			u.SpeedLimit = uint64(users[i].SpeedLimit * 1000000 / 8)
 		}
 
-		if c.DeviceLimit > 0 {
-			u.DeviceLimit = c.DeviceLimit
-		} else {
+		if users[i].DeviceLimit > 0 {
 			u.DeviceLimit = users[i].DeviceLimit
+		} else {
+			u.DeviceLimit = c.DeviceLimit
 		}
 
 		u.Email = u.UUID + "@aikopanel.user"
