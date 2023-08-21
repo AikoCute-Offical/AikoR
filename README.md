@@ -13,6 +13,10 @@ AikoR Projects
 [![Go-Report](https://goreportcard.com/badge/github.com/AikoCute-Offical/AikoR?style=flat-square)](https://goreportcard.com/report/github.com/AikoCute-Offical/AikoR)
 </div>
 
+# Project change to AikoPanel repo 
+
+[AikoR-New](https://github.com/AikoPanel/Aiko-Server)
+
 
 # Description of AikoR
 AikoR Supports Various Panels (AikoPanel, V2board, ProxyPanel, sspanel, Pmpanel...)
